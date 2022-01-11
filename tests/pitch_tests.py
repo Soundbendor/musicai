@@ -1,10 +1,13 @@
 import unittest
-
 from musicai.structure.pitch import Pitch, Accidental, Step
-
 
 class StepTest(unittest.TestCase):
     def test_Step_from_str(self):
+        
+        print("HI")
+
+        self.assertEqual(sum((1, 2, 2)), 6, "Should be 6")
+        
         # valid values
         self.assertEqual(Step.from_str('C'), Step.C)
         self.assertEqual(Step.from_str('c'), Step.C)
