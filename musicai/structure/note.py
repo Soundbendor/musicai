@@ -54,7 +54,7 @@ class NoteType(Enum):
     # Override
     # --------
     def __float__(self) -> float:
-        return self.value
+        return float(self.value)
 
     def __str__(self) -> str:
         return self.name.title()

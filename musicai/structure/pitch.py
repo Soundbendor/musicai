@@ -14,13 +14,13 @@ class Step(Enum):
     """
     Enum to represent whole tone steps
     """
-    C = 0, 0 #, Color.red
-    D = 2, 1 #, Color.orange
-    E = 4, 2 #, Color.yellow
-    F = 5, 3 #, Color.green
-    G = 7, 4 #, Color.blue
-    A = 9, 5 #, Color.indigo
-    B = 11, 6 #, Color.purple
+    C = 0, 0  # Color.red
+    D = 2, 1  # Color.orange
+    E = 4, 2  # Color.yellow
+    F = 5, 3  # Color.green
+    G = 7, 4  # Color.blue
+    A = 9, 5  # Color.indigo
+    B = 11, 6  # Color.purple
 
     # -----------
     # Constructor
@@ -121,9 +121,9 @@ class Step(Enum):
     def has_value(cls, value: int) -> bool:
         return value % 12 in cls._value2member_map_
 
-    #@classmethod
-    #def from_color(cls, color_step: Color) -> 'Step':
-        #for name, offset in Accidental.__members__.items():
+    # @classmethod
+    # def from_color(cls, color_step: Color) -> 'Step':
+    # for name, offset in Accidental.__members__.items():
 
     @classmethod
     def from_int(cls, int_step: int) -> Union['Step', 'Chromatic']:
@@ -155,14 +155,6 @@ class Step(Enum):
             raise ValueError('Cannot convert string {0} to Step'.format(str_step))
 
 
-
-
-
-
-
-
-
-
 # -----------
 # Octave enum
 # -----------
@@ -176,7 +168,7 @@ class Octave(Enum):
     CONTRA = (1, '16 Foot', -3, 24, 35, 27.5, 65.41, 123.47)
     GREAT = (2, '8 Foot', -2, 36, 47, 130.81, 246.94)
     SMALL = (3, '4 Foot', -1, 48, 59, 261.63, 493.88)
-    ONE_LINE = (4, '2 Foot', 0, 60, 71, 523.25) # TODO finish
+    ONE_LINE = (4, '2 Foot', 0, 60, 71, 523.25)  # TODO finish
     TWO_LINE = (5, '1 Foot', 1, 72, 83)
     THREE_LINE = (6, '3 Line', 2, 84, 95)
     FOUR_LINE = (7, '4 Line', 3, 96, 107)
