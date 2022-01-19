@@ -1,0 +1,7 @@
+
+.idea/misc.xml
+.idea/musicai.iml
+musicai/structure/__pycache__/__init__.cpython-310.pyc
+musicai/structure/__pycache__/attribute.cpython-310.pyc
+musicai/structure/__pycache__/clef.cpython-310.pyc
+musicai/structure/__pycache__/pitch.cpython-310.pyc

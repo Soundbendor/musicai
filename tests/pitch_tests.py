@@ -4,7 +4,7 @@ from musicai.structure.pitch import Pitch, Accidental, Step
 class StepTest(unittest.TestCase):
     def test_Step_from_str(self):
 
-        
+
         # valid values
         self.assertEqual(Step.from_str('C'), Step.C)
         self.assertEqual(Step.from_str('c'), Step.C)
@@ -35,6 +35,54 @@ class AccidentalTest(unittest.TestCase):
         self.assertRaises(ValueError, Accidental.from_abc, '^=')
         self.assertRaises(ValueError, Accidental.from_abc, '_=')
         self.assertRaises(ValueError, Accidental.from_abc, 'foo')
+
+    def test_float_override(self):
+        # valid values
+        self.assertEqual(float(Accidental.TRIPLE_FLAT), -3.0)
+        self.assertEqual(float(Accidental.DOUBLE_FLAT), -2.0)
+        self.assertEqual(float(Accidental.FLAT_FLAT), -2.0)
+        self.assertEqual(float(Accidental.FLAT), -1.0)
+        self.assertEqual(float(Accidental.NATURAL_FLAT), -1.0)
+        self.assertEqual(float(Accidental.THREE_QUARTERS_FLAT), -0.75)
+        self.assertEqual(float(Accidental.QUARTER_FLAT), -0.25)
+        self.assertEqual(float(Accidental.NONE), 0.0)
+        self.assertEqual(float(Accidental.NATURAL), 0.0)
+        # self.assertEqual(float(Accidental.NATURAL_NATURAL), '♮')
+        self.assertEqual(float(Accidental.QUARTER_SHARP), 0.25)
+        self.assertEqual(float(Accidental.THREE_QUARTERS_SHARP), 0.75)
+        self.assertEqual(float(Accidental.SHARP), 1.0)
+        self.assertEqual(float(Accidental.NATURAL_SHARP), 1.0)
+        self.assertEqual(float(Accidental.DOUBLE_SHARP), 2.0)
+        self.assertEqual(float(Accidental.SHARP_SHARP), 2.0)
+        self.assertEqual(float(Accidental.TRIPLE_SHARP), 3.0)
+
+        # invalid values
+        # self.assertRaises(ValueError, str, Accidental.)
+
+    def test_str_override(self):
+        # valid values
+        self.assertEqual(str(Accidental.TRIPLE_FLAT), '♭𝄫')
+        self.assertEqual(str(Accidental.DOUBLE_FLAT), '𝄫')
+        self.assertEqual(str(Accidental.FLAT_FLAT), '♭♭')
+        self.assertEqual(str(Accidental.FLAT), '♭')
+        self.assertEqual(str(Accidental.NATURAL_FLAT), '♮♭')
+        self.assertEqual(str(Accidental.THREE_QUARTERS_FLAT), '𝄳♭')
+        self.assertEqual(str(Accidental.QUARTER_FLAT), '𝄳')
+        self.assertEqual(str(Accidental.NONE), '')
+        self.assertEqual(str(Accidental.NATURAL), '♮')
+        # self.assertEqual(str(Accidental.NATURAL_NATURAL), '♮')
+        self.assertEqual(str(Accidental.QUARTER_SHARP), '𝄲')
+        self.assertEqual(str(Accidental.THREE_QUARTERS_SHARP), '𝄲♯')
+        self.assertEqual(str(Accidental.SHARP), '♯')
+        self.assertEqual(str(Accidental.NATURAL_SHARP), '♮♯')
+        self.assertEqual(str(Accidental.DOUBLE_SHARP), '𝄪')
+        self.assertEqual(str(Accidental.SHARP_SHARP), '♯♯')
+        self.assertEqual(str(Accidental.TRIPLE_SHARP), '♯𝄪')
+
+        # invalid values
+        # self.assertRaises(ValueError, str, Accidental.)
+
+
 
 
 class PitchTest(unittest.TestCase):

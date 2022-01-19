@@ -356,28 +356,53 @@ class Accidental(Enum):
     @classmethod
     def from_abc(cls, abc_accidental):
         str_accidental = str(abc_accidental).strip()
-        if str_accidental == '':
-            return Accidental.NONE
-        elif str_accidental == '^':
-            return Accidental.SHARP
-        elif str_accidental == '_':
-            return Accidental.FLAT
-        elif str_accidental == '=':
-            return Accidental.NATURAL
-        elif str_accidental == '^^':
-            return Accidental.DOUBLE_SHARP
-        elif str_accidental == '__':
-            return Accidental.DOUBLE_FLAT
-        elif str_accidental == '=^':
-            return Accidental.NATURAL_SHARP
-        elif str_accidental == '=_':
-            return Accidental.NATURAL_FLAT
-        elif str_accidental == '^^^':
-            return Accidental.TRIPLE_SHARP
-        elif str_accidental == '___':
-            return Accidental.TRIPLE_FLAT
-        else:
-            raise ValueError('Error: abc accidental {0} not found.'.format(abc_accidental))
+
+        match str_accidental:
+            case '':
+                return Accidental.NONE
+            case '^':
+                return Accidental.SHARP
+            case '_':
+                return Accidental.FLAT
+            case '=':
+                return Accidental.NATURAL
+            case '^^':
+                return Accidental.DOUBLE_SHARP
+            case '__':
+                return Accidental.DOUBLE_FLAT
+            case '=^':
+                return Accidental.NATURAL_SHARP
+            case '=_':
+                return Accidental.NATURAL_FLAT
+            case '^^^':
+                return Accidental.TRIPLE_SHARP
+            case '___':
+                return Accidental.TRIPLE_FLAT
+            case _:
+                raise ValueError('Error: abc accidental {0} not found.'.format(abc_accidental))
+
+        # if str_accidental == '':
+        #     return Accidental.NONE
+        # elif str_accidental == '^':
+        #     return Accidental.SHARP
+        # elif str_accidental == '_':
+        #     return Accidental.FLAT
+        # elif str_accidental == '=':
+        #     return Accidental.NATURAL
+        # elif str_accidental == '^^':
+        #     return Accidental.DOUBLE_SHARP
+        # elif str_accidental == '__':
+        #     return Accidental.DOUBLE_FLAT
+        # elif str_accidental == '=^':
+        #     return Accidental.NATURAL_SHARP
+        # elif str_accidental == '=_':
+        #     return Accidental.NATURAL_FLAT
+        # elif str_accidental == '^^^':
+        #     return Accidental.TRIPLE_SHARP
+        # elif str_accidental == '___':
+        #     return Accidental.TRIPLE_FLAT
+        # else:
+        #     raise ValueError('Error: abc accidental {0} not found.'.format(abc_accidental))
 
 
 # -----------

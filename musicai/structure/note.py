@@ -19,10 +19,10 @@ class NoteType(Enum):
     Representation the relative duration of a note or rest symbol
     """
 
-    LARGE = (8, 'Large', '\U0001D1B6', '\U0001D13A')
-    LONG = (4, 'Long', '\U0001D1B7', '\U0001D13A')
-    DOUBLE = (2, 'Double', '\U0001D15C', '\U0001D13B')
-    WHOLE = (1, 'Whole', '\U0001D15D', '\U0001D13B')
+    LARGE = (8.0, 'Large', '\U0001D1B6', '\U0001D13A')
+    LONG = (4.0, 'Long', '\U0001D1B7', '\U0001D13A')
+    DOUBLE = (2.0, 'Double', '\U0001D15C', '\U0001D13B')
+    WHOLE = (1.0, 'Whole', '\U0001D15D', '\U0001D13B')
     HALF = (0.5, 'Half', '\U0001D15E', '\U0001D13C')
     QUARTER = (0.25, 'Quarter', '\U0001D15F', '\U0001D13D')
     EIGHTH = (0.125, '8th', '\U0001D160', '\U0001D13E')
@@ -35,7 +35,7 @@ class NoteType(Enum):
     ONE_THOUSAND_TWENTY_FOURTH = (0.000976563, '1024th', '1024th', 'r1024th')
     TWO_THOUSAND_FORTY_EIGHTH = (0.000488281, '2048th', '2048th', 'r2048th')
     FOUR_THOUSAND_NINETY_SIXTH = (0.000244141, '4096th', '4096th', 'r4096th')
-    NONE = (0, '', '', '')
+    NONE = (0.0, '', '', '')
 
     # -----------
     # Constructor
