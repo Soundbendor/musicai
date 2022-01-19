@@ -5,3 +5,9 @@ musicai/structure/__pycache__/__init__.cpython-310.pyc
 musicai/structure/__pycache__/attribute.cpython-310.pyc
 musicai/structure/__pycache__/clef.cpython-310.pyc
 musicai/structure/__pycache__/pitch.cpython-310.pyc
+.idea/misc.xml
+.idea/musicai.iml
+musicai/__pycache__/__init__.cpython-310.pyc
+.idea/musicai.iml
+*.xml
+*.iml
