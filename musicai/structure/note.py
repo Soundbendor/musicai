@@ -20,7 +20,7 @@ class NoteType(Enum):
     """
 
     LARGE = (8.0, 'Large', '\U0001D1B6', '\U0001D13A')
-    LONG = (4.0, 'Long', '\U0001D1B7', '\U0001D13A')
+    LONG = (4, 'Long', '\U0001D1B7', '\U0001D13A')
     DOUBLE = (2.0, 'Double', '\U0001D15C', '\U0001D13B')
     WHOLE = (1.0, 'Whole', '\U0001D15D', '\U0001D13B')
     HALF = (0.5, 'Half', '\U0001D15E', '\U0001D13C')
@@ -54,6 +54,11 @@ class NoteType(Enum):
     # Override
     # --------
     def __float__(self) -> float:
+        try:
+            return self.value
+        except TypeError:
+            print('Special Error Message')
+
         return float(self.value)
 
     def __str__(self) -> str:
@@ -101,6 +106,8 @@ class NoteType(Enum):
     #                 return nt
     #     raise ValueError('Cannot find NoteType to match {0} of type {1}'.format(lookup, type(lookup)))
 
+
+print (float(NoteType.LONG))
 
 # -------------
 # DotType enum

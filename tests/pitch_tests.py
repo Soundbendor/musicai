@@ -241,6 +241,220 @@ class StepTest(unittest.TestCase):
         self.assertRaises(TypeError, operator.sub, Step.A, 'string')
         self.assertRaises(TypeError, operator.sub, Step.B, 'string')
 
+    def test_mod_override(self):
+        # valid values for step-step modulo
+        self.assertEqual(Step.C % Step.D, 0)
+        self.assertEqual(Step.C % Step.E, 0)
+        self.assertEqual(Step.C % Step.F, 0)
+        self.assertEqual(Step.C % Step.G, 0)
+        self.assertEqual(Step.C % Step.A, 0)
+        self.assertEqual(Step.C % Step.B, 0)
+
+        self.assertEqual(Step.D % Step.D, 0)
+        self.assertEqual(Step.D % Step.E, 2)
+        self.assertEqual(Step.D % Step.F, 2)
+        self.assertEqual(Step.D % Step.G, 2)
+        self.assertEqual(Step.D % Step.A, 2)
+        self.assertEqual(Step.D % Step.B, 2)
+
+        self.assertEqual(Step.E % Step.D, 0)
+        self.assertEqual(Step.E % Step.E, 0)
+        self.assertEqual(Step.E % Step.F, 4)
+        self.assertEqual(Step.E % Step.G, 4)
+        self.assertEqual(Step.E % Step.A, 4)
+        self.assertEqual(Step.E % Step.B, 4)
+
+        self.assertEqual(Step.F % Step.D, 1)
+        self.assertEqual(Step.F % Step.E, 1)
+        self.assertEqual(Step.F % Step.F, 0)
+        self.assertEqual(Step.F % Step.G, 5)
+        self.assertEqual(Step.F % Step.A, 5)
+        self.assertEqual(Step.F % Step.B, 5)
+
+        self.assertEqual(Step.G % Step.D, 1)
+        self.assertEqual(Step.G % Step.E, 3)
+        self.assertEqual(Step.G % Step.F, 2)
+        self.assertEqual(Step.G % Step.G, 0)
+        self.assertEqual(Step.G % Step.A, 7)
+        self.assertEqual(Step.G % Step.B, 7)
+
+        self.assertEqual(Step.A % Step.D, 1)
+        self.assertEqual(Step.A % Step.E, 1)
+        self.assertEqual(Step.A % Step.F, 4)
+        self.assertEqual(Step.A % Step.G, 2)
+        self.assertEqual(Step.A % Step.A, 0)
+        self.assertEqual(Step.A % Step.B, 9)
+
+        self.assertEqual(Step.B % Step.D, 1)
+        self.assertEqual(Step.B % Step.E, 3)
+        self.assertEqual(Step.B % Step.F, 1)
+        self.assertEqual(Step.B % Step.G, 4)
+        self.assertEqual(Step.B % Step.A, 2)
+        self.assertEqual(Step.B % Step.B, 0)
+
+        # valid values for step-nonstep modulo
+        self.assertEqual(Step.C % 1, 0)
+        self.assertEqual(Step.C % 2, 0)
+        self.assertEqual(Step.C % 1.0, 0)
+        self.assertEqual(Step.C % 2.0, 0)
+
+        self.assertEqual(Step.D % 1, 0)
+        self.assertEqual(Step.D % 2, 0)
+        self.assertEqual(Step.D % 1.0, 0)
+        self.assertEqual(Step.D % 2.0, 0)
+
+        self.assertEqual(Step.E % 1, 0)
+        self.assertEqual(Step.E % 2, 0)
+        self.assertEqual(Step.E % 1.0, 0)
+        self.assertEqual(Step.E % 2.0, 0)
+
+        self.assertEqual(Step.F % 1, 0)
+        self.assertEqual(Step.F % 2, 1)
+        self.assertEqual(Step.F % 1.0, 0)
+        self.assertEqual(Step.F % 2.0, 1)
+
+        self.assertEqual(Step.G % 1, 0)
+        self.assertEqual(Step.G % 2, 1)
+        self.assertEqual(Step.G % 1.0, 0)
+        self.assertEqual(Step.G % 2.0, 1)
+
+        self.assertEqual(Step.A % 1, 0)
+        self.assertEqual(Step.A % 2, 1)
+        self.assertEqual(Step.A % 1.0, 0)
+        self.assertEqual(Step.A % 2.0, 1)
+
+        self.assertEqual(Step.B % 1, 0)
+        self.assertEqual(Step.B % 2, 1)
+        self.assertEqual(Step.B % 1.0, 0)
+        self.assertEqual(Step.B % 2.0, 1)
+
+        # invalid values
+        self.assertRaises(ZeroDivisionError, operator.mod, Step.C, Step.C)
+        self.assertRaises(ZeroDivisionError, operator.mod, Step.D, Step.C)
+        self.assertRaises(ZeroDivisionError, operator.mod, Step.E, Step.C)
+        self.assertRaises(ZeroDivisionError, operator.mod, Step.F, Step.C)
+        self.assertRaises(ZeroDivisionError, operator.mod, Step.G, Step.C)
+        self.assertRaises(ZeroDivisionError, operator.mod, Step.A, Step.C)
+        self.assertRaises(ZeroDivisionError, operator.mod, Step.B, Step.C)
+
+        self.assertRaises(TypeError, operator.mod, Step.C, 'string')
+        self.assertRaises(TypeError, operator.mod, Step.D, 'string')
+        self.assertRaises(TypeError, operator.mod, Step.E, 'string')
+        self.assertRaises(TypeError, operator.mod, Step.F, 'string')
+        self.assertRaises(TypeError, operator.mod, Step.G, 'string')
+        self.assertRaises(TypeError, operator.mod, Step.A, 'string')
+        self.assertRaises(TypeError, operator.mod, Step.B, 'string')
+
+    def test_Step_next(self):
+        # valid values
+        self.assertEqual(Step.C.next(), Step.D)
+        self.assertEqual(Step.D.next(), Step.E)
+        self.assertEqual(Step.E.next(), Step.F)
+        self.assertEqual(Step.F.next(), Step.G)
+        self.assertEqual(Step.G.next(), Step.A)
+        self.assertEqual(Step.A.next(), Step.B)
+        self.assertEqual(Step.B.next(), Step.C)
+
+    def test_Step_prev(self):
+        # valid values
+        self.assertEqual(Step.C.prev(), Step.B)
+        self.assertEqual(Step.D.prev(), Step.C)
+        self.assertEqual(Step.E.prev(), Step.D)
+        self.assertEqual(Step.F.prev(), Step.E)
+        self.assertEqual(Step.G.prev(), Step.F)
+        self.assertEqual(Step.A.prev(), Step.G)
+        self.assertEqual(Step.B.prev(), Step.A)
+
+    def test_Step_diff(self):
+        # valid values
+        self.assertEqual(Step.C.diff(Step.C), 0)
+        self.assertEqual(Step.C.diff(Step.D), 1)
+        self.assertEqual(Step.C.diff(Step.E), 2)
+        self.assertEqual(Step.C.diff(Step.F), 3)
+        self.assertEqual(Step.C.diff(Step.G), 4)
+        self.assertEqual(Step.C.diff(Step.A), 5)
+        self.assertEqual(Step.C.diff(Step.B), 6)
+
+        self.assertEqual(Step.D.diff(Step.C), -1)
+        self.assertEqual(Step.D.diff(Step.D), 0)
+        self.assertEqual(Step.D.diff(Step.E), 1)
+        self.assertEqual(Step.D.diff(Step.F), 2)
+        self.assertEqual(Step.D.diff(Step.G), 3)
+        self.assertEqual(Step.D.diff(Step.A), 4)
+        self.assertEqual(Step.D.diff(Step.B), 5)
+
+        self.assertEqual(Step.E.diff(Step.C), -2)
+        self.assertEqual(Step.E.diff(Step.D), -1)
+        self.assertEqual(Step.E.diff(Step.E), 0)
+        self.assertEqual(Step.E.diff(Step.F), 1)
+        self.assertEqual(Step.E.diff(Step.G), 2)
+        self.assertEqual(Step.E.diff(Step.A), 3)
+        self.assertEqual(Step.E.diff(Step.B), 4)
+
+        self.assertEqual(Step.F.diff(Step.C), -3)
+        self.assertEqual(Step.F.diff(Step.D), -2)
+        self.assertEqual(Step.F.diff(Step.E), -1)
+        self.assertEqual(Step.F.diff(Step.F), 0)
+        self.assertEqual(Step.F.diff(Step.G), 1)
+        self.assertEqual(Step.F.diff(Step.A), 2)
+        self.assertEqual(Step.F.diff(Step.B), 3)
+
+        self.assertEqual(Step.G.diff(Step.C), -4)
+        self.assertEqual(Step.G.diff(Step.D), -3)
+        self.assertEqual(Step.G.diff(Step.E), -2)
+        self.assertEqual(Step.G.diff(Step.F), -1)
+        self.assertEqual(Step.G.diff(Step.G), 0)
+        self.assertEqual(Step.G.diff(Step.A), 1)
+        self.assertEqual(Step.G.diff(Step.B), 2)
+
+        self.assertEqual(Step.A.diff(Step.C), -5)
+        self.assertEqual(Step.A.diff(Step.D), -4)
+        self.assertEqual(Step.A.diff(Step.E), -3)
+        self.assertEqual(Step.A.diff(Step.F), -2)
+        self.assertEqual(Step.A.diff(Step.G), -1)
+        self.assertEqual(Step.A.diff(Step.A), 0)
+        self.assertEqual(Step.A.diff(Step.B), 1)
+
+        self.assertEqual(Step.B.diff(Step.C), -6)
+        self.assertEqual(Step.B.diff(Step.D), -5)
+        self.assertEqual(Step.B.diff(Step.E), -4)
+        self.assertEqual(Step.B.diff(Step.F), -3)
+        self.assertEqual(Step.B.diff(Step.G), -2)
+        self.assertEqual(Step.B.diff(Step.A), -1)
+        self.assertEqual(Step.B.diff(Step.B), 0)
+
+        # invalid values
+        self.assertRaises(TypeError, Step.C.diff, 'string')
+
+    def test_Step_has_name(self):
+        # valid values
+        self.assertEqual(Step.has_name('C'), True)
+        self.assertEqual(Step.has_name('D'), True)
+        self.assertEqual(Step.has_name('E'), True)
+        self.assertEqual(Step.has_name('F'), True)
+        self.assertEqual(Step.has_name('G'), True)
+        self.assertEqual(Step.has_name('A'), True)
+        self.assertEqual(Step.has_name('B'), True)
+
+        self.assertEqual(Step.has_name('string'), False)
+
+    def test_Step_has_value(self):
+        # valid values
+        self.assertEqual(Step.has_value(0), True)
+        self.assertEqual(Step.has_value(2), True)
+        self.assertEqual(Step.has_value(4), True)
+        self.assertEqual(Step.has_value(5), True)
+        self.assertEqual(Step.has_value(7), True)
+        self.assertEqual(Step.has_value(9), True)
+        self.assertEqual(Step.has_value(11), True)
+        self.assertEqual(Step.has_value(-1), True)
+
+        self.assertEqual(Step.has_value(1), False)
+        self.assertEqual(Step.has_value(3), False)
+        self.assertEqual(Step.has_value(6), False)
+        self.assertEqual(Step.has_value(8), False)
+        self.assertEqual(Step.has_value(10), False)
+
     def test_Step_from_str(self):
         # valid values
         self.assertEqual(Step.from_str('C'), Step.C)
@@ -293,9 +507,6 @@ class AccidentalTest(unittest.TestCase):
         self.assertEqual(float(Accidental.SHARP_SHARP), 2.0)
         self.assertEqual(float(Accidental.TRIPLE_SHARP), 3.0)
 
-        # invalid values
-        # self.assertRaises(ValueError, str, Accidental.)
-
     def test_str_override(self):
         # valid values
         self.assertEqual(str(Accidental.TRIPLE_FLAT), '♭𝄫')
@@ -315,9 +526,6 @@ class AccidentalTest(unittest.TestCase):
         self.assertEqual(str(Accidental.DOUBLE_SHARP), '𝄪')
         self.assertEqual(str(Accidental.SHARP_SHARP), '♯♯')
         self.assertEqual(str(Accidental.TRIPLE_SHARP), '♯𝄪')
-
-        # invalid values
-        # self.assertRaises(ValueError, str, Accidental.)
 
 
 

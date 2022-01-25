@@ -6,7 +6,6 @@ from pandas.plotting._matplotlib.style import Color
 
 from musicai.structure.clef import Clef
 
-
 # ---------
 # Step enum
 # ---------
@@ -153,7 +152,6 @@ class Step(Enum):
             # TODO: open question, should we accept and ignore accidentals, e.g. C♭ -> C ?
 
             raise ValueError('Cannot convert string {0} to Step'.format(str_step))
-
 
 # -----------
 # Octave enum
