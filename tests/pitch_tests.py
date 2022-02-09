@@ -1,10 +1,9 @@
 import operator
 import unittest
-from musicai.structure.pitch import Pitch, Accidental, Step
+from musicai.structure.pitch import Pitch, Accidental, Step, Octave
 
 
 class StepTest(unittest.TestCase):
-
     def test_int_override(self):
         # valid values
         self.assertEqual(int(Step.C), 0)
@@ -528,6 +527,118 @@ class AccidentalTest(unittest.TestCase):
         self.assertEqual(str(Accidental.TRIPLE_SHARP), '♯𝄪')
 
 
+
+
+class OctaveTest(unittest.TestCase):
+    def test_int_override(self):
+        # valid values
+        self.assertEqual(int(Octave.NONE), -2)
+        self.assertEqual(int(Octave.SUB_SUB_CONTRA), -1)
+        self.assertEqual(int(Octave.TWO_LINE), 5)
+        self.assertEqual(int(Octave.SEVEN_LINE), 10)
+
+    def test_str_override(self):
+        # valid values
+        self.assertEqual(str(Octave.NONE), '-2')
+        self.assertEqual(str(Octave.SUB_SUB_CONTRA), '-1')
+        self.assertEqual(str(Octave.TWO_LINE), '5')
+        self.assertEqual(str(Octave.SEVEN_LINE), '10')
+
+    def test_repr_override(self):
+        # valid values
+        self.assertEqual(repr(Octave.NONE), '<Octave(NONE)>')
+        self.assertEqual(repr(Octave.SUB_SUB_CONTRA), '<Octave(SUB_SUB_CONTRA)>')
+        self.assertEqual(repr(Octave.TWO_LINE), '<Octave(TWO_LINE)>')
+        self.assertEqual(repr(Octave.SEVEN_LINE), '<Octave(SEVEN_LINE)>')
+
+    def test_add_override(self):
+        # valid values
+        self.assertEqual(Octave.NONE + Octave.NONE, -4)
+        self.assertEqual(Octave.SUB_SUB_CONTRA + (-1), -2)
+        self.assertEqual(Octave.TWO_LINE + Octave.FOUR_LINE, 12)
+        self.assertEqual(Octave.SEVEN_LINE + Octave.SIX_LINE, 19)
+
+        # invalid value
+        self.assertRaises(TypeError, operator.add, Octave.TWO_LINE, 'string')
+
+    def test_radd_override(self):
+        # valid values
+        self.assertEqual(-2 + Octave.NONE, -4)
+        self.assertEqual(-1 + Octave.SUB_SUB_CONTRA, -2)
+        self.assertEqual(5 + Octave.FOUR_LINE, 12)
+        self.assertEqual(10 + Octave.SIX_LINE, 19)
+
+        # invalid value
+        # self.assertRaises(TypeError, operator.__radd__, Octave.TWO_LINE, 'string')
+
+    def test_sub_override(self):
+        # valid values
+        self.assertEqual(Octave.NONE - Octave.NONE, 0)
+        self.assertEqual(Octave.SUB_SUB_CONTRA - Octave.SUB_SUB_CONTRA, 0)
+        self.assertEqual(Octave.FIVE_LINE - 7, 1)
+        self.assertEqual(Octave.SEVEN_LINE - 9, 1)
+
+        # invalid value
+        self.assertRaises(TypeError, operator.sub, Octave.TWO_LINE, 'string')
+
+    def test_sub_override(self):
+        # valid values
+        self.assertEqual(Octave.NONE - Octave.NONE, 0)
+        self.assertEqual(Octave.SUB_SUB_CONTRA - Octave.SUB_SUB_CONTRA, 0)
+        self.assertEqual(Octave.FIVE_LINE - 7, 1)
+        self.assertEqual(Octave.SEVEN_LINE - 9, 1)
+
+        # invalid value
+        self.assertRaises(TypeError, operator.sub, Octave.TWO_LINE, 'string')
+
+    def test_rsub_override(self):
+        # valid values
+        self.assertEqual(-2 - Octave.NONE, 0)
+        self.assertEqual(-1 - Octave.SUB_SUB_CONTRA, 0)
+        self.assertEqual(9 - Octave.SEVEN_LINE, -1)
+
+        # invalid value
+        # self.assertRaises(TypeError, operator.rsub, Octave.TWO_LINE, 'string')
+
+    def test_mul_override(self):
+        # valid values
+        self.assertEqual(Octave.NONE * Octave.NONE, 4)
+        self.assertEqual(Octave.SUB_SUB_CONTRA * -1, 1)
+        self.assertEqual(Octave.SEVEN_LINE * 9, 90)
+
+    def test_rmul_override(self):
+        # valid values
+        self.assertEqual(-2 * Octave.NONE, 4)
+        self.assertEqual(-1 * Octave.SUB_SUB_CONTRA, 1)
+        self.assertEqual(9 * Octave.SEVEN_LINE, 90)
+
+    def test_truediv_override(self):
+        # valid values
+        self.assertEqual(Octave.NONE / Octave.NONE, 1)
+        self.assertEqual(Octave.SUB_SUB_CONTRA / -1, 1)
+        self.assertEqual(Octave.SEVEN_LINE / 9, 10/9)
+
+        # invalid value
+        self.assertRaises(TypeError, operator.truediv, Octave.TWO_LINE, 'string')
+
+    def test_rtruediv_override(self):
+        # valid values
+        self.assertEqual(-2 / Octave.NONE, 1)
+        self.assertEqual(-1 / Octave.SUB_SUB_CONTRA, 1)
+        self.assertEqual(9 / Octave.SEVEN_LINE, 9/10)
+
+        # invalid value
+        # self.assertRaises(TypeError, operator.rmul, Octave.TWO_LINE, 'string')
+
+    def test_from_int(self):
+        # valid values
+        self.assertEqual(Octave.from_int(-2), Octave.NONE)
+        self.assertEqual(Octave.from_int(4), Octave.ONE_LINE)
+        self.assertEqual(Octave.from_int(10), Octave.SEVEN_LINE)
+
+        # invalid value
+        self.assertRaises(ValueError, Octave.from_int, -3)
+        self.assertRaises(ValueError, Octave.from_int, 11)
 
 
 class PitchTest(unittest.TestCase):

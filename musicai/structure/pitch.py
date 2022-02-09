@@ -6,6 +6,7 @@ from pandas.plotting._matplotlib.style import Color
 
 from musicai.structure.clef import Clef
 
+
 # ---------
 # Step enum
 # ---------
@@ -29,7 +30,7 @@ class Step(Enum):
         # first value is canonical value
         obj._value_ = values[0]
         obj.whole = values[1]
-        #obj.color = values[2]
+        # obj.color = values[2]
         obj._all_values = values
         return obj
 
@@ -45,34 +46,28 @@ class Step(Enum):
     def __repr__(self):
         return '<{self.__class__.__name__}({self.name})>'.format(self=self)
 
-    def __add__(self, other):
+    def __add__(self, other: Union['Step', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Step):
             return self.value + other.value
-        elif isinstance(other, (float, np.inexact, int, np.integer)):
-            return self.value + other
         else:
-            raise TypeError('Cannot add Step and type {0}.'.format(type(other)))
+            return self.value + other
 
-    def __sub__(self, other):
+    def __sub__(self, other: Union['Step', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Step):
             return self.value - other.value
-        elif isinstance(other, (float, np.inexact, int, np.integer)):
-            return self.value - other
         else:
-            raise TypeError('Cannot subtract Step and type {0}.'.format(type(other)))
+            return self.value - other
 
-    def __mod__(self, other):
+    def __mod__(self, other: Union['Step', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Step):
             return self.value % other.value
-        elif isinstance(other, (float, np.inexact, int, np.integer)):
-            return self.value % other
         else:
-            raise TypeError('Cannot modulus Step and type {0}.'.format(type(other)))
+            return self.value % other
 
     # ---------
     # Methods
     # ---------
-    def next(self):
+    def next(self) -> 'Step':
         cls = self.__class__
         members = list(cls)
         index = members.index(self) + 1
@@ -80,7 +75,7 @@ class Step(Enum):
             index = 0
         return members[index]
 
-    def prev(self):
+    def prev(self) -> 'Step':
         cls = self.__class__
         members = list(cls)
         index = members.index(self) - 1
@@ -88,7 +83,7 @@ class Step(Enum):
             index = len(members) - 1
         return members[index]
 
-    def diff(self, other):
+    def diff(self, other: 'Step') -> int:
         if isinstance(other, Step):
             if other == self:
                 # same step
@@ -153,6 +148,7 @@ class Step(Enum):
 
             raise ValueError('Cannot convert string {0} to Step'.format(str_step))
 
+
 # -----------
 # Octave enum
 # -----------
@@ -200,7 +196,7 @@ class Octave(Enum):
     def __repr__(self):
         return '<{self.__class__.__name__}({self.name})>'.format(self=self)
 
-    def __add__(self, other):
+    def __add__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
             return self.value + other.value
         elif isinstance(other, (float, np.inexact, int, np.integer)):
@@ -208,29 +204,61 @@ class Octave(Enum):
         else:
             raise TypeError('Cannot add Octave and type {0}.'.format(type(other)))
 
-    def __radd__(self, other):
+    def __radd__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
             return other.value + self.value
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other + self.value
         else:
-            raise TypeError('Cannot add type {0} and Octave.'.format(type(other)))
+            raise TypeError('Cannot add Octave and type {0}.'.format(type(other)))
 
-    def __sub__(self, other):
+    def __sub__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
             return self.value - other.value
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value - other
         else:
-            raise TypeError('Cannot subtract Octave and type {0}.'.format(type(other)))
+            raise TypeError('Cannot add Octave and type {0}.'.format(type(other)))
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
             return other.value - self.value
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other - self.value
         else:
-            raise TypeError('Cannot subtract type {0} and Octave.'.format(type(other)))
+            raise TypeError('Cannot add Octave and type {0}.'.format(type(other)))
+
+    def __mul__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
+        if isinstance(other, Octave):
+            return self.value * other.value
+        elif isinstance(other, (float, np.inexact, int, np.integer)):
+            return self.value * other
+        else:
+            raise TypeError('Cannot add Octave and type {0}.'.format(type(other)))
+
+    def __rmul__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
+        if isinstance(other, Octave):
+            return other.value * self.value
+        elif isinstance(other, (float, np.inexact, int, np.integer)):
+            return other * self.value
+        else:
+            raise TypeError('Cannot add Octave and type {0}.'.format(type(other)))
+
+    def __truediv__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
+        if isinstance(other, Octave):
+            return self.value / other.value
+        elif isinstance(other, (float, np.inexact, int, np.integer)):
+            return self.value / other
+        else:
+            raise TypeError('Cannot add Octave and type {0}.'.format(type(other)))
+
+    def __rtruediv__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
+        if isinstance(other, Octave):
+            return other.value / self.value
+        elif isinstance(other, (float, np.inexact, int, np.integer)):
+            return other / self.value
+        else:
+            raise TypeError('Cannot add Octave and type {0}.'.format(type(other)))
 
     # ---------
     # Methods
@@ -239,13 +267,17 @@ class Octave(Enum):
     # -------------
     # Class Methods
     # -------------
-    @classmethod
-    def __missing__(cls, value):
-        Octave.find(value)
+    # @classmethod
+    # def __missing__(cls, value):
+    #     Octave.find(value)
 
     @classmethod
-    def from_int(cls, value):
-        return Octave(int(value))
+    def from_int(cls, value: int) -> 'Octave':
+        if value in cls._value2member_map_:
+            return Octave(value)
+        else:
+            raise ValueError('{0} is not a valid value for Octave.'.format(value))
+
 
     # @classmethod
     # def find(cls, value):
@@ -314,21 +346,69 @@ class Accidental(Enum):
     def __repr__(self):
         return '<{self.__class__.__name__}({self.name})>'.format(self=self)
 
-    def __add__(self, other):
+    def __add__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
             return self.alter + other.alter
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.alter + other
         else:
-            raise ValueError('Cannot add Accidental and type {0}.'.format(type(other)))
+            raise TypeError('Cannot add Accidental and type {0}.'.format(type(other)))
 
-    def __radd__(self, other):
+    def __radd__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
             return other.alter + self.alter
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other + self.alter
         else:
-            raise ValueError('Cannot add type {0} and Accidental.'.format(type(other)))
+            raise TypeError('Cannot add type {0} and Accidental.'.format(type(other)))
+
+    def __sub__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
+        if isinstance(other, Accidental):
+            return self.alter - other.alter
+        elif isinstance(other, (float, np.inexact, int, np.integer)):
+            return self.alter - other
+        else:
+            raise TypeError('Cannot add Accidental and type {0}.'.format(type(other)))
+
+    def __rsub__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
+        if isinstance(other, Accidental):
+            return other.alter - self.alter
+        elif isinstance(other, (float, np.inexact, int, np.integer)):
+            return other - self.alter
+        else:
+            raise TypeError('Cannot add Accidental and type {0}.'.format(type(other)))
+
+    def __mul__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
+        if isinstance(other, Accidental):
+            return self.alter * other.alter
+        elif isinstance(other, (float, np.inexact, int, np.integer)):
+            return self.alter * other
+        else:
+            raise TypeError('Cannot add Accidental and type {0}.'.format(type(other)))
+
+    def __rmul__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
+        if isinstance(other, Accidental):
+            return other.alter * self.alter
+        elif isinstance(other, (float, np.inexact, int, np.integer)):
+            return other * self.alter
+        else:
+            raise TypeError('Cannot add Accidental and type {0}.'.format(type(other)))
+
+    def __truediv__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
+        if isinstance(other, Accidental):
+            return self.alter / other.alter
+        elif isinstance(other, (float, np.inexact, int, np.integer)):
+            return self.alter / other
+        else:
+            raise TypeError('Cannot add Accidental and type {0}.'.format(type(other)))
+
+    def __rtruediv__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
+        if isinstance(other, Accidental):
+            return other.alter / self.alter
+        elif isinstance(other, (float, np.inexact, int, np.integer)):
+            return other / self.alter
+        else:
+            raise TypeError('Cannot add Accidental and type {0}.'.format(type(other)))
 
     # ---------
     # Methods
