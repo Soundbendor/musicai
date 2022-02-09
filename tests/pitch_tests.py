@@ -468,24 +468,6 @@ class StepTest(unittest.TestCase):
 
 
 class AccidentalTest(unittest.TestCase):
-    def test_abc_Accidental(self):
-        # valid values
-        self.assertEqual(Accidental.from_abc(''), Accidental.NONE)
-        self.assertEqual(Accidental.from_abc('_'), Accidental.FLAT)
-        self.assertEqual(Accidental.from_abc('^'), Accidental.SHARP)
-        self.assertEqual(Accidental.from_abc('='), Accidental.NATURAL)
-        self.assertEqual(Accidental.from_abc('__'), Accidental.DOUBLE_FLAT)
-        self.assertEqual(Accidental.from_abc('^^'), Accidental.DOUBLE_SHARP)
-        self.assertEqual(Accidental.from_abc('=_'), Accidental.NATURAL_FLAT)
-        self.assertEqual(Accidental.from_abc('=^'), Accidental.NATURAL_SHARP)
-        self.assertEqual(Accidental.from_abc('___'), Accidental.TRIPLE_FLAT)
-        self.assertEqual(Accidental.from_abc('^^^'), Accidental.TRIPLE_SHARP)
-
-        # invalid values
-        self.assertRaises(ValueError, Accidental.from_abc, '^=')
-        self.assertRaises(ValueError, Accidental.from_abc, '_=')
-        self.assertRaises(ValueError, Accidental.from_abc, 'foo')
-
     def test_float_override(self):
         # valid values
         self.assertEqual(float(Accidental.TRIPLE_FLAT), -3.0)
@@ -525,6 +507,106 @@ class AccidentalTest(unittest.TestCase):
         self.assertEqual(str(Accidental.DOUBLE_SHARP), '𝄪')
         self.assertEqual(str(Accidental.SHARP_SHARP), '♯♯')
         self.assertEqual(str(Accidental.TRIPLE_SHARP), '♯𝄪')
+
+    def test_repr_override(self):
+        # valid values
+        self.assertEqual(repr(Accidental.TRIPLE_FLAT), '<Accidental(TRIPLE_FLAT)>')
+        self.assertEqual(repr(Accidental.NONE), '<Accidental(NONE)>')
+        self.assertEqual(repr(Accidental.TRIPLE_SHARP), '<Accidental(TRIPLE_SHARP)>')
+
+    def test_add_override(self):
+        # valid values
+        self.assertEqual(Accidental.TRIPLE_FLAT + Accidental.TRIPLE_FLAT, -6)
+        self.assertEqual(Accidental.NONE + 0, 0)
+        self.assertEqual(Accidental.TRIPLE_SHARP + Accidental.TRIPLE_SHARP, 6)
+
+        # invalid values
+        self.assertRaises(TypeError, operator.add, Accidental.TRIPLE_SHARP, 'string')
+
+    def test_radd_override(self):
+        # valid values
+        self.assertEqual(-3 + Accidental.TRIPLE_FLAT, -6)
+        self.assertEqual(0 + Accidental.NONE, 0)
+        self.assertEqual(3 + Accidental.TRIPLE_SHARP, 6)
+
+        # invalid values
+        # self.assertRaises(TypeError, operator.add, Accidental.TRIPLE_SHARP, 'string')
+
+    def test_sub_override(self):
+        # valid values
+        self.assertEqual(Accidental.TRIPLE_FLAT - Accidental.TRIPLE_FLAT, 0)
+        self.assertEqual(Accidental.NONE - 0, 0)
+        self.assertEqual(Accidental.TRIPLE_SHARP - Accidental.TRIPLE_SHARP, 0)
+
+        # invalid values
+        self.assertRaises(TypeError, operator.sub, Accidental.TRIPLE_SHARP, 'string')
+
+    def test_rsub_override(self):
+        # valid values
+        self.assertEqual(-3 - Accidental.TRIPLE_FLAT, 0)
+        self.assertEqual(0 - Accidental.NONE, 0)
+        self.assertEqual(3 - Accidental.TRIPLE_SHARP, 0)
+
+        # invalid values
+        # self.assertRaises(TypeError, operator.sub, Accidental.TRIPLE_SHARP, 'string')
+
+    def test_mul_override(self):
+        # valid values
+        self.assertEqual(Accidental.TRIPLE_FLAT * Accidental.TRIPLE_FLAT, 9)
+        self.assertEqual(Accidental.NONE * 0, 0)
+        self.assertEqual(Accidental.TRIPLE_SHARP * Accidental.TRIPLE_SHARP, 9)
+
+        # invalid values
+        self.assertRaises(TypeError, operator.mul, Accidental.TRIPLE_SHARP, 'string')
+
+    def test_rmul_override(self):
+        # valid values
+        self.assertEqual(-3 * Accidental.TRIPLE_FLAT, 9)
+        self.assertEqual(1 * Accidental.NONE, 0)
+        self.assertEqual(3 * Accidental.TRIPLE_SHARP, 9)
+
+        # invalid values
+        # self.assertRaises(TypeError, operator.mul, Accidental.TRIPLE_SHARP, 'string')
+
+    def test_truediv_override(self):
+        # valid values
+        self.assertEqual(Accidental.TRIPLE_FLAT / Accidental.TRIPLE_FLAT, 1)
+        self.assertEqual(Accidental.NONE / 1, 0)
+        self.assertEqual(Accidental.TRIPLE_SHARP / Accidental.DOUBLE_SHARP, 3/2)
+
+        # invalid values
+        self.assertRaises(TypeError, operator.truediv, Accidental.TRIPLE_SHARP, 'string')
+        self.assertRaises(ZeroDivisionError, operator.truediv, Accidental.TRIPLE_SHARP, 0)
+
+    def test_rmul_override(self):
+        # valid values
+        self.assertEqual(-3 / Accidental.TRIPLE_FLAT, 1)
+        self.assertEqual(1 / Accidental.QUARTER_SHARP, 4)
+        self.assertEqual(3 / Accidental.TRIPLE_SHARP, 1)
+
+        # invalid values
+        # self.assertRaises(TypeError, operator.mul, Accidental.TRIPLE_SHARP, 'string')
+
+    def test_find(self):
+        pass
+
+    def test_abc_Accidental(self):
+        # valid values
+        self.assertEqual(Accidental.from_abc(''), Accidental.NONE)
+        self.assertEqual(Accidental.from_abc('_'), Accidental.FLAT)
+        self.assertEqual(Accidental.from_abc('^'), Accidental.SHARP)
+        self.assertEqual(Accidental.from_abc('='), Accidental.NATURAL)
+        self.assertEqual(Accidental.from_abc('__'), Accidental.DOUBLE_FLAT)
+        self.assertEqual(Accidental.from_abc('^^'), Accidental.DOUBLE_SHARP)
+        self.assertEqual(Accidental.from_abc('=_'), Accidental.NATURAL_FLAT)
+        self.assertEqual(Accidental.from_abc('=^'), Accidental.NATURAL_SHARP)
+        self.assertEqual(Accidental.from_abc('___'), Accidental.TRIPLE_FLAT)
+        self.assertEqual(Accidental.from_abc('^^^'), Accidental.TRIPLE_SHARP)
+
+        # invalid values
+        self.assertRaises(ValueError, Accidental.from_abc, '^=')
+        self.assertRaises(ValueError, Accidental.from_abc, '_=')
+        self.assertRaises(ValueError, Accidental.from_abc, 'foo')
 
 
 
