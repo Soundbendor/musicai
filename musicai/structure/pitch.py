@@ -161,17 +161,19 @@ class Octave(Enum):
     """
     Enum to represent a musical octave
     """
+    # Observe numbers from Wikipedia
+    # Number, pedal, MIDI octave number, MIDI range min, MIDI range max, frequency range min, frequency range max
     NONE = (-2, None, None, None, None)
     SUB_SUB_CONTRA = (-1, '64 Foot', -5, 0, 11, 16.35, 30.87)
     SUB_CONTRA = (0, '32 Foot', -4, 12, 23, 32.70, 61.74)
     CONTRA = (1, '16 Foot', -3, 24, 35, 27.5, 65.41, 123.47)
     GREAT = (2, '8 Foot', -2, 36, 47, 130.81, 246.94)
     SMALL = (3, '4 Foot', -1, 48, 59, 261.63, 493.88)
-    ONE_LINE = (4, '2 Foot', 0, 60, 71, 523.25)  # TODO finish
-    TWO_LINE = (5, '1 Foot', 1, 72, 83)
-    THREE_LINE = (6, '3 Line', 2, 84, 95)
-    FOUR_LINE = (7, '4 Line', 3, 96, 107)
-    FIVE_LINE = (8, '64 Foot', 4, 108, 119)
+    ONE_LINE = (4, '2 Foot', 0, 60, 71, 523.25, 987.77)
+    TWO_LINE = (5, '1 Foot', 1, 72, 83, 1046.50, 1975.53)
+    THREE_LINE = (6, '3 Line', 2, 84, 95, 2093.00, 3951.07)
+    FOUR_LINE = (7, '4 Line', 3, 96, 107, 4186.01, 8372.02)
+    FIVE_LINE = (8, '64 Foot', 4, 108, 119)  # TODO: Complete Midi Range?
     SIX_LINE = (9, '6 Line', 5, 120, 131)
     SEVEN_LINE = (10, '7 Line', 6, 132, 143)
 
@@ -437,9 +439,8 @@ class Accidental(Enum):
         raise ValueError('Error: accidental {0} not found.'.format(value))
 
     @classmethod
-    def from_abc(cls, abc_accidental):
-        str_accidental = str(abc_accidental).strip()
-
+    def from_abc(cls, abc_accidental : str) -> 'Accidental':
+        str_accidental = abc_accidental.strip()
         match str_accidental:
             case '':
                 return Accidental.NONE
@@ -464,29 +465,6 @@ class Accidental(Enum):
             case _:
                 raise ValueError('Error: abc accidental {0} not found.'.format(abc_accidental))
 
-        # if str_accidental == '':
-        #     return Accidental.NONE
-        # elif str_accidental == '^':
-        #     return Accidental.SHARP
-        # elif str_accidental == '_':
-        #     return Accidental.FLAT
-        # elif str_accidental == '=':
-        #     return Accidental.NATURAL
-        # elif str_accidental == '^^':
-        #     return Accidental.DOUBLE_SHARP
-        # elif str_accidental == '__':
-        #     return Accidental.DOUBLE_FLAT
-        # elif str_accidental == '=^':
-        #     return Accidental.NATURAL_SHARP
-        # elif str_accidental == '=_':
-        #     return Accidental.NATURAL_FLAT
-        # elif str_accidental == '^^^':
-        #     return Accidental.TRIPLE_SHARP
-        # elif str_accidental == '___':
-        #     return Accidental.TRIPLE_FLAT
-        # else:
-        #     raise ValueError('Error: abc accidental {0} not found.'.format(abc_accidental))
-
 
 # -----------
 # Pitch class
@@ -505,7 +483,7 @@ class Pitch:
             octave: 'Octave' = Octave.ONE_LINE,
             alter: 'Accidental' = Accidental.NONE):
 
-        if isinstance(step, 'Step'):
+        if isinstance(step, Step):
             self.step = step
         # elif isinstance(step, (int, np.integer)): # from_int() and from_str() are not completed yet
         #    self.step = Step.from_int(step)

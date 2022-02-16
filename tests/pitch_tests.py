@@ -1,6 +1,6 @@
 import operator
 import unittest
-from musicai.structure.pitch import Pitch, Accidental, Step, Octave
+from musicai.structure.pitch import Pitch, Accidental, Step, Octave, Chromatic
 
 
 class StepTest(unittest.TestCase):
@@ -737,3 +737,17 @@ class PitchTest(unittest.TestCase):
         # invalid values
         # TODO
 
+
+class ChromaticTest(unittest.TestCase):
+
+    def test_str_override(self):
+        # valid values
+        self.assertEqual(str(Chromatic.Cbb), 'C𝄫')
+        self.assertEqual(str(Chromatic.Fss), 'F𝄪')
+        self.assertEqual(str(Chromatic.Bss), 'B𝄪')
+
+    def test_pitch(self):
+        # valid values
+        self.assertEqual(Chromatic.Cbb.pitch, Pitch(Step.C, alter=Accidental.DOUBLE_FLAT))
+        self.assertEqual(Chromatic.G.pitch, Pitch(Step.G, alter=Accidental.NONE))
+        self.assertEqual(Chromatic.Bss.pitch, Pitch(Step.B, alter=Accidental.DOUBLE_SHARP))
