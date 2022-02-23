@@ -185,7 +185,7 @@ class TupletType(Enum):
     """
     Enum to represent irrational rhythms created by tuplets
     """
-
+    # n (actual) notes over the time of m (normal)
     REGULAR = (1, 1)
     TRIPLET = (3, 2)
     DUPLET = (2, 3)
@@ -234,14 +234,14 @@ class TupletType(Enum):
 # -----------
 class Ratio:
     """
-    Class to represent a ratio
+    Class to represent a ratio, either custom or from a tuplettype
     """
-
     # -----------
     # Constructor
     # -----------
     def __init__(self, ratio: Union['Ratio', TupletType, tuple] = None):
-        self.custom = False  # if True, ignore tuplettype
+        self._tuplettype_ = None
+        self.custom = False  # if True, ignore TupletType
         if ratio is None:
             # default Tuplet
             self._normal_ = 1
@@ -263,11 +263,20 @@ class Ratio:
             self._normal_ = int(ratio[1])
             self._update_tuplettype_()
         else:
-            raise ValueError('Cannot create Tuplet from type {0}.'.format(type(ratio)))
+            raise TypeError('Cannot create Tuplet from type {0}.'.format(type(ratio)))
 
     # ----------
     # Properties
     # ----------
+    @property
+    def actual(self) -> int:
+        return self._actual_
+
+    @actual.setter
+    def actual(self, actual):
+        self._actual_ = actual
+        self._update_tuplettype_()
+
     @property
     def normal(self) -> int:
         return self._normal_
@@ -278,16 +287,7 @@ class Ratio:
         self._update_tuplettype_()
 
     @property
-    def actual(self):
-        return self._actual_
-
-    @actual.setter
-    def actual(self, actual):
-        self._actual_ = actual
-        self._update_tuplettype_()
-
-    @property
-    def tuplettype(self):
+    def tuplettype(self) -> TupletType:
         return self._tuplettype_
 
     @tuplettype.setter
@@ -300,18 +300,18 @@ class Ratio:
     # --------
     # Override
     # --------
-    def __str__(self):
+    def __str__(self) -> str:
         return self.symbol
 
-    def __repr__(self):
-        return '<{self.__class__.__name__}({self.name}) {self.symbol}>'.format(self=self)
+    def __repr__(self) -> str:
+        return '<{self.__class__.__name__}({self.symbol})>'.format(self=self)
 
     # ---------
     # Methods
     # ---------
     def _update_tuplettype_(self):
         self.symbol = str(self.actual) + ':' + str(self.normal)
-        if (self._actual_, self._normal_) not in TupletType.__members__:
+        if (self._actual_, self._normal_) not in TupletType._value2member_map_:
             # custom ratio
             self._tuplettype_ = None
             self.custom = True
@@ -320,7 +320,7 @@ class Ratio:
             self._tuplettype_ = TupletType((self._actual_, self._normal_))
             self.custom = False
 
-    def is_regular(self):
+    def is_regular(self) -> bool:
         if self._tuplettype_ is None:
             return self._actual_ == 1 and self._normal_ == 1
         return self._tuplettype_ is TupletType.REGULAR
@@ -339,7 +339,10 @@ class NoteValue:
     # -----------
     # Constructor
     # -----------
-    def __init__(self, notetype, dots=DotType.NONE, ratio=None):
+    def __init__(self,
+                 notetype: NoteType,
+                 dots: Union['DotType', float, np.inexact, int, np.integer] = DotType.NONE,
+                 ratio: Union['Ratio', TupletType, tuple] = Ratio(TupletType.REGULAR)):
         self.notetype = notetype
 
         if isinstance(dots, (float, np.inexact, int, np.integer)):
@@ -347,7 +350,7 @@ class NoteValue:
         elif isinstance(dots, DotType):
             self.dots = dots
         else:
-            raise ValueError('Cannot find DotType for {0}', dots)
+            raise TypeError('Cannot find a NoteValue DotType from type {0}', type(dots))
 
         self.ratio = Ratio(ratio)
         self._value_ = self.notetype.value * self.dots * self.ratio.normal / self.ratio.actual
@@ -379,60 +382,60 @@ class NoteValue:
     # --------
     # Override
     # --------
-    def __float__(self):
+    def __float__(self) -> float:
         return self.value
 
-    def __int__(self):
+    def __int__(self) -> int:
         return round(self.value)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.value}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<{self.__class__.__name__}({self.value}) nt={self.notetype}, d={self.dots.value}, r={self.ratio}>'
 
-    def __lt__(self, other):
-        if isinstance(other, float) or isinstance(other, int):
+    def __lt__(self, other: Union['NoteValue', int, float, np.inexact, np.integer]) -> bool:
+        if isinstance(other, Union[int, float, np.inexact, np.integer]):
             return self.value < other
         elif isinstance(other, NoteValue):
             return self.value < other.value
         else:
             raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
 
-    def __le__(self, other):
-        if isinstance(other, float) or isinstance(other, int):
+    def __le__(self, other: Union['NoteValue', int, float, np.inexact, np.integer]) -> bool:
+        if isinstance(other, Union[int, float, np.inexact, np.integer]):
             return self.value <= other
-        elif isinstance(other, (NoteValue, NoteType)):
+        elif isinstance(other, NoteValue):
             return self.value <= other.value
         else:
             raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
 
-    def __gt__(self, other):
-        if isinstance(other, float) or isinstance(other, int):
+    def __gt__(self, other: Union['NoteValue', int, float, np.inexact, np.integer]) -> bool:
+        if isinstance(other, Union[int, float, np.inexact, np.integer]):
             return self.value > other
         elif isinstance(other, NoteValue):
             return self.value > other.value
         else:
             raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
 
-    def __ge__(self, other):
-        if isinstance(other, float) or isinstance(other, int):
+    def __ge__(self, other: Union['NoteValue', int, float, np.inexact, np.integer]) -> bool:
+        if isinstance(other, Union[int, float, np.inexact, np.integer]):
             return self.value >= other
         elif isinstance(other, NoteValue):
             return self.value >= other.value
         else:
             raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
 
-    def __eq__(self, other):
-        if isinstance(other, float) or isinstance(other, int):
+    def __eq__(self, other: Union['NoteValue', int, float, np.inexact, np.integer]) -> bool:
+        if isinstance(other, Union[int, float, np.inexact, np.integer]):
             return self.value == other
         elif isinstance(other, NoteValue):
             return self.value == other.value
         else:
             raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
 
-    def __ne__(self, other):
-        if isinstance(other, float) or isinstance(other, int):
+    def __ne__(self, other: Union['NoteValue', int, float, np.inexact, np.integer]) -> bool:
+        if isinstance(other, Union[int, float, np.inexact, np.integer]):
             return self.value != other
         elif isinstance(other, NoteValue):
             return self.value != other.value

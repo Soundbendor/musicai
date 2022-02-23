@@ -1,7 +1,7 @@
 import operator
 import unittest
 
-from musicai.structure.note import Note, NoteType, NoteValue, DotType
+from musicai.structure.note import Note, NoteType, NoteValue, DotType, Ratio, TupletType
 
 
 class NoteTypeTest(unittest.TestCase):
@@ -96,3 +96,69 @@ class DotTypeTest(unittest.TestCase):
     def test_list(self):
         self.assertEqual(DotType.list(), [0, 1, 2, 3, 4])
 
+
+class TupletTypeTest(unittest.TestCase):
+    def test_str_override(self):
+        self.assertEqual(str(TupletType.REGULAR), 'Regular')
+        self.assertEqual(str(TupletType((4, 3))), 'Quadruplet')
+        self.assertEqual(str(TupletType.TREDECUPLET), 'Tredecuplet')
+
+    def test_repr_override(self):
+        self.assertEqual(repr(TupletType.REGULAR), '<TupletType(REGULAR) 1:1>')
+        self.assertEqual(repr(TupletType((8, 6))), '<TupletType(OCTUPLET) 8:6>')
+        self.assertEqual(repr(TupletType.TREDECUPLET), '<TupletType(TREDECUPLET) 13:8>')
+
+    def test_list(self):
+        self.assertEqual(TupletType.list(), [(1, 1), (3, 2), (2, 3), (4, 3), (5, 4), (6, 4), (7, 4), (8, 6), (9, 8),
+                                             (10, 8), (11, 8), (12, 8), (13, 8)])
+
+
+class RatioTest(unittest.TestCase):
+    def test_str_override(self):
+        self.assertEqual(str(Ratio()), '1:1')
+        self.assertEqual(str(Ratio(Ratio(TupletType.NONUPLET))), '9:8')
+        self.assertEqual(str(Ratio(TupletType.QUINTUPLET)), '5:4')
+        self.assertEqual(str(Ratio((7, 48))), '7:48')
+
+    def test_repr_override(self):
+        self.assertEqual(repr(Ratio()), '<Ratio(1:1)>')
+        self.assertEqual(repr(Ratio(Ratio(TupletType.DECUPLET))), '<Ratio(10:8)>')
+        self.assertEqual(repr(Ratio(TupletType.SEXTUPLET)), '<Ratio(6:4)>')
+        self.assertEqual(repr(Ratio((323, 11))), '<Ratio(323:11)>')
+
+    def test_updated_tuplettype(self):
+        t0 = Ratio()
+        t0.normal = 55
+        self.assertEqual(t0.custom, True)
+
+        t1 = Ratio(TupletType.SEXTUPLET)
+        t1.actual += 1
+        self.assertEqual(t1.custom, False)
+
+        t2 = Ratio((7, 6))
+        t2.actual += 1
+        self.assertEqual(t2.custom, False)
+
+    def test_is_regular(self):
+        self.assertEqual(Ratio().is_regular(), True)
+        self.assertEqual(Ratio((1, 1)).is_regular(), True)
+        self.assertEqual(Ratio(TupletType.REGULAR).is_regular(), True)
+
+        self.assertEqual(Ratio((2, 3)).is_regular(), False)
+        self.assertEqual(Ratio(Ratio(TupletType.QUINTUPLET)).is_regular(), False)
+        self.assertEqual(Ratio(TupletType.NONUPLET).is_regular(), False)
+
+
+class NoteValueTest(unittest.TestCase):
+    def test_float_override(self):
+        print(TupletType)
+        print(reversed(TupletType))
+
+    def test_int_override(self):
+        pass
+
+    def test_str_override(self):
+        pass
+
+    def test_repr_override(self):
+        pass

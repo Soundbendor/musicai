@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Union
 
+
 # -----------------
 # NoteheadType enum
 # -----------------
@@ -30,9 +31,6 @@ class NoteheadType(Enum):
     # ARROWHEAD_LEFT
     # TRIANGLE_ROUND_LEFT
 
-
-
-
     # TODO ...
 
 
@@ -43,6 +41,7 @@ class NoteheadFill(Enum):
     WHITE = 0
     BLACK = 1
 
+
 # -------------
 # StemType enum
 # -------------
@@ -51,6 +50,7 @@ class StemType(Enum):
     NONE = 0
     UP = 1
     DOUBLE = 2
+
 
 # -------------
 # BeamType enum
@@ -61,6 +61,7 @@ class BeamType(Enum):
     CONTINUE = 2
     END = 3
     BACKWARD_HOOK = 4
+
 
 # ----------
 # Beam class
@@ -82,12 +83,14 @@ class Beam():
     def __repr__(self):
         return '<{self.__class__.__name__}({self.beamtype.name}) num={self.number}>'.format(self=self)
 
+
 # ------------
 # TieType enum
 # ------------
 class TieType(Enum):
     STOP = 0
     START = 1
+
 
 # --------------------
 # TieLocationType enum
@@ -96,6 +99,7 @@ class TieLocationType(Enum):
     UNDER = 0
     OVER = 1
 
+
 # ------------------
 # DynamicChange enum
 # ------------------
@@ -103,6 +107,7 @@ class DynamicChange(Enum):
     DIMINUENDO = -1
     DECRESCENDO = 0
     CRESCENDO = 1
+
 
 # ------------------
 # DynamicAccent enum
@@ -137,7 +142,6 @@ class DynamicType(Enum):
     FORTISSISSIMO = 9, 114, 'fff', '\U0001D191\U0001D191\U0001D191'
     FORTISSISSISSIMO = 10, 127, 'ffff', '\U0001D191\U0001D191\U0001D191\U0001D191'
 
-
     # -----------
     # Constructor
     # -----------
@@ -151,10 +155,11 @@ class DynamicType(Enum):
         obj._all_values = values
         return obj
 
+
 # -------------
 # Dynamic Class
 # -------------
-class Dynamic():
+class Dynamic:
 
     # -----------
     # Constructor
@@ -169,6 +174,7 @@ class Dynamic():
 
         end_dynamic = self.dynamic
 
+
 # ---------------------
 # ArticulationType enum
 # ---------------------
@@ -176,14 +182,13 @@ class ArticulationType(Enum):
     # TODO: fix numbers
     STACCATO = 0, 0.5, '\U0001D17C'
     STACCATISSIMO = 1, 0.5, '\U0001D17E'
-    SPICCATO =  1, 0.5, '\U0001D17E'  # same as staccatissimo
+    SPICCATO = 1, 0.5, '\U0001D17E'  # same as staccatissimo
     ACCENT = 3, 0, 0.5, '\U0001D17B'
     MARCATO = 2, 0.5, '\U0001D17F'
     TENUTO = 3, 0.5, '\U0001D17D'
     TENUTO_STACCATO = 3, 0.5, '\U0001D182'
     MARCATO_STACCATO = 0, 0.5, '\U0001D180'
     ACCENT_STACCATO = 0, 0.5, '\U0001D181'
-
 
     # TODO fermata? up/down
 
@@ -201,6 +206,7 @@ class ArticulationType(Enum):
         if abc_articulation == '.':
             return ArticulationType.STACCATO
 
+
 # --------------------
 # BowArticulation enum
 # --------------------
@@ -210,7 +216,6 @@ class ArticulationType(Enum):
 #     NATURAL, 'natural harmonic', 'flageolet'
 #     UPBOW, 'up bow', 'sull\'arco','\U0001D1AB'
 #     DOWNBOW, 'down bow', 'giù arco', '\U0001D1AA'
-
 
 
 # ------------------
@@ -236,6 +241,7 @@ class OrnamentType(Enum):
     GLISSANDO = 7
     SLIDE = 8
     NACHSCHLAG = 9
+
 
 # --------------
 # TrillType enum

@@ -2,7 +2,6 @@ import re
 from enum import Enum
 from typing import Union, Tuple
 import numpy as np
-from pandas.plotting._matplotlib.style import Color
 
 from musicai.structure.clef import Clef
 
@@ -14,13 +13,13 @@ class Step(Enum):
     """
     Enum to represent whole tone steps
     """
-    C = 0, 0  # Color.red
-    D = 2, 1  # Color.orange
-    E = 4, 2  # Color.yellow
-    F = 5, 3  # Color.green
-    G = 7, 4  # Color.blue
-    A = 9, 5  # Color.indigo
-    B = 11, 6  # Color.purple
+    C = 0, 0, 'red'
+    D = 2, 1, 'orange'
+    E = 4, 2, 'yellow'
+    F = 5, 3, 'green'
+    G = 7, 4, 'blue'
+    A = 9, 5, 'indigo'
+    B = 11, 6, 'purple'
 
     # -----------
     # Constructor
@@ -30,7 +29,7 @@ class Step(Enum):
         # first value is canonical value
         obj._value_ = values[0]
         obj.whole = values[1]
-        # obj.color = values[2]
+        obj.color = values[2]
         obj._all_values = values
         return obj
 
@@ -161,8 +160,8 @@ class Octave(Enum):
     """
     Enum to represent a musical octave
     """
-    # Observe numbers from Wikipedia
-    # Number, pedal, MIDI octave number, MIDI range min, MIDI range max, frequency range min, frequency range max
+    # Scientific octave, pedal, octave subscript, MIDI note number,
+    # MIDI range min, MIDI range max, frequency range min, frequency range max
     NONE = (-2, None, None, None, None)
     SUB_SUB_CONTRA = (-1, '64 Foot', -5, 0, 11, 16.35, 30.87)
     SUB_CONTRA = (0, '32 Foot', -4, 12, 23, 32.70, 61.74)
@@ -172,10 +171,10 @@ class Octave(Enum):
     ONE_LINE = (4, '2 Foot', 0, 60, 71, 523.25, 987.77)
     TWO_LINE = (5, '1 Foot', 1, 72, 83, 1046.50, 1975.53)
     THREE_LINE = (6, '3 Line', 2, 84, 95, 2093.00, 3951.07)
-    FOUR_LINE = (7, '4 Line', 3, 96, 107, 4186.01, 8372.02)
-    FIVE_LINE = (8, '64 Foot', 4, 108, 119)  # TODO: Complete Midi Range?
-    SIX_LINE = (9, '6 Line', 5, 120, 131)
-    SEVEN_LINE = (10, '7 Line', 6, 132, 143)
+    FOUR_LINE = (7, '4 Line', 3, 96, 107, 4186.01, 7902.13)
+    FIVE_LINE = (8, '64 Foot', 4, 108, 119, 8372.02, 15804.27)
+    SIX_LINE = (9, '6 Line', 5, 120, 131, 16744.04, 31608.53)
+    SEVEN_LINE = (10, '7 Line', 6, 132, 143, 33488.07, 63217.06)
 
     # -----------
     # Constructor
