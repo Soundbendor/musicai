@@ -151,14 +151,101 @@ class RatioTest(unittest.TestCase):
 
 class NoteValueTest(unittest.TestCase):
     def test_float_override(self):
-        print(TupletType)
-        print(reversed(TupletType))
+        self.assertEqual(float(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR)), 8.0)
+        self.assertEqual(float(NoteValue(NoteType.QUARTER, 1, (2, 3))), 0.5625)
+        self.assertEqual(float(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.FOUR, Ratio((11, 6)))),
+                         0.00025801264772727276)
 
     def test_int_override(self):
-        pass
+        self.assertEqual(int(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR)), 8)
+        self.assertEqual(int(NoteValue(NoteType.QUARTER, 1, (2, 3))), 1)
+        self.assertEqual(int(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.FOUR, Ratio((11, 6)))), 0)
 
     def test_str_override(self):
-        pass
+        self.assertEqual(float(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR)), '8.0')
+        self.assertEqual(float(NoteValue(NoteType.QUARTER, 1, (2, 3))), '0.5625')
+        self.assertEqual(float(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.FOUR, Ratio((11, 6)))),
+                         '0.00025801264772727276')
 
     def test_repr_override(self):
+        self.assertEqual(repr(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR)),
+                         '<NoteValue(8.0) nt=Large, d=0, r=1:1>')
+        self.assertEqual(repr(NoteValue(NoteType.QUARTER, 1, (2, 3))),
+                         '<NoteValue(0.5625) nt=Quarter, d=1, r=2:3>')
+        self.assertEqual(repr(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.FOUR, Ratio((11, 6)))),
+                         '<NoteValue(0.00025801264772727276) nt=Four Thousand Ninety Sixth, d=4, r=11:6>')
+
+    def test_lt_override(self):
+        pass
+
+    def test_le_override(self):
+        pass
+
+    def test_gt_override(self):
+        pass
+
+    def test_ge_override(self):
+        pass
+
+    def test_eq_override(self):
+        pass
+
+    def test_ne_override(self):
+        pass
+
+    def test_add_override(self):
+        pass
+
+    def test_radd_override(self):
+        pass
+
+    def test_sub_override(self):
+        pass
+
+    def test_rsub_override(self):
+        pass
+
+    def test_mul_override(self):
+        pass
+
+    def test_rmul_override(self):
+        pass
+
+    def test_truediv_override(self):
+        pass
+
+    def test_rtruediv_override(self):
+        pass
+
+    def test_floordiv_override(self):
+        pass
+
+    def test_rfloordiv_override(self):
+        pass
+
+    def test_mod_override(self):
+        pass
+
+    def test_rmod_override(self):
+        pass
+
+    def test_max(self):
+        pass
+
+    def test_min(self):
+        pass
+
+    def test_sum(self):
+        pass
+
+    def test_mean(self):
+        pass
+
+    def test_std(self):
+        pass
+
+    def test_exists(self):
+        pass
+
+    def test_find(self):
         pass

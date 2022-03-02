@@ -179,22 +179,23 @@ class Dynamic:
 # ArticulationType enum
 # ---------------------
 class ArticulationType(Enum):
-    # TODO: fix numbers
-    STACCATO = 0, 0.5, '\U0001D17C'
-    STACCATISSIMO = 1, 0.5, '\U0001D17E'
-    SPICCATO = 1, 0.5, '\U0001D17E'  # same as staccatissimo
-    ACCENT = 3, 0, 0.5, '\U0001D17B'
-    MARCATO = 2, 0.5, '\U0001D17F'
-    TENUTO = 3, 0.5, '\U0001D17D'
-    TENUTO_STACCATO = 3, 0.5, '\U0001D182'
-    MARCATO_STACCATO = 0, 0.5, '\U0001D180'
-    ACCENT_STACCATO = 0, 0.5, '\U0001D181'
 
-    # TODO fermata? up/down
+    STACCATO = 0, 0.5, u'\U0001D17C'
+    STACCATISSIMO = 1, 0.5, u'\U0001D17E'  # wedge
+    # SPICCATO = 1, 0.5, u'\U0001D17E'  # same as staccatissimo
+    ACCENT = 3, 0, 0.5, u'\U0001D17B'
+    MARCATO = 2, 0.5, u'\U0001D17F'
+    TENUTO = 3, 0.5, u'\U0001D17D'
+    # TENUTO_STACCATO = 3, 0.5, u'\U0001D182'
+    # MARCATO_STACCATO = 0, 0.5, u'\U0001D180'
+    # ACCENT_STACCATO = 0, 0.5, u'\U0001D181'
+    FERMATA = 0, 0, u'\U0001D110'
+    ARPEGGIATO = 0, 0, u'\U0001D183'
 
-    # TODO CRESCENDO?
-
-    # TODO override __new__
+    def __new__(cls, *values):
+        obj = object.__new__(cls)
+        # first value is canonical value
+        obj._value_ = values[1]  # a
 
     # -------------
     # Class Methods
@@ -242,6 +243,8 @@ class OrnamentType(Enum):
     SLIDE = 8
     NACHSCHLAG = 9
 
+    # TODO: Add tremolos
+
 
 # --------------
 # TrillType enum
@@ -256,3 +259,38 @@ class TrillType(Enum):
 # ----------------
 class Decoration:
     pass
+
+
+# ---------------------
+# DynamicChangeType enum
+# ---------------------
+class DynamicChangeType(Enum):
+    """
+    Enum to represent the change in dynamics
+    """
+    DECRESCENDO = -1.0
+    CRESCENDO = 1.0
+
+
+# ---------------------
+# TempoChangeType enum
+# ---------------------
+class TempoChangeType(Enum):
+    """
+    Enum to represent the change in tempo
+    """
+    RITARDANDO = 0.3  # TODO: update values
+    RALLENTANDO = 0.5
+    ACCELERANDO = 1.5
+
+
+# ---------------------
+# Intensity enum
+# ---------------------
+class Intensity(Enum):
+    """
+    Enum to represent the intensities of line markings and standard multiplier values
+    """
+    POCO = 0.5
+    STANDARD = 1.0
+    MOLTO = 2.0

@@ -1,12 +1,14 @@
 import re
 from enum import Enum
 
-from musicai.structure.attribute import StemType
+from musicai.structure.attribute import StemType, DynamicChangeType, TempoChangeType, Intensity, DynamicType
 from musicai.structure.clef import Clef
 from musicai.structure.key import Key
-from musicai.structure.time import TimeSignature
+from musicai.structure.time import TimeSignature, TempoType
 from musicai.structure.note import Note, Rest
 from musicai.structure.pitch import Pitch, Step, Accidental
+from typing import Union
+import numpy as np
 
 
 # ----------------
@@ -52,11 +54,11 @@ class BarlineLocation(Enum):
     MIDDLE = 2
     RIGHT = 3
 
+
 # -------------
 # Barline class
 # -------------
 class Barline:
-
     # -----------
     # Constructor
     # -----------
@@ -101,7 +103,6 @@ class Barline:
                 barlinetype = BarlineType.FINAL
             elif abc_barline == '[|]':
                 barlinetype = BarlineType.INVISIBLE
-
 
 
 # -------------
@@ -251,3 +252,102 @@ class Measure:
     @classmethod
     def from_abc(cls):
         pass
+
+
+# -------------
+# Measure class
+# -------------
+class MeasureAttribute:
+    """
+    Class to represent line notation throughout measures
+    """
+    # -----------
+    # Constructor
+    # -----------
+    def __init__(self,
+                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 end_time: Union[float, int, np.inexact, np.integer] = 0.0):
+        self.start_time = start_time
+        self.end_time = end_time
+
+
+# -------------
+# Dynamic class
+# -------------
+class Dynamic(MeasureAttribute):
+    """
+    Class to represent an instantaneous definition of dynamics
+    """
+    # -----------
+    # Constructor
+    # -----------
+    def __init__(self,
+                 dynamic_type: DynamicType = DynamicType.NONE,
+                 start_time: Union[float, int, np.inexact, np.integer] = 0.0):
+
+        MeasureAttribute.__init__(self, start_time, start_time)  # instantaneous, so start time = end time
+        self.dynamic_type = dynamic_type
+
+    # TODO: implement overrides / conversions, and (?) multipliers
+
+
+# -------------
+# DynamicChange class
+# -------------
+class DynamicChange(MeasureAttribute):
+    """
+    Class to represent a dynamic change between points in a measure
+    """
+    # -----------
+    # Constructor
+    # -----------
+    def __init__(self,  # TODO: make the starting condition types more generalized (like can take in str)
+                 dynamic_change_type: DynamicChangeType = DynamicChangeType.CRESCENDO,
+                 intensity: Intensity = Intensity.STANDARD,
+                 hair_piece: bool = True,
+                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 end_time: Union[float, int, np.inexact, np.integer] = 0.0):
+
+        MeasureAttribute.__init__(self, start_time, end_time)
+        self.dynamic_change_type = dynamic_change_type
+        self.intensity = intensity
+        self.hair_piece = hair_piece
+
+
+# -------------
+# DynamicChange class
+# -------------
+class Tempo(MeasureAttribute):
+    """
+    Class to represent an instantaneous definition of tempo
+    """
+    # -----------
+    # Constructor
+    # -----------
+    def __init__(self,
+                 tempo_type: Union[TempoType = TempoType.NONE,
+                 start_time: Union[float, int, np.inexact, np.integer] = 0.0):
+
+        MeasureAttribute.__init__(self, start_time, start_time)  # instantaneous, so start time = end time
+        self.tempo_type = tempo_type
+
+
+# -------------
+# DynamicChange class
+# -------------
+class TempoChange(MeasureAttribute):
+    """
+    Class to represent a dynamic change between points in a measure
+    """
+    # -----------
+    # Constructor
+    # -----------
+    def __init__(self,
+                 tempo_change_type: TempoChangeType = TempoChangeType.RITARDANDO,
+                 intensity: Intensity = Intensity.STANDARD,
+                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 end_time: Union[float, int, np.inexact, np.integer] = 0.0):
+
+        MeasureAttribute.__init__(self, start_time, end_time)
+        self.tempo_change_type = tempo_change_type
+        self.intensity = intensity
