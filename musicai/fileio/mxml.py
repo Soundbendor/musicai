@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 
-from musicai.structure.attribute import StemType, Beam, BeamType, TieType
+from musicai.structure.note_mark import StemType, Beam, BeamType, TieType
 from musicai.structure.clef import Clef, ClefOctave
 from musicai.structure.key import ModeType, KeyType, Key
 from musicai.structure.lyric import Lyric, SyllabicType

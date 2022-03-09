@@ -1,4 +1,6 @@
 from enum import Enum
+from typing import Union
+import numpy as np
 
 # -------------------
 # TimeSymbolType enum
@@ -123,11 +125,46 @@ class TempoType(Enum):
         obj.min_tempo = values[0]
         obj.max_tempo = values[1]
         obj.description = values[3]
+        return obj
 
     # TODO: work on overrides (?)
 
 
+class Tempo:
+    """
+    Class to represent information about a tempo
+    """
+    # -------------------
+    # Constructor
+    # -------------------
+    def __init__(self,
+                 tempo: Union[int, float, np.inexact, np.integer],  # TODO: how is tempo classified? bpm?
+                 tempo_name: Union[str, 'TempoType'] = '',
+                 description: str = ''):
+        self.tempo = tempo
+
+        if isinstance(tempo_name, TempoType):
+            self.tempo_name = tempo_name.name.title()
+            self.description = tempo_name.description.capitalize()
+        else:
+            self.tempo_name = tempo_name
+            self.description = description
+
+    # -------------------
+    # Overrides
+    # -------------------
+
+    # -------------------
+    # Class Methods
+    # -------------------
+    @classmethod
+    def find(cls, value: str) -> 'Tempo':
+        pass
+
+
 class TempoAdjustmentType(Enum):
+    # TODO: is this necessary? The point of this enum could be simply to add a description/explanation to the most
+    # common types of tempo markings. So if a user wanted to get a small description, this package has them included
     """
     Enum to represent common tempo markings used in music
     """
@@ -173,9 +210,9 @@ class TempoDescriptorType(Enum):
     """
     Enum to represent common descriptors for tempo markings in music
     """
-    NONE = ''
-    PIU = 'more'
-    POCO = 'a little'
-    MENO = 'less'
-    MOINS = 'less'
-    TRES = 'very'
+    NONE = 0, ''
+    PIU = 1, 'more'
+    POCO = 2, 'a little'
+    MENO = 3, 'less'
+    MOINS = 4, 'less'
+    TRES = 5, 'very'

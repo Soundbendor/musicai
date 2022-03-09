@@ -1,5 +1,57 @@
 from enum import Enum
 from typing import Union
+import numpy as np
+
+
+class ArticulationType(Enum):
+    """
+    Represents most common articulation marks on notes
+    """
+    STACCATO = 1, 0.8, u'\U0001D17C'  # Maybe problem: staccato changes are no constant
+    STACCATISSIMO = 1, 0.3, u'\U0001D17E'  # wedge
+    WEDGE = 1, 1, ''
+    ACCENT = 1.5, 1, u'\U0001D17B'
+    MARCATO = 2, 1, u'\U0001D17F'
+    TENUTO = 1.2, 1, u'\U0001D17D'
+    # FERMATA = 0, 0, u'\U0001D110'
+    # ARPEGGIATO = 0, 0, u'\U0001D183'
+
+    # -------------
+    # Constructor
+    # -------------
+    def __new__(cls, *values):
+        obj = object.__new__(cls)
+        # first value is canonical value
+        obj._value_ = values[0]  # force
+        obj.length = values[1]  # length
+        obj.symbol = values[2]  # symbol
+        return obj
+
+    # -------------
+    # Class Methods
+    # -------------
+    @classmethod
+    def from_abc(cls, abc_articulation):
+        pass
+
+        if abc_articulation == '.':
+            return ArticulationType.STACCATO
+
+
+class CustomArticulation:
+    """
+    Represents articulation types that use custom values
+    """
+    # -------------
+    # Constructor
+    # -------------
+    def __init__(self,
+                 articulation_type: ArticulationType = ArticulationType.ACCENT,
+                 force: Union[int, float, np.inexact, np.integer] = 1,
+                 length: Union[int, float, np.inexact, np.integer] = 1):
+        self.articulation_type = articulation_type
+        self.force = force
+        self.length = length
 
 
 # -----------------
@@ -66,7 +118,7 @@ class BeamType(Enum):
 # ----------
 # Beam class
 # ----------
-class Beam():
+class Beam:
     # -----------
     # Constructor
     # -----------
@@ -178,34 +230,34 @@ class Dynamic:
 # ---------------------
 # ArticulationType enum
 # ---------------------
-class ArticulationType(Enum):
-
-    STACCATO = 0, 0.5, u'\U0001D17C'
-    STACCATISSIMO = 1, 0.5, u'\U0001D17E'  # wedge
-    # SPICCATO = 1, 0.5, u'\U0001D17E'  # same as staccatissimo
-    ACCENT = 3, 0, 0.5, u'\U0001D17B'
-    MARCATO = 2, 0.5, u'\U0001D17F'
-    TENUTO = 3, 0.5, u'\U0001D17D'
-    # TENUTO_STACCATO = 3, 0.5, u'\U0001D182'
-    # MARCATO_STACCATO = 0, 0.5, u'\U0001D180'
-    # ACCENT_STACCATO = 0, 0.5, u'\U0001D181'
-    FERMATA = 0, 0, u'\U0001D110'
-    ARPEGGIATO = 0, 0, u'\U0001D183'
-
-    def __new__(cls, *values):
-        obj = object.__new__(cls)
-        # first value is canonical value
-        obj._value_ = values[1]  # a
-
-    # -------------
-    # Class Methods
-    # -------------
-    @classmethod
-    def from_abc(cls, abc_articulation):
-        pass
-
-        if abc_articulation == '.':
-            return ArticulationType.STACCATO
+# class ArticulationType(Enum):
+#     # Change in force, and length
+#     STACCATO = 0, 0.5, u'\U0001D17C'
+#     STACCATISSIMO = 1, 0.5, u'\U0001D17E'  # wedge
+#     # SPICCATO = 1, 0.5, u'\U0001D17E'  # same as staccatissimo
+#     ACCENT = 3, 0, 0.5, u'\U0001D17B'
+#     MARCATO = 2, 0.5, u'\U0001D17F'
+#     TENUTO = 3, 0.5, u'\U0001D17D'
+#     # TENUTO_STACCATO = 3, 0.5, u'\U0001D182'
+#     # MARCATO_STACCATO = 0, 0.5, u'\U0001D180'
+#     # ACCENT_STACCATO = 0, 0.5, u'\U0001D181'
+#     FERMATA = 0, 0, u'\U0001D110'
+#     ARPEGGIATO = 0, 0, u'\U0001D183'
+#
+#     def __new__(cls, *values):
+#         obj = object.__new__(cls)
+#         # first value is canonical value
+#         obj._value_ = values[1]  # a
+#
+#     # -------------
+#     # Class Methods
+#     # -------------
+#     @classmethod
+#     def from_abc(cls, abc_articulation):
+#         pass
+#
+#         if abc_articulation == '.':
+#             return ArticulationType.STACCATO
 
 
 # --------------------
@@ -261,36 +313,4 @@ class Decoration:
     pass
 
 
-# ---------------------
-# DynamicChangeType enum
-# ---------------------
-class DynamicChangeType(Enum):
-    """
-    Enum to represent the change in dynamics
-    """
-    DECRESCENDO = -1.0
-    CRESCENDO = 1.0
 
-
-# ---------------------
-# TempoChangeType enum
-# ---------------------
-class TempoChangeType(Enum):
-    """
-    Enum to represent the change in tempo
-    """
-    RITARDANDO = 0.3  # TODO: update values
-    RALLENTANDO = 0.5
-    ACCELERANDO = 1.5
-
-
-# ---------------------
-# Intensity enum
-# ---------------------
-class Intensity(Enum):
-    """
-    Enum to represent the intensities of line markings and standard multiplier values
-    """
-    POCO = 0.5
-    STANDARD = 1.0
-    MOLTO = 2.0

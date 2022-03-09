@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Union
 import numpy as np
 
-from musicai.structure.attribute import StemType
+from musicai.structure.note_mark import StemType
 from musicai.structure.pitch import Accidental, Pitch
 
 
