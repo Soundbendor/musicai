@@ -767,6 +767,9 @@ class Note:
     # ---------
     # Methods
     # ---------
+    # def contains_start_tie(self) -> bool:
+        # return (x in note_marks where x is a note mark of type tie)
+
     def add_beam(self, beam):
         self.beams.append(beam)
 

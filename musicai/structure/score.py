@@ -1,3 +1,5 @@
+from datetime import date
+
 
 # ----------
 # Part class
@@ -11,6 +13,7 @@ class Part:
     # -----------
     def __init__(self):
         self.measures = []
+        self.id = ''  # string which can be used to differentiate parts
 
     # --------
     # Override
@@ -28,6 +31,7 @@ class Part:
     # ---------
     def append(self, measure):
         self.measures.append(measure)
+
 
 # ----------------
 # PartSystem class
@@ -60,10 +64,11 @@ class PartSystem:
     def append(self, part):
         self.parts.append(part)
 
+
 # ----------
 # Work class
 # ----------
-class Work():
+class Work:
     """
     Class to represent a Work
     """
@@ -75,10 +80,56 @@ class Work():
         self.number = 0
         self.composer = ''
 
+
+# -----------
+# Encoding class
+# -----------
+# class Encoding:
+#     """
+#     Class to represent information about poeple who did digital encording
+#     """
+#     def __init__(self):
+#         self.name = ''
+#         self.date = None  # must be derivated in musicxml...
+#         self.software = ''
+#         self.description = ''
+#         self.support = None  # needs more attributes
+
+
+# -----------
+# Metadata class
+# -----------
+class Metadata:
+    """
+    Class to represent information about a score
+    """
+    # -----------
+    # Constructor
+    # -----------
+    def __init__(self):
+        self.title = ''
+        self.number = ''
+        self.composer = ''
+        self.creators = []  # list of creator tuples (title, name)
+        self.rights = []  # list of right tuples (description, type)
+        # self.encording = []
+        self.source = ''
+
+        self.work_title = ''
+        self.work_number = None
+        self.opus_link = ''
+
+    # -----------
+    # Methods
+    # -----------
+    def append_right(self, description: str, rights_type: str = ''):
+        self.rights.append(description, rights_type)
+
+
 # -----------
 # Score class
 # -----------
-class Score():
+class Score:
     """
     Class to represent a Score
     """
@@ -88,9 +139,7 @@ class Score():
     def __init__(self):
         self.filename = ''
         self.systems = []
-        self.number = 0
-        self.title = []
-        self.composer = ''
+        self.metadata = Metadata()
 
     # --------
     # Override

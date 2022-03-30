@@ -1,7 +1,7 @@
 import warnings
 from enum import Enum
 
-from musicai.structure.note_mark import StemType, DynamicType
+from musicai.structure.note_mark import StemType
 from musicai.structure.clef import Clef
 from musicai.structure.time import TimeSignature, TempoType, Tempo
 from musicai.structure.note import Note, Rest
@@ -20,19 +20,23 @@ class MeasureMark:
     mark_name = ''  # Common attributes to be initialized in child classes (will test this happens)
     value_name = ''  # value_name is used for repr()
     symbol = ''
-    note_connected = False
 
     # -----------
     # Constructor
     # -----------
     def __init__(self,
                  start_time: Union[float, int, np.inexact, np.integer] = 0.0,  # relative to the start of measure
-                 end_time: Union[float, int, np.inexact, np.integer] = 0.0):  # relative to the start of measure
+                 end_time: Union[float, int, np.inexact, np.integer] = 0.0,  # relative to the start of measure
+                 note_connected: bool = False  # if true, will initialize by pairing to a note based on start time
+                 ):
         self.start_time = start_time
         self.end_time = end_time
         self._duration_ = end_time - start_time
+        self.note_connected = note_connected
 
-        # Find out if it's connected to a note, and if so, then tie it to that note
+        # Find out if it's connected to a note, and if so, then link it to that note
+        if note_connected:
+            pass
 
     # -----------
     # Overrides
@@ -113,7 +117,7 @@ class TempoChangeType(Enum):
     """
     Enum to represent the change in tempo
     """
-    RITARDANDO = 0.3  # TODO: update values
+    RITARDANDO = 0.3  # TODO: update values from the book
     RALLENTANDO = 0.5
     ACCELERANDO = 1.5
 
@@ -134,8 +138,9 @@ class TempoChangeMark(MeasureMark):
                  tempo_change_type: TempoChangeType = TempoChangeType.RITARDANDO,
                  intensity: Intensity = Intensity.STANDARD,
                  start_time: Union[float, int, np.inexact, np.integer] = 0.0,
-                 end_time: Union[float, int, np.inexact, np.integer] = 0.0):
-        MeasureMark.__init__(self, start_time, end_time)
+                 end_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 note_connected: bool = False):
+        MeasureMark.__init__(self, start_time, end_time, note_connected)
         self.tempo_change_type = tempo_change_type
         self.intensity = intensity
         self.value_name = tempo_change_type.name.title()
@@ -158,10 +163,10 @@ class DynamicChangeMark(MeasureMark):
                  intensity: Intensity = Intensity.STANDARD,
                  start_time: Union[float, int, np.inexact, np.integer] = 0.0,
                  end_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 note_connected: bool = False,
                  hairpin: bool = True,
                  hairpin_type: HairpinType = HairpinType.STANDARD):
-
-        MeasureMark.__init__(self, start_time, end_time)
+        MeasureMark.__init__(self, start_time, end_time, note_connected)
         self.dynamic_change_type = dynamic_change_type
         self.intensity = intensity
         self.hairpin = hairpin
@@ -185,8 +190,9 @@ class OctaveLineMark(MeasureMark):
                  octave_change: Union[int, str, float, np.inexact, np.integer] = 0,
                  start_time: Union[float, int, np.inexact, np.integer] = 0.0,
                  end_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 note_connected: bool = False,
                  vertical_dotted_line: bool = False):
-        MeasureMark.__init__(self, start_time, end_time)
+        MeasureMark.__init__(self, start_time, end_time, note_connected)
 
         if isinstance(octave_change, str):
             self.octave_change = self.octave_change_from_str(octave_change)
@@ -194,6 +200,7 @@ class OctaveLineMark(MeasureMark):
             self.octave_change = int(octave_change)
             if int(octave_change) != octave_change:
                 warnings.warn(f'Warning: Octave change was shifted from {octave_change} to {int(octave_change)}')
+                #  looking into loggings.warning
 
         self.vertical_lines = vertical_dotted_line
         self.value_name = f'{self.octave_change} octaves'
@@ -225,6 +232,45 @@ class OctaveLineMark(MeasureMark):
             return int(value)
 
         return 0
+
+
+# # ---------------------   GLISSANDOS WILL BE USED AS INTERNOTE MARKINGS
+# # GlissandoType enum
+# # ---------------------
+# class GlissandoType(Enum):
+#     """
+#     Enum to represent ways to notate glissanndi
+#     """
+#     STRAIGHT = 0  # glissando typically refers to a more deliberate, continous slide
+#     WAVY = 1
+#     PORTAMENTO = 2  # typically, meant to indicate an expressive legato slide a smooth, microtonal slide
+#
+#
+# # ---------------------
+# # GlissandoMark class
+# # ---------------------
+# class GlissandoMark(MeasureMark):
+#     """
+#     Class to represent glissando slide notation
+#     """
+#     mark_name = 'Glissando'
+#
+#     # -----------
+#     # Constructor
+#     # -----------
+#     def __init__(self,
+#                  start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+#                  end_time: Union[float, int, np.inexact, np.integer] = 0.0,
+#                  note_connected: bool = False,
+#                  glissando_type: GlissandoType = GlissandoType.STRAIGHT):
+#         MeasureMark.__init__(self, start_time, end_time, note_connected)
+#
+#         if glissando_type == GlissandoType.PORTAMENTO:
+#             self.mark_name = 'Portamento'
+#             self.value_name = 'Straight'
+#
+#         else:
+#             self.value_name = glissando_type.name.title()
 
 
 # ---------------------
@@ -270,15 +316,51 @@ class PedalMark(MeasureMark):
                  end_time: Union[float, int, np.inexact, np.integer] = 0.0,
                  damper_release_sign: bool = False,
                  vertical_dotted_line: bool = False,
+                 note_connected: bool = False,
                  half_pedalling: tuple = None  # tuples of time stamps and pedal intensities to use across the duration
                  ):
-        MeasureMark.__init__(self, start_time, end_time)
+        MeasureMark.__init__(self, start_time, end_time, note_connected)
 
         self.pedal_type = pedal_type
         self.damper_release_sign = damper_release_sign
         self.vertical_dotted_line = vertical_dotted_line
         self.half_pedalling = half_pedalling
         self.value_name = pedal_type.name.title()
+
+
+# ---------------------
+# VoltaBracketType class
+# ---------------------
+class VoltaBracketType(Enum):
+    """
+    Class to represent if the ending bracket is open or closed
+    """
+    CLOSED = 0,
+    OPEN = 1
+
+
+# ---------------------
+# VoltaBracketMark class
+# ---------------------
+class VoltaBracketMark(MeasureMark):
+    """
+    Class to represent 1st, 2nd, 3rd, etc. endings used around repeat symbols
+    """
+    mark_name = 'Volta Bracket'
+
+    # -----------
+    # Constructor
+    # -----------
+    def __init__(self,
+                 ending_count: Union[int, np.integer, tuple] = 0,  # tuple is used if a passage counts for many endings
+                 volta_bracket_type: VoltaBracketType = VoltaBracketType.CLOSED,
+                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 end_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 note_connected: bool = False):
+        MeasureMark.__init__(self, start_time, end_time, note_connected)
+
+        self.ending_count = ending_count
+        self.volta_bracket_type = volta_bracket_type
 
 
 # ---------------------
@@ -292,12 +374,15 @@ class InstantaneousMeasureMark(MeasureMark):
     # Constructor
     # -----------
     def __init__(self,
-                 start_time: Union[float, int, np.inexact, np.integer, tuple] = 0.0):
+                 start_time: Union[float, int, np.inexact, np.integer, tuple] = 0.0,
+                 note_connected: bool = False):
 
         if isinstance(start_time, tuple):  # custom case where an "instantaneous" measure mark has a different end time
             MeasureMark.__init__(self, start_time[0], start_time[1])
         else:
             MeasureMark.__init__(self, start_time, start_time)
+
+        self.note_connected = note_connected
 
     # -----------
     # Overrides
@@ -326,9 +411,10 @@ class TempoMark(InstantaneousMeasureMark):
     # -----------
     def __init__(self,
                  tempo_type: Union[TempoType, Tempo, str] = TempoType.NONE,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0):
+                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 note_connected: bool = False):
 
-        InstantaneousMeasureMark.__init__(self, start_time)  # instantaneous, so start time = end time
+        InstantaneousMeasureMark.__init__(self, start_time, note_connected)
 
         if isinstance(tempo_type, TempoType):  # Make a tempo from the common tempo types
             self.tempo = Tempo(tempo_type.value, tempo_type)
@@ -338,6 +424,36 @@ class TempoMark(InstantaneousMeasureMark):
             self.tempo = tempo_type
 
         self.value_name = self.tempo.tempo_name
+
+
+# ----------------
+# DynamicType enum
+# ----------------
+class DynamicType(Enum):
+    NONE = 0, 0, '', ''
+    PIANISSISSISSIMO = 1, 10, 'pppp', '\U0001D18F\U0001D18F\U0001D18F\U0001D18F'
+    PIANISSISSIMO = 2, 23, 'ppp', '\U0001D18F\U0001D18F\U0001D18F'
+    PIANISSIMO = 3, 36, 'pp', '\U0001D18F\U0001D18F'
+    PIANO = 4, 49, 'p', '\U0001D18F'
+    MEZZOPIANO = 5, 62, 'mp', '\U0001D190\U0001D18F'
+    MEZZOFORTE = 6, 75, 'mf', '\U0001D190\U0001D191'
+    FORTE = 7, 88, 'f', '\U0001D191'
+    FORTISSIMO = 8, 101, 'ff', '\U0001D191\U0001D191'
+    FORTISSISSIMO = 9, 114, 'fff', '\U0001D191\U0001D191\U0001D191'
+    FORTISSISSISSIMO = 10, 127, 'ffff', '\U0001D191\U0001D191\U0001D191\U0001D191'
+
+    # -----------
+    # Constructor
+    # -----------
+    def __new__(cls, *values):
+        obj = object.__new__(cls)
+        # first value is canonical value
+        obj._value_ = values[0]
+        obj.velocity = values[1]
+        obj.abbr = values[2]
+        obj.symbol = values[3]
+        obj._all_values = values
+        return obj
 
 
 # ---------------------
@@ -354,8 +470,9 @@ class DynamicMark(InstantaneousMeasureMark):
     # -----------
     def __init__(self,
                  dynamic_type: DynamicType = DynamicType.NONE,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0):
-        InstantaneousMeasureMark.__init__(self, start_time)
+                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 note_connected: bool = False):
+        InstantaneousMeasureMark.__init__(self, start_time, note_connected)
         self.dynamic_type = dynamic_type
         self.value_name = self.dynamic_type.name.title()
     # TODO: implement overrides / conversions, and (?) multipliers
@@ -370,7 +487,7 @@ class MiscMarkType(Enum):
     """
     NONE = -1, ''
     CAESURA = 0, u'\U0001D113'  # railroad tracks
-    BREATH_MARK = 1, u'\U0001D112'  # aka luftpause
+    BREATH_MARK = 1, u'\U0001D112'  # AKA luftpause
 
     # -----------
     # Constructor
@@ -378,8 +495,9 @@ class MiscMarkType(Enum):
     def __new__(cls, *values):
         obj = object.__new__(cls)
         # first value is canonical value
-        obj.value = values[0]
+        obj._value_ = values[0]
         obj.symbol = values[1]
+        obj._all_values_ = values
         return obj
 
 
@@ -397,7 +515,8 @@ class MiscMark(InstantaneousMeasureMark):
     # -----------
     def __init__(self,
                  misc_mark_type: MiscMarkType = MiscMarkType.NONE,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0):
-        InstantaneousMeasureMark.__init__(self, start_time)
+                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 note_connected: bool = False):
+        InstantaneousMeasureMark.__init__(self, start_time, note_connected)
         self.mark_type = misc_mark_type
         self.value_name = misc_mark_type.name.title()

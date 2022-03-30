@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+from datetime import date
 
 from musicai.structure.note_mark import StemType, Beam, BeamType, TieType
 from musicai.structure.clef import Clef, ClefOctave
@@ -11,59 +12,109 @@ from musicai.structure.score import Score, PartSystem, Part
 from musicai.structure.time import TimeSignature
 
 
-class MusicXML():
+class MusicXML:
 
     @staticmethod
     def load(xml_file: str) -> Score:
-        '''
+        """
         Loads a MusicXML file and converts to a Score.
 
 
-        '''
-        pass
+        """
 
-        def _load_partwise(root):
-            score = Score()
-            system = PartSystem()
-            for partwise_item in root:
-                if partwise_item.tag == 'credit':
-                    print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
-                    pass
-                elif partwise_item.tag == 'defaults':
-                    print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
-                    pass
-                elif partwise_item.tag == 'identification':
-                    print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
-                    pass
-                elif partwise_item.tag == 'movement-title':
-                    print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
-                    pass
-                elif partwise_item.tag == 'movement-number':
-                    print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
-                    pass
-                elif partwise_item.tag == 'part':
-                    print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
-                    part = _load_part(partwise_item)
-                    system.append(part)
-                elif partwise_item.tag == 'part-list':
-                    print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
-                    pass
-                elif partwise_item.tag == 'score-partwise':
-                    print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
-                    pass
-                elif partwise_item.tag == 'work':
-                    print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
-                    pass
-                else:
-                    raise NotImplementedError('score for {0}'.format(partwise_item.tag))
+        def _load_partwise(loaded_root: ET.Element) -> Score:
+            new_score = Score()
+            new_system = PartSystem()
 
-            score.append(system)
-            return score
+            for partwise_item in loaded_root:
+                match partwise_item.tag:
+                    case 'movement-title':  # title of movement
+                        new_score.metadata.title = partwise_item.text
 
-        def _load_part(part_item):
+                    case 'movement-number':  # number of movement
+                        new_score.metadata.number = partwise_item.text
+
+                    case 'identification':  # metadata of the score
+                        for ident_element in partwise_item:
+                            match ident_element.tag:
+                                case 'creator':  # creators of the score
+                                    if 'type' in ident_element.attrib.keys():  # if the dictionary properly exists
+
+                                        # IF the main composer hasn't been set yet--this is checked for first
+                                        if ident_element.attrib['type'].lower() == 'composer' \
+                                                and new_score.metadata.composer == '':
+                                            new_score.metadata.composer = ident_element.text
+                                            # TODO: If there's no 'composer' type, then the main composer is never set
+                                        else:
+                                            creator_tuple = (ident_element.attrib['type'], ident_element.text)
+                                            new_score.metadata.creators.append(creator_tuple)
+
+                                    else:  # the dictionary doesn't properly exist
+                                        creator_tuple = ('Creator', ident_element.text)
+                                        new_score.metadata.creators.append(creator_tuple)
+
+                                case 'rights':
+                                    if 'type' in ident_element.attrib.keys():  # if the type is defined
+                                        new_score.metadata.append_right(ident_element.text, ident_element.attrib['type'])
+                                    else:
+                                        new_score.metadata.append_right(ident_element.text, '')
+
+                                case 'encoding':  # people who did digital encoding for the file
+                                    print('encoding registered, ', ident_element.text)  # TODO
+
+                                case 'source':  # source of the encoded music
+                                    new_score.metadata.source = ident_element.text
+
+                                case 'relation':  # related resource to the encoded music
+                                    print('relation registered, ', ident_element.text)  # TODO
+
+                                case 'miscellaneous':  # custom metadata
+                                    print('misc info registered, ', ident_element.text)  # TODO
+
+                                case _:
+                                    NotImplementedError(f'Unknown element \"{ident_element.tag}\" under the '
+                                                        f'identification element.')
+
+                    case 'work':  # basic information of the work
+                        for work_element in partwise_item:
+                            match work_element.tag:
+                                case 'work-number':
+                                    new_score.metadata.work_number = work_element.text
+                                case 'work-title':
+                                    new_score.metadata.work_title = work_element.text
+                                case 'opus':
+                                    print('opus registered, ', work_element.text)  # TODO
+                                case _: NotImplementedError(f'Unknown element \"{work_element.tag}\" under the work'
+                                                            f'element.')
+
+                    case 'default':  # score-wide scaling defaults
+                        print(partwise_item.tag, partwise_item.text, partwise_item.attrib)  # TODO
+
+                    case 'credit':  # appearence of information on the front pages
+                        print(partwise_item.tag, partwise_item.text, partwise_item.attrib)  # TODO
+
+                    case 'part-list':  # musical parts of the document
+                        print(partwise_item.tag, partwise_item.text, partwise_item.attrib)  # TODO
+
+                    case 'part':  # parts which contain measures
+                        print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
+                        part = _load_part(partwise_item)
+                        new_system.append(part)
+
+                    case _:
+                        raise NotImplementedError(f'Unknown element \"{partwise_item.tag}\" in musicxml file.')
+
+            new_score.append(new_system)
+            return new_score
+
+        def _load_part(part_item: ET.Element) -> Part:
             time = None
             key = None
             part = Part()
+
+            if 'id' in part_item.attrib.keys():
+                part.id = part_item.attrib['id']
+
             for item in part_item:
                 print('part', part)
                 if item.tag == 'measure':
@@ -73,21 +124,28 @@ class MusicXML():
                 else:
                     raise NotImplementedError('part for {0}'.format(item.tag))
 
-                # update time and key signatures
+                # update time and key signatures, to be used future measures
                 if measure.time is not None:
                     time = measure.time
                 else:
                     measure.time_signature = time
+
                 if measure.key is not None:
                     key = measure.key
                 else:
                     measure.key = key
+
             return part
 
-        def _load_measure(measure_item, measure):
+        def _load_measure(measure_element: ET.Element, measure: Measure) -> Measure:
             print('=====measure=====')
             divisions = 0
-            for item in measure_item:
+            for item in measure_element:
+
+                match item.tag:
+                    case 'attributes':
+                        pass
+
                 if item.tag == 'attributes':
                     for child in item:
                         # print(child.tag)
@@ -160,7 +218,7 @@ class MusicXML():
                         if child.tag == 'direction-type':
                             if 'number' in child.attrib:
                                 clef_number = child.attrib['number']
-#                            for clef_item in child:
+                    #                            for clef_item in child:
 
                     pass
                 elif item.tag == 'harmony':
@@ -182,6 +240,102 @@ class MusicXML():
                     pass
                 else:
                     raise NotImplementedError('measure for {0}'.format(item.tag))
+
+
+                # if item.tag == 'attributes':
+                #     for child in item:
+                #         # print(child.tag)
+                #         if child.tag == 'clef':
+                #             measure.display_clef = True
+                #             clef_octave = ClefOctave.NORMAL
+                #             clef_line = 3
+                #             clef_number = 0
+                #             clef_sign = 'G'
+                #             if 'number' in child.attrib:
+                #                 clef_number = child.attrib['number']
+                #             for clef_item in child:
+                #                 if clef_item.tag == 'line':
+                #                     clef_line = int(clef_item.text)
+                #                 elif clef_item.tag == 'sign':
+                #                     clef_sign = clef_item.text
+                #                 elif clef_item.tag == 'clef-octave-change':
+                #                     clef_octave = int(clef_item.text)
+                #                 else:
+                #                     raise NotImplementedError('clef for {0}'.format(clef_item.tag))
+                #             # clef = Clef(cleftype=ClefType[sign], line=line)
+                #             clef = Clef(clef_sign, line=clef_line)
+                #         elif child.tag == 'divisions':
+                #             divisions = int(child.text)
+                #             print('div', divisions)
+                #         elif child.tag == 'key':
+                #             measure.display_key = True
+                #             new_key = Key()
+                #             for key_item in child:
+                #                 if key_item.tag == 'fifths':
+                #                     new_key.keytype = KeyType.find(int(key_item.text))
+                #                 elif key_item.tag == 'mode':
+                #                     new_key.modetype = ModeType[key_item.text.upper()]
+                #                 else:
+                #                     raise NotImplementedError('key for {0}'.format(key_item.tag))
+                #             measure.key = new_key
+                #             print('new key', measure.key)
+                #         elif child.tag == 'staves':
+                #             print(child.tag, child.text, child.attrib)
+                #             pass
+                #         elif child.tag == 'time':
+                #
+                #             measure.display_time = True
+                #             new_time_signature = TimeSignature()
+                #             for time_item in child:
+                #                 if time_item.tag == 'beats':
+                #                     new_time_signature.numerator = int(time_item.text)
+                #                 elif time_item.tag == 'beat-type':
+                #                     new_time_signature.denominator = int(time_item.text)
+                #                 else:
+                #                     raise NotImplementedError('time for {0}'.format(time_item.tag))
+                #             new_time_signature.divisions = divisions
+                #             measure.time = new_time_signature
+                #             print('new time', measure.time)
+                #         elif child.tag == 'transpose':
+                #             print(child.tag, child.text, child.attrib)
+                #             pass
+                #         else:
+                #             raise NotImplementedError('attributes for {0}'.format(child.tag))
+                # elif item.tag == 'backup':
+                #     print(item.tag, item.text, item.attrib)
+                #     pass
+                # elif item.tag == 'barline':
+                #     print('barline', item.tag, item.text, item.attrib)
+                #     pass
+                # elif item.tag == 'direction':
+                #     print('direction', item.tag, item.text, item.attrib)
+                #     for child in item:
+                #         print('\t', child.tag, child.attrib)
+                #         if child.tag == 'direction-type':
+                #             if 'number' in child.attrib:
+                #                 clef_number = child.attrib['number']
+                #     #                            for clef_item in child:
+                #
+                #     pass
+                # elif item.tag == 'harmony':
+                #     print(item.tag, item.text, item.attrib)
+                #     pass
+                # elif item.tag == 'forward':
+                #     print(item.tag, item.text, item.attrib)
+                #     pass
+                # elif item.tag == 'note':
+                #     measure.append(_load_note(item, measure.time, measure.key))
+                # elif item.tag == 'print':
+                #     print(item.tag, item.text, item.attrib)
+                #     pass
+                # elif item.tag == 'sound':
+                #     print(item.tag, item.text, item.attrib)
+                #     pass
+                # elif item.tag == 'staff-layout':
+                #     print(item.tag, item.text, item.attrib)
+                #     pass
+                # else:
+                #     raise NotImplementedError('measure for {0}'.format(item.tag))
             return measure
 
         def _load_note(note_item, time, key):
@@ -294,7 +448,7 @@ class MusicXML():
                             raise ValueError('time modification for {0}'.format(time_mod_item.tag))
                     pass
                 elif item.tag == 'type':
-                    #print('notettypexml', item.text.upper())
+                    # print('notettypexml', item.text.upper())
                     notetype = NoteType.from_str(item.text.upper())
                 elif item.tag == 'voice':
                     voice = int(item.text)
@@ -310,7 +464,7 @@ class MusicXML():
             if is_rest:
                 print('restxml', notevalue, notetype)
                 note = Rest(value=notevalue)
-            elif not pitch is None:
+            elif pitch is not None:
                 notevalue = NoteValue(notetype=notetype, dots=dots, ratio=ratio)
                 note = Note(value=notevalue, pitch=pitch)
 
@@ -319,7 +473,7 @@ class MusicXML():
 
                 if beams:
                     note.beams = beams
-                    #print(note.beams)
+                    # print(note.beams)
 
             else:
                 print('unhandled note type??')
@@ -340,6 +494,7 @@ class MusicXML():
         if root.tag == 'score-partwise':
             score = _load_partwise(root)
         elif root.tag == 'score-timewise':
+            # convert to timewise and then
             raise NotImplementedError('score-timewise')
         return score
 

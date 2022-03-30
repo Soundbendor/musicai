@@ -42,7 +42,6 @@ class BarlineType(Enum):
         return self.symbol
 
 
-
 # --------------------
 # BarlineLocation enum
 # --------------------
@@ -136,7 +135,7 @@ class Measure:
                 raise ValueError('note is None')
             ret_str += ' ' + str(note)
         ret_str += ' ' + str(self.barline)
-        #ret_str += ' ' + ''.join([str(barline) for barline in self.barlines])
+        # ret_str += ' ' + ''.join([str(barline) for barline in self.barlines])
         return ret_str
 
     def __len__(self):

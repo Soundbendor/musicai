@@ -1,18 +1,18 @@
 from enum import Enum
 from typing import Union
 import numpy as np
+# todo: incorporate trills, mordants, etc.
 
 
 class ArticulationType(Enum):
     """
     Represents most common articulation marks on notes
     """
-    STACCATO = 1, 0.8, u'\U0001D17C'  # Maybe problem: staccato changes are no constant
-    STACCATISSIMO = 1, 0.3, u'\U0001D17E'  # wedge
-    WEDGE = 1, 1, ''
-    ACCENT = 1.5, 1, u'\U0001D17B'
-    MARCATO = 2, 1, u'\U0001D17F'
-    TENUTO = 1.2, 1, u'\U0001D17D'
+    STACCATO = 0, u'\U0001D17C'  # Maybe problem: staccato changes are no constant
+    STACCATISSIMO = 1, u'\U0001D17E'  # TODO: find the symbol for wedge
+    ACCENT = 2, u'\U0001D17B'
+    MARCATO = 3, 1, u'\U0001D17F'
+    TENUTO = 4, 1, u'\U0001D17D'
     # FERMATA = 0, 0, u'\U0001D110'
     # ARPEGGIATO = 0, 0, u'\U0001D183'
 
@@ -22,9 +22,8 @@ class ArticulationType(Enum):
     def __new__(cls, *values):
         obj = object.__new__(cls)
         # first value is canonical value
-        obj._value_ = values[0]  # force
-        obj.length = values[1]  # length
-        obj.symbol = values[2]  # symbol
+        obj._value_ = values[0]
+        obj.symbol = values[1]  # symbol
         return obj
 
     # -------------
@@ -38,20 +37,87 @@ class ArticulationType(Enum):
             return ArticulationType.STACCATO
 
 
-class CustomArticulation:
+class MiscMarks(Enum):
     """
-    Represents articulation types that use custom values
+    Represents miscellaneous marks on notes
     """
+    FERMATA = 0, u'\U0001D110'
+    FERMATA_SHORT = 1, ''  # TODO: need to find the symbol
+    FERMATA_LONG = 2, ''
+    ARPEGGIATO = 3, u'\U0001D183'
+    ARPEGGIATO_DOWN = 4, u'\U0001D184'
+    TIE = 5, ''
+
     # -------------
     # Constructor
     # -------------
+    def __new__(cls, *values):
+        obj = object.__new__(cls)
+        # first value is canonical value
+        obj._value_ = values[0]
+        obj.symbol = values[1]  # symbol
+        return obj
+
+
+# -----------------
+# OrnamentType enum
+# -----------------
+class OrnamentType(Enum):
+    TRILL = 0, '\U0001D196'
+    UPPER_MORDANT = 1, '\U0001D19D'
+    LOWER_MORDANT = 2
+    TURN = 3, '\U0001D197'
+    INVERTED_TURN = 4, '\U0001D198'
+    TURN_SLASH = 4, '\U0001D199'
+    TURN_UP = 4, '\U0001D19A'
+    APPOGGIATURA = 5
+    ACCIACCATURA = 6
+    GLISSANDO = 7
+    SLIDE = 8
+    NACHSCHLAG = 9
+
+    # TODO: Add tremolos
+
+
+# class CustomArticulation:
+#     """
+#     Represents articulation types that use custom values
+#     """
+#     # -------------
+#     # Constructor
+#     # -------------
+#     def __init__(self,
+#                  articulation_type: ArticulationType = ArticulationType.ACCENT,
+#                  force: Union[int, float, np.inexact, np.integer] = 1,
+#                  length: Union[int, float, np.inexact, np.integer] = 1):
+#         self.articulation_type = articulation_type
+#         self.force = force
+#         self.length = length
+
+
+# -----------------
+# GraceNoteMark class
+# -----------------
+class GraceNoteType(Enum):
+    """
+    Represents the two types of grace notes
+    """
+    ACCIACATURA = 0  # typical grace note
+    APPOGGIATURA = 1
+
+
+# -----------------
+# GraceNoteMark class
+# -----------------
+class GraceNoteMark:  # What if they derive from some BASE class so that they can all have the same repr functions?
+    """
+    Class to represent grace notes
+    """
     def __init__(self,
-                 articulation_type: ArticulationType = ArticulationType.ACCENT,
-                 force: Union[int, float, np.inexact, np.integer] = 1,
-                 length: Union[int, float, np.inexact, np.integer] = 1):
-        self.articulation_type = articulation_type
-        self.force = force
-        self.length = length
+                 notes: Union[list, tuple] = None,
+                 grace_note_type: GraceNoteType = GraceNoteType.ACCIACATURA):
+        self.notes = list(notes)
+        self.grace_note_type = grace_note_type
 
 
 # -----------------
@@ -165,66 +231,36 @@ class DynamicChange(Enum):
 # DynamicAccent enum
 # ------------------
 class DynamicAccent(Enum):
-    POCOFORTE = 0, 'pf', '\U0001D18F\U0001D191'
-    FORTEPIANO = 1, 'fp', '\U0001D191\U0001D18F'
-    RINFORZANDO = 2, 'rf', '\U0001D18C\U0001D191'
+    POCOFORTE = 0, 'pf', u'\U0001D18F\U0001D191'
+    FORTEPIANO = 1, 'fp', u'\U0001D191\U0001D18F'
+    RINFORZANDO = 2, 'rf', u'\U0001D18C\U0001D191'
 
-    FORZANDO = 3, 'fz', '\U0001D191\U0001D18E'
-    FORZATO = 4, 'fz', '\U0001D191\U0001D18E'
+    FORZANDO = 3, 'fz', u'\U0001D191\U0001D18E'
+    FORZATO = 4, 'fz', u'\U0001D191\U0001D18E'
 
-    SFORZATO = 5, 'sf', '\U0001D18D\U0001D191'
-    SFORZANDO = 6, 'sfz', '\U0001D18D\U0001D191\U0001D18E'
+    SFORZATO = 5, 'sf', u'\U0001D18D\U0001D191'
+    SFORZANDO = 6, 'sfz', u'\U0001D18D\U0001D191\U0001D18E'
 
     # rfz, sffz, sfp, sfpp, sfz
-
-
-# ----------------
-# DynamicType enum
-# ----------------
-class DynamicType(Enum):
-    NONE = 0, 0, '', ''
-    PIANISSISSISSIMO = 1, 10, 'pppp', '\U0001D18F\U0001D18F\U0001D18F\U0001D18F'
-    PIANISSISSIMO = 2, 23, 'ppp', '\U0001D18F\U0001D18F\U0001D18F'
-    PIANISSIMO = 3, 36, 'pp', '\U0001D18F\U0001D18F'
-    PIANO = 4, 49, 'p', '\U0001D18F'
-    MEZZOPIANO = 5, 62, 'mp', '\U0001D190\U0001D18F'
-    MEZZOFORTE = 6, 75, 'mf', '\U0001D190\U0001D191'
-    FORTE = 7, 88, 'f', '\U0001D191'
-    FORTISSIMO = 8, 101, 'ff', '\U0001D191\U0001D191'
-    FORTISSISSIMO = 9, 114, 'fff', '\U0001D191\U0001D191\U0001D191'
-    FORTISSISSISSIMO = 10, 127, 'ffff', '\U0001D191\U0001D191\U0001D191\U0001D191'
-
-    # -----------
-    # Constructor
-    # -----------
-    def __new__(cls, *values):
-        obj = object.__new__(cls)
-        # first value is canonical value
-        obj._value_ = values[0]
-        obj.velocity = values[1]
-        obj.abbr = values[2]
-        obj.symbol = values[3]
-        obj._all_values = values
-        return obj
 
 
 # -------------
 # Dynamic Class
 # -------------
-class Dynamic:
-
-    # -----------
-    # Constructor
-    # -----------
-    def __init__(self, dynamic: Union[str, DynamicType]):
-        if isinstance(dynamic, DynamicType):
-            self.dynamic = dynamic
-        elif isinstance(dynamic, str):
-            pass
-
-        self.dynamic_accent = None
-
-        end_dynamic = self.dynamic
+# class Dynamic:
+#
+#     # -----------
+#     # Constructor
+#     # -----------
+#     def __init__(self, dynamic: Union[str, DynamicType]):
+#         if isinstance(dynamic, DynamicType):
+#             self.dynamic = dynamic
+#         elif isinstance(dynamic, str):
+#             pass
+#
+#         self.dynamic_accent = None
+#
+#         end_dynamic = self.dynamic
 
 
 # ---------------------
@@ -278,24 +314,7 @@ class Articulation:
     pass
 
 
-# -----------------
-# OrnamentType enum
-# -----------------
-class OrnamentType(Enum):
-    TRILL = 0, '\U0001D196'
-    UPPER_MORDANT = 1, '\U0001D19D'
-    LOWER_MORDANT = 2
-    TURN = 3, '\U0001D197'
-    INVERTED_TURN = 4, '\U0001D198'
-    TURN_SLASH = 4, '\U0001D199'
-    TURN_UP = 4, '\U0001D19A'
-    APPOGGIATURA = 5
-    ACCIACCATURA = 6
-    GLISSANDO = 7
-    SLIDE = 8
-    NACHSCHLAG = 9
 
-    # TODO: Add tremolos
 
 
 # --------------
