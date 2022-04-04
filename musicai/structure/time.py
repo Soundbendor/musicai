@@ -1,3 +1,5 @@
+import logging
+import warnings
 from enum import Enum
 from typing import Union
 import numpy as np
@@ -13,6 +15,7 @@ class TimeSymbolType(Enum):
     COMMON = 1
     CUT = 2
     SINGLE = 3
+    # SENZA_MISURA = 4
 
     # --------
     # Override

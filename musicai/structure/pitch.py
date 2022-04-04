@@ -1,3 +1,5 @@
+import logging
+import warnings
 import re
 from enum import Enum
 from typing import Union, Tuple
@@ -438,7 +440,15 @@ class Accidental(Enum):
         raise ValueError('Error: accidental {0} not found.'.format(value))
 
     @classmethod
-    def from_abc(cls, abc_accidental : str) -> 'Accidental':
+    def from_mxml(cls, mxml_accidental: str) -> 'Accidental':
+        if mxml_accidental.upper().replace('-', '_') in [a.name for a in Accidental]:
+            return Accidental[mxml_accidental.upper().replace('-', '_')]
+        else:
+            warnings.warn(f'No implementation for accidental "{mxml_accidental}" yet--returning Accidental.NONE')
+            return Accidental.NONE
+
+    @classmethod
+    def from_abc(cls, abc_accidental: str) -> 'Accidental':
         str_accidental = abc_accidental.strip()
         match str_accidental:
             case '':
@@ -561,6 +571,10 @@ class Pitch:
     def midi(self) -> int:
         return round(self.step + 12 * (self.octave + 1) + self.alter)
 
+    @midi.setter
+    def midi(self, value):
+        logging.warning(f'Setting midi not implemented yet for Pitch in {str(self)}')
+
     @property
     def unaltered(self) -> int:
         # midi value but not including accidental
@@ -573,7 +587,7 @@ class Pitch:
         return str(self.step) + str(self.alter) + str(self.octave)
 
     def __repr__(self):
-        return '<{self.__class__.__name__}(str({self.name}))>'.format(self=self)
+        return f'<{self.__class__.__name__}({str(self.step)})>'
 
     def __lt__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> bool:
         if isinstance(other, Pitch):

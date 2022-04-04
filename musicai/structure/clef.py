@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 import numpy as np
 
@@ -39,6 +40,21 @@ class ClefType(Enum):
 
     def __repr__(self):
         return '<{self.__class__.__name__}({self.name})>'.format(self=self)
+
+    # --------
+    # Class Methods
+    # --------
+    @classmethod
+    def from_str(cls, value: str) -> 'ClefType':
+        match value.lower():
+            case 'g': return ClefType.G
+            case 'f': return ClefType.F
+            case 'c': return ClefType.C
+            case 'percussion': return ClefType.PERCUSSION
+            case 'tab': return ClefType.TAB6
+            # case 'jianpu': return ClefType.JIANPU
+            case 'none': return ClefType.G  # returns treble for musicxml loading
+            case _: return ClefType.NONE
 
 
 # ---------------
@@ -102,13 +118,15 @@ class Clef:
     # -----------
     # Constructor
     # -----------
-    def __init__(self, clef=ClefType.G, octave=ClefOctave.NORMAL, line=2):
+    def __init__(self,
+                 clef: Union[ClefType, str] = ClefType.G,
+                 octave: Union[int, np.integer, ClefOctave] = ClefOctave.NORMAL,
+                 line: Union[str, int, np.integer] = 2):
         # ClefType (default G)
         if isinstance(clef, ClefType):
             self.cleftype = clef
         elif isinstance(clef, str):
-            # accepts G, F, C, PERCUSSION, TAB
-            self.cleftype = ClefType[clef.upper()]
+            self.cleftype = ClefType.from_str(clef)
         else:
             raise TypeError('Cannot create ClefType from {0} of type {1}.'.format(clef, type(clef)))
 
@@ -116,6 +134,7 @@ class Clef:
         if isinstance(octave, ClefOctave):
             self.octave_change = octave
         elif isinstance(octave, (int, np.integer)):
+            assert -4 < octave < 4
             self.octave_change = ClefOctave(octave)
         else:
             raise TypeError('Cannot create ClefOctave from {0} of type {1}.'.format(octave, type(octave)))

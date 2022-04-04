@@ -14,6 +14,7 @@ class Part:
     def __init__(self):
         self.measures = []
         self.id = ''  # string which can be used to differentiate parts
+        self.name = ''
 
     # --------
     # Override

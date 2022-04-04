@@ -57,6 +57,17 @@ class NoteTypeTest(unittest.TestCase):
         self.assertRaises(ValueError, NoteType.from_str, 'string')
         self.assertRaises(ValueError, NoteType.from_str, 'random')
 
+    def test_from_mxml(self):
+        # valid values
+        self.assertEqual(NoteType.from_mxml('1024th'), NoteType.ONE_THOUSAND_TWENTY_FOURTH)
+        self.assertEqual(NoteType.from_mxml('64th'), NoteType.SIXTY_FOURTH)
+        self.assertEqual(NoteType.from_mxml('half'), NoteType.HALF)
+        self.assertEqual(NoteType.from_mxml('long'), NoteType.LONG)
+        self.assertEqual(NoteType.from_mxml('maxima'), NoteType.LARGE)
+
+        # invalid values
+        self.assertWarns(UserWarning, NoteType.from_mxml, 'foo')
+
     def test_list(self):
         self.assertEqual(NoteType.list(), [8.0, 4.0, 2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125,
                                            0.00390625, 0.001953125, 0.000976563, 0.000488281, 0.000244141, 0.0])
@@ -153,7 +164,7 @@ class NoteValueTest(unittest.TestCase):
     def test_float_override(self):
         self.assertEqual(float(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR)), 8.0)
         self.assertEqual(float(NoteValue(NoteType.QUARTER, 1, (2, 3))), 0.5625)
-        self.assertEqual(float(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.FOUR, Ratio((11, 6)))),
+        self.assertEqual(float(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, 4, Ratio((11, 6)))),
                          0.00025801264772727276)
 
     def test_int_override(self):
@@ -162,9 +173,9 @@ class NoteValueTest(unittest.TestCase):
         self.assertEqual(int(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.FOUR, Ratio((11, 6)))), 0)
 
     def test_str_override(self):
-        self.assertEqual(float(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR)), '8.0')
-        self.assertEqual(float(NoteValue(NoteType.QUARTER, 1, (2, 3))), '0.5625')
-        self.assertEqual(float(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.FOUR, Ratio((11, 6)))),
+        self.assertEqual(str(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR)), '8.0')
+        self.assertEqual(str(NoteValue(NoteType.QUARTER, 1, (2, 3))), '0.5625')
+        self.assertEqual(str(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.FOUR, Ratio((11, 6)))),
                          '0.00025801264772727276')
 
     def test_repr_override(self):

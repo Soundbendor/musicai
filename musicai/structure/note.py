@@ -3,6 +3,7 @@ Representation of a musical note or rest
 """
 import logging
 import re
+import warnings
 from enum import Enum
 from typing import Union
 import numpy as np
@@ -19,9 +20,9 @@ class NoteType(Enum):
     Representation the relative duration of a note or rest symbol
     """
 
-    LARGE = (8.0, 'Large', '\U0001D1B6', '\U0001D13A')
+    LARGE = (8.0, 'Large', '\U0001D1B6', '\U0001D13A')  # Alternate name: duplex longa, maxima
     LONG = (4.0, 'Long', '\U0001D1B7', '\U0001D13A')
-    DOUBLE = (2.0, 'Double', '\U0001D15C', '\U0001D13B')
+    DOUBLE = (2.0, 'Double', '\U0001D15C', '\U0001D13B')  # Alternate name: breve
     WHOLE = (1.0, 'Whole', '\U0001D15D', '\U0001D13B')
     HALF = (0.5, 'Half', '\U0001D15E', '\U0001D13C')
     QUARTER = (0.25, 'Quarter', '\U0001D15F', '\U0001D13D')
@@ -96,6 +97,41 @@ class NoteType(Enum):
                 return nt
         raise ValueError('Cannot find NoteType to match {0} of value {1}'.format(lookup, type(lookup)))
 
+    @classmethod
+    def from_mxml(cls, mxml_notetype: str) -> 'NoteType':
+        if mxml_notetype.upper() in [n.name for n in NoteType]:
+            return NoteType[mxml_notetype.upper()]
+
+        match mxml_notetype.lower():
+            # allowed mxml values
+            case '1024th':
+                return NoteType.ONE_THOUSAND_TWENTY_FOURTH
+            case '512th':
+                return NoteType.FIVE_HUNDRED_TWELFTH
+            case '256th':
+                return NoteType.TWO_FIFTY_SIXTH
+            case '128th':
+                return NoteType.ONE_TWENTY_EIGHTH
+            case '64th':
+                return NoteType.SIXTY_FOURTH
+            case '32nd':
+                return NoteType.THIRTY_SECOND
+            case '16th':
+                return NoteType.SIXTEENTH
+            case 'breve':
+                return NoteType.DOUBLE
+            case 'maxima':
+                return NoteType.LARGE
+
+            # unallowed mxml values
+            case '2048th':
+                return NoteType.TWO_THOUSAND_FORTY_EIGHTH
+            case '4096th':
+                return NoteType.FOUR_THOUSAND_NINETY_SIXTH
+            case _:
+                warnings.warn(f'MXL Notetype "{mxml_notetype.title()}" not supported--returning Notetype.QUARTER')
+                return NoteType.QUARTER
+
     # @classmethod
     # def find(cls, lookup: Union[str, float]) -> 'NoteType':
     #     if isinstance(lookup, float):
@@ -165,6 +201,22 @@ class DotType(Enum):
             return other * self.scalar
         else:
             raise TypeError('Cannot multiply DotValue and type {0}.'.format(type(other)))
+
+    def __truediv__(self, other: Union[float, int, np.inexact, np.integer, 'DotType']) -> Union[float, int]:
+        if isinstance(other, DotType):
+            return self.scalar / other.scalar
+        elif isinstance(other, Union[float, int, np.inexact, np.integer]):
+            return self.scalar / other
+        else:
+            raise TypeError('Cannot divide DotValue and type {0}.'.format(type(other)))
+
+    def __rtruediv__(self, other: Union[float, int, np.inexact, np.integer, 'DotType']) -> Union[float, int]:
+        if isinstance(other, DotType):
+            return other.scalar / self.scalar
+        elif isinstance(other, Union[float, int, np.inexact, np.integer]):
+            return other / self.scalar
+        else:
+            raise TypeError('Cannot divide DotValue and type {0}.'.format(type(other)))
 
     # ---------
     # Methods
@@ -340,24 +392,77 @@ class NoteValue:
     # Constructor
     # -----------
     def __init__(self,
-                 notetype: NoteType,
-                 dots: Union['DotType', float, np.inexact, int, np.integer] = DotType.NONE,
+                 notetype: Union[int, np.inexact, float, np. integer, NoteType] = NoteType.QUARTER,
+                 dots: Union['DotType', int, np.integer] = DotType.NONE,
                  ratio: Union['Ratio', TupletType, tuple] = Ratio(TupletType.REGULAR)):
-        self.notetype = notetype
-
-        if isinstance(dots, (float, np.inexact, int, np.integer)):
-            self.dots = DotType(dots)
-        elif isinstance(dots, DotType):
-            self.dots = dots
-        else:
-            raise TypeError('Cannot find a NoteValue DotType from type {0}', type(dots))
-
+        self.notetype = notetype, False  # False--do not force a notevalue update
+        self.dots = dots, False  # False--do not force a notevalue update
         self.ratio = Ratio(ratio)
         self._value_ = self.notetype.value * self.dots * self.ratio.normal / self.ratio.actual
 
     # ----------
     # Properties
     # ----------
+    @property
+    def notetype(self) -> NoteType:
+        return self._notetype_
+
+    @notetype.setter
+    def notetype(self, value: Union[int, np.inexact, float, np. integer, NoteType, tuple]):
+
+        # To NOT force a notevalue update, a tuple with type bool as the second tuple item can be passed in
+        if isinstance(value, tuple):
+            if not isinstance(value[1], bool):
+                raise TypeError(f'Any tuple passed into notetype must have a the second tuple item be of type bool. '
+                                f'Cannot accept type {type(value[1])}.')
+            force_value_update = value[1]
+            value = value[0]
+        else:
+            force_value_update = True
+
+        if isinstance(value, Union[int, np.integer, float, np.inexact]):
+            if value in NoteType._value2member_map_:
+                self._notetype_ = NoteType(value)
+            else:
+                warnings.warn(f'No valid NoteType for {value}, setting NoteValue NoteType to NoteType.QUARTER',
+                              stacklevel=2)
+                self._notetype_ = NoteType.QUARTER
+        elif isinstance(value, NoteType):
+            self._notetype_ = value
+        else:
+            raise TypeError(f'Cannot find a NoteValue NoteType from type {type(value)}')
+
+        if force_value_update:
+            self.update_notevalue()
+
+    @property
+    def dots(self) -> DotType:
+        return self._dots_
+
+    @dots.setter
+    def dots(self, value: Union[int, np.integer, DotType, tuple]):
+
+        # To NOT force a notevalue update, a tuple with type bool as the second tuple item can be passed in
+        if isinstance(value, tuple):
+            if not isinstance(value[1], bool):
+                raise TypeError(f'Any tuple passed into notetype must have a the second tuple item be of type bool. '
+                                f'Cannot accept type {type(value[1])}.')
+            force_value_update = value[1]
+            value = value[0]
+        else:
+            force_value_update = True
+
+        if isinstance(value, Union[int, np.integer]):
+            assert -1 < value < 5, 'Only an amount of 0-4 dots are supported'
+            self._dots_ = DotType(value)
+        elif isinstance(value, DotType):
+            self._dots_ = value
+        else:
+            raise TypeError(f'Cannot find a NoteValue DotType from type {type(value)}')
+
+        if force_value_update:
+            self.update_notevalue()
+
     @property
     def value(self):
         if self.ratio is None:
@@ -544,6 +649,8 @@ class NoteValue:
     # ---------
     # Methods
     # ---------
+    def update_notevalue(self):
+        self._value_ = self.notetype.value * self.dots * self.ratio.normal / self.ratio.actual
 
     # -------------
     # Class Methods
@@ -627,9 +734,13 @@ class Note:
     # -----------
     # Constructor
     # -----------
-    def __init__(self, value=NoteType.NONE, pitch=None, marks: set = None):
-        self.pitch = pitch
+    def __init__(self, value: NoteValue = NoteValue(NoteType.NONE), pitch: Pitch = Pitch(), marks: set = None):
         self.value = value
+        self.pitch = pitch
+        if marks is None:
+            marks = set()  # This is done because set is a mutable type
+        self.marks = marks
+
         self.show_accidental = False
         self.stem = StemType.UP
         self.voice = 1
@@ -637,14 +748,13 @@ class Note:
         self.decay = 0
         self.pizzicato = False
         self.beams = []
-        self.marks = marks
 
     # ----------
     # Properties
     # ----------
     @property
-    def value(self):
-        return self._notevalue_.value
+    def value(self) -> NoteValue:
+        return self._notevalue_
 
     @value.setter
     def value(self, value: Union['NoteValue', 'NoteType', float, int, np.integer, np.inexact]):
@@ -660,14 +770,6 @@ class Note:
             self._notevalue_ = NoteValue.find(value)
         else:
             raise TypeError('Invalid type {0} for NoteValue.'.format(type(value)))
-
-    @property
-    def notevalue(self):
-        return self._notevalue_.value
-
-    @notevalue.setter
-    def notevalue(self, notevalue):
-        self.value = notevalue
 
     @property
     def midi(self):
@@ -858,8 +960,7 @@ class Rest(Note):
     # -----------
     # Constructor
     # -----------
-    def __init__(self, value=NoteType.NONE):
-        print('restconst', value)
+    def __init__(self, value: NoteType = NoteType.NONE):
         super().__init__(value=value)
 
     # ----------
@@ -890,6 +991,15 @@ class Rest(Note):
     # -------------
     # Class Methods
     # -------------
+    @classmethod
+    def to_rest(cls, origin_note: Note) -> 'Rest':
+        new_rest = Rest()
+
+        for attr in vars(origin_note).items():  # for every item in the original note
+            vars(new_rest).update({attr[0]: attr[1]})  # update this item in the rest
+
+        new_rest.pitch = None
+        return new_rest
 
 
 # ---------------

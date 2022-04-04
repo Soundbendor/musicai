@@ -103,6 +103,18 @@ class Barline:
 
 
 # -------------
+# MeasureStyle Enum
+# -------------
+class MeasureStyle(Enum):
+    NONE = None
+    MULTIPLE_REST = 0
+    MEASURE_REPEAT = 1
+    BEAT_REPEAT = 2
+    SLASH = 3
+    # TODO: implement how this will work with Score, get_note functions and etc.
+
+
+# -------------
 # Measure class
 # -------------
 class Measure:
@@ -124,6 +136,7 @@ class Measure:
         self.display_clef = False
         self.display_time = False
         self.display_key = False
+        self.measure_style = MeasureStyle.NONE
 
     # --------
     # Override
@@ -162,7 +175,7 @@ class Measure:
             raise TypeError('Cannot add type {0} to Measure'.format(type(notes)))
         self.pack()
 
-    def stem_note(self, note):
+    def stem_note(self, note):  # TODO: update to match notation rules
         if note.pitch < self.clef:
             # stem up
             note.stem = StemType.UP
