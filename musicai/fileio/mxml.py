@@ -361,7 +361,7 @@ class MusicXML:
                             elif pitch_item.tag == 'step':
                                 note.pitch.step = Step[pitch_item.text]
                             else:
-                                raise NotImplementedError('Pitch for {0}'.format(pitch_item.tag))
+                                raise NotImplementedError(f'Pitch for {pitch_item.tag}')
 
                     case 'unpitched':
                         print(f'"{note_child.tag.title()}" note element has not been implemented yet.')

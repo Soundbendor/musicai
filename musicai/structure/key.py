@@ -29,10 +29,10 @@ class ModeType(Enum):
         return self.value
 
     def __str__(self):
-        return ('{0}'.format(self.name)).title()
+        return f'{self.name}'.title()
 
     def __repr__(self):
-        return '<{self.__class__.__name__}({self.name})>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.name})>'
 
     # -------------
     # Class Methods
@@ -109,7 +109,7 @@ class KeyType(Enum):
         return self.name
 
     def __repr__(self):
-        return '<{self.__class__.__name__}({self.name})>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.name})>'
 
     # -------------
     # Class Methods
@@ -608,7 +608,7 @@ class Key:
                     pitch = chromatic.pitch
                     return pitch
                 else:
-                    raise ValueError('Error: could not match midi note {0} in key {1}'.format(midi, self))
+                    raise ValueError(f'Error: could not match midi note {midi} in key {self}')
         return pitch
 
     # -------------

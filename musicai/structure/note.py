@@ -1,7 +1,6 @@
 """
 Representation of a musical note or rest
 """
-import logging
 import re
 import warnings
 from enum import Enum
@@ -58,13 +57,13 @@ class NoteType(Enum):
         return self.name.replace("_", " ").title()
 
     def __repr__(self) -> str:
-        return '<{self.__class__.__name__}({self.name}) {self.value}>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.name}) {self.value}>'
 
     def __float__(self) -> float:
         if isinstance(self.value, float):
             return self.value
         else:
-            raise TypeError('{0} has a non-float type {1} for note type length.'.format(self, type(self.value)))
+            raise TypeError(f'{self} has a non-float type {type(self.value)} for note type length.')
 
     # ---------
     # Methods
@@ -80,22 +79,22 @@ class NoteType(Enum):
     @classmethod
     def from_str(cls, lookup: str) -> 'NoteType':
         if not isinstance(lookup, str):
-            raise TypeError('Cannot find NoteType to match {0} of type {1}'.format(lookup, type(lookup)))
+            raise TypeError(f'Cannot find NoteType to match {lookup} of type {type(lookup)}')
         string = lookup.lower().strip()
         for nt in NoteType:
             if nt.abbr.lower() == string or nt.name.lower() == string or \
                     nt.note.lower() == string or nt.rest.lower() == string:
                 return nt
-        raise ValueError('Cannot find NoteType to match {0} of value {1}'.format(lookup, type(lookup)))
+        raise ValueError(f'Cannot find NoteType to match {lookup} of value {type(lookup)}')
 
     @classmethod
     def from_float(cls, lookup: Union[float, int, np.inexact, np.integer]) -> 'NoteType':
         if not isinstance(lookup, Union[float, int, np.inexact, np.integer]):
-            raise TypeError('Cannot find NoteType to match {0} of type {1}'.format(lookup, type(lookup)))
+            raise TypeError(f'Cannot find NoteType to match {lookup} of type {type(lookup)}')
         for nt in NoteType:
             if nt.value == lookup:
                 return nt
-        raise ValueError('Cannot find NoteType to match {0} of value {1}'.format(lookup, type(lookup)))
+        raise ValueError(f'Cannot find NoteType to match {lookup} of value {type(lookup)}')
 
     @classmethod
     def from_mxml(cls, mxml_notetype: str) -> 'NoteType':
@@ -144,7 +143,7 @@ class NoteType(Enum):
     #             if nt.abbr.lower() == string or nt.name.lower() == string or \
     #                                   nt.note.lower() == string or nt.rest.lower() == string:
     #                 return nt
-    #     raise ValueError('Cannot find NoteType to match {0} of type {1}'.format(lookup, type(lookup)))
+    #     raise ValueError(f'Cannot find NoteType to match {lookup} of type {type(lookup)}')
 
 
 # -------------
@@ -184,7 +183,7 @@ class DotType(Enum):
         return self.name.title()
 
     def __repr__(self) -> str:
-        return '<{self.__class__.__name__}({self.name}) {self.scalar}>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.name}) {self.scalar}>'
 
     def __mul__(self, other: Union[float, int, np.inexact, np.integer, 'DotType']) -> Union[float, int]:
         if isinstance(other, DotType):
@@ -192,7 +191,7 @@ class DotType(Enum):
         elif isinstance(other, Union[float, int, np.inexact, np.integer]):
             return self.scalar * other
         else:
-            raise TypeError('Cannot multiply DotValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot multiply DotValue and type {type(other)}.')
 
     def __rmul__(self, other: Union[float, int, np.inexact, np.integer, 'DotType']) -> Union[float, int]:
         if isinstance(other, DotType):
@@ -200,7 +199,7 @@ class DotType(Enum):
         elif isinstance(other, Union[float, int, np.inexact, np.integer]):
             return other * self.scalar
         else:
-            raise TypeError('Cannot multiply DotValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot multiply type {type(other)} and DotValue.')
 
     def __truediv__(self, other: Union[float, int, np.inexact, np.integer, 'DotType']) -> Union[float, int]:
         if isinstance(other, DotType):
@@ -208,7 +207,7 @@ class DotType(Enum):
         elif isinstance(other, Union[float, int, np.inexact, np.integer]):
             return self.scalar / other
         else:
-            raise TypeError('Cannot divide DotValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot divide DotValue and type {type(other)}.')
 
     def __rtruediv__(self, other: Union[float, int, np.inexact, np.integer, 'DotType']) -> Union[float, int]:
         if isinstance(other, DotType):
@@ -216,7 +215,7 @@ class DotType(Enum):
         elif isinstance(other, Union[float, int, np.inexact, np.integer]):
             return other / self.scalar
         else:
-            raise TypeError('Cannot divide DotValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot divide type {type(other)} and DotValue.')
 
     # ---------
     # Methods
@@ -267,7 +266,7 @@ class TupletType(Enum):
         return self.name.title()
 
     def __repr__(self) -> str:
-        return '<{self.__class__.__name__}({self.name}) {self.symbol}>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.name}) {self.symbol}>'
 
     # ---------
     # Methods
@@ -315,7 +314,7 @@ class Ratio:
             self._normal_ = int(ratio[1])
             self._update_tuplettype_()
         else:
-            raise TypeError('Cannot create Tuplet from type {0}.'.format(type(ratio)))
+            raise TypeError(f'Cannot create Tuplet from type {type(ratio)}.')
 
     # ----------
     # Properties
@@ -356,7 +355,7 @@ class Ratio:
         return self.symbol
 
     def __repr__(self) -> str:
-        return '<{self.__class__.__name__}({self.symbol})>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.symbol})>'
 
     # ---------
     # Methods
@@ -508,7 +507,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return self.value < other.value
         else:
-            raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare NoteValue and type {type(other)}.')
 
     def __le__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> bool:
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -516,7 +515,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return self.value <= other.value
         else:
-            raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare NoteValue and type {type(other)}.')
 
     def __gt__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> bool:
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -524,7 +523,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return self.value > other.value
         else:
-            raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare NoteValue and type {type(other)}.')
 
     def __ge__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> bool:
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -532,7 +531,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return self.value >= other.value
         else:
-            raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare NoteValue and type {type(other)}.')
 
     def __eq__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> bool:
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -540,7 +539,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return self.value == other.value
         else:
-            raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare NoteValue and type {type(other)}.')
 
     def __ne__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> bool:
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -548,7 +547,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return self.value != other.value
         else:
-            raise TypeError('Cannot compare NoteValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare NoteValue and type {type(other)}.')
 
     def __add__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -556,7 +555,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(self.value + other.value)
         else:
-            raise TypeError('Cannot add NoteValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot add NoteValue and type {type(other)}.')
 
     def __radd__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -564,7 +563,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(other.value + self.value)
         else:
-            raise TypeError('Cannot add type {0} and NoteValue.'.format(type(other)))
+            raise TypeError(f'Cannot add type {type(other)} and NoteValue.')
 
     def __sub__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union['NoteValue', int, float, np.inexact, np.integer]):
@@ -572,7 +571,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(self.value - other.value)
         else:
-            raise TypeError('Cannot add NoteValue and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot subtract NoteValue and type {type(other)}.')
 
     def __rsub__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -580,7 +579,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(other.value - self.value)
         else:
-            raise TypeError('Cannot subtract type {0} and NoteValue.'.format(type(other)))
+            raise TypeError(f'Cannot subtract type {type(other)} and NoteValue.')
 
     def __mul__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -588,7 +587,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(self.value * other.value)
         else:
-            raise TypeError('Cannot multiply NoteValue by type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot multiply NoteValue and type {type(other)}.')
 
     def __rmul__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -596,7 +595,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(other.value * self.value)
         else:
-            raise TypeError('Cannot multiple type {0} by NoteValue.'.format(type(other)))
+            raise TypeError(f'Cannot multiply type {type(other)} by NoteValue.')
 
     def __truediv__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -604,7 +603,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(self.value / other.value)
         else:
-            raise TypeError('Cannot divide NoteValue by type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot divide NoteValue by type {type(other)}.')
 
     def __rtruediv__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -612,7 +611,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(other.value / self.value)
         else:
-            raise TypeError('Cannot divide type {0} by NoteValue.'.format(type(other)))
+            raise TypeError(f'Cannot divide type {type(other)} by NoteValue.')
 
     def __floordiv__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -620,7 +619,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(self.value // other.value)
         else:
-            raise TypeError('Cannot floor divide NoteValue by type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot floor divide NoteValue by type {type(other)}.')
 
     def __rfloordiv__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -628,7 +627,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(other.value // self.value)
         else:
-            raise TypeError('Cannot floor divide type {0} by NoteValue.'.format(type(other)))
+            raise TypeError(f'Cannot floor divide type {type(other)} by NoteValue.')
 
     def __mod__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -636,7 +635,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(self.value % other.value)
         else:
-            raise TypeError('Cannot modulus NoteValue by type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot modulus NoteValue by type {type(other)}.')
 
     def __rmod__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
         if isinstance(other, Union[int, float, np.inexact, np.integer]):
@@ -644,7 +643,7 @@ class NoteValue:
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(other.value % self.value)
         else:
-            raise TypeError('Cannot modulus type {0} by NoteValue.'.format(type(other)))
+            raise TypeError(f'Cannot modulus type {type(other)} by NoteValue.')
 
     # ---------
     # Methods
@@ -718,7 +717,7 @@ class NoteValue:
             options_lst = list(cls._value_map_.keys())
             closest = options_lst[min(range(len(options_lst)), key=lambda i: abs(options_lst[i] - value))]
             # print('not found', value, closest, cls._value_map_[closest])
-            logging.warning('NoteValue for {0} not found; approximating with {1}.'.format(value, closest))
+            warnings.warn(f'NoteValue for {value} not found; approximating with {closest}.', stacklevel=2)
             note_type, dot_type, tuple_type = cls._value_map_[closest]
             return NoteValue(note_type, dots=dot_type, ratio=Ratio(tuple_type))
 
@@ -769,7 +768,7 @@ class Note:
             # from numeric
             self._notevalue_ = NoteValue.find(value)
         else:
-            raise TypeError('Invalid type {0} for NoteValue.'.format(type(value)))
+            raise TypeError(f'Invalid type {type(value)} for NoteValue.')
 
     @property
     def midi(self):
@@ -815,8 +814,7 @@ class Note:
                    + ' ' + str(self.pitch)
 
     def __repr__(self):
-        return '<{self.__class__.__name__}() nt={self.notetype}, d={self.dots.value}, r={self.ratio}>'.format(
-            self=self)
+        return f'<{self.__class__.__name__}() nt={self.notetype}, d={self.dots.value}, r={self.ratio}>'
 
     def __lt__(self, other):
         if isinstance(other, Note):
@@ -824,7 +822,7 @@ class Note:
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self._notevalue_ < other
         else:
-            raise TypeError('Cannot compare Note and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Note and type {type(other)}.')
 
     def __le__(self, other):
         if isinstance(other, Note):
@@ -832,7 +830,7 @@ class Note:
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self._notevalue_ <= other
         else:
-            raise TypeError('Cannot compare Note and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Note and type {type(other)}.')
 
     def __gt__(self, other):
         if isinstance(other, Note):
@@ -840,7 +838,7 @@ class Note:
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self._notevalue_ > other
         else:
-            raise TypeError('Cannot compare Note and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Note and type {type(other)}.')
 
     def __ge__(self, other):
         if isinstance(other, Note):
@@ -848,7 +846,7 @@ class Note:
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self._notevalue_ >= other
         else:
-            raise TypeError('Cannot compare Note and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Note and type {type(other)}.')
 
     def __eq__(self, other):
         if isinstance(other, Note):
@@ -856,7 +854,7 @@ class Note:
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self._notevalue_ == other
         else:
-            raise TypeError('Cannot compare Note and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Note and type {type(other)}.')
 
     def __ne__(self, other):
         if isinstance(other, Note):
@@ -864,7 +862,7 @@ class Note:
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self._notevalue_ != other
         else:
-            raise TypeError('Cannot compare Note and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Note and type {type(other)}.')
 
     # ---------
     # Methods

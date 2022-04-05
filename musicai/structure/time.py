@@ -1,8 +1,8 @@
-import logging
 import warnings
 from enum import Enum
 from typing import Union
 import numpy as np
+
 
 # -------------------
 # TimeSymbolType enum
@@ -21,10 +21,10 @@ class TimeSymbolType(Enum):
     # Override
     # --------
     def __str__(self):
-        return ('{0}'.format(self.name)).lower()
+        return f'{self.name}'.lower()
 
     def __repr__(self):
-        return '{0}({1})'.format(self.name, self.value)
+        return f'{self.name}({self.value})'
 
 
 # ---------------
@@ -84,7 +84,7 @@ class TimeSignature:
             # cut time
             return TimeSignature(numerator=2, denominator= 2, timesymboltype=TimeSymbolType.CUT)
         else:
-            raise ValueError('Cannot find TimeSignature for {0}.'.format(time))
+            raise ValueError(f'Cannot find TimeSignature for {time}.')
 
 
 # -------------------

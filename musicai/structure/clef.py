@@ -39,7 +39,7 @@ class ClefType(Enum):
         return str(self.name)
 
     def __repr__(self):
-        return '<{self.__class__.__name__}({self.name})>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.name})>'
 
     # --------
     # Class Methods
@@ -99,7 +99,7 @@ class ClefOctave(Enum):
         return str(self.name)
 
     def __repr__(self):
-        return '<{self.__class__.__name__}({self.abbr})>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.abbr})>'
 
     def __mul__(self, other):
         return self.value * other
@@ -128,7 +128,7 @@ class Clef:
         elif isinstance(clef, str):
             self.cleftype = ClefType.from_str(clef)
         else:
-            raise TypeError('Cannot create ClefType from {0} of type {1}.'.format(clef, type(clef)))
+            raise TypeError(f'Cannot create ClefType from {clef} of type {type(clef)}.')
 
         # ClefOctave (default 2)
         if isinstance(octave, ClefOctave):
@@ -137,12 +137,12 @@ class Clef:
             assert -4 < octave < 4
             self.octave_change = ClefOctave(octave)
         else:
-            raise TypeError('Cannot create ClefOctave from {0} of type {1}.'.format(octave, type(octave)))
+            raise TypeError(f'Cannot create ClefOctave from {octave} of type {type(octave)}.')
 
         if isinstance(line, (str, int, np.integer)):
             self.line = int(line)
         else:
-            raise TypeError('Cannot create Clef line from {0} of type {1}.'.format(line, type(line)))
+            raise TypeError(f'Cannot create Clef line from {line} of type {type(line)}.')
 
     # ----------
     # Properties
@@ -167,7 +167,7 @@ class Clef:
         return str(self.cleftype + self.octave_change)
 
     def __repr__(self):
-        return '<{self.__class__.__name__}({self.cleftype}{self.octave_change})>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.cleftype}{self.octave_change})>'
 
     def __lt__(self, other):
         if isinstance(other, Clef):
@@ -175,7 +175,7 @@ class Clef:
         elif isinstance(other, (int, np.integer, float, np.inexact)):
             return self.value < other
         else:
-            raise TypeError('Cannot compare Clef and {0} of type {1}.'.format(other, type(other)))
+            raise TypeError(f'Cannot compare Clef and {other} of type {type(other)}.')
 
     def __le__(self, other):
         if isinstance(other, Clef):
@@ -183,7 +183,7 @@ class Clef:
         elif isinstance(other, (int, np.integer, float, np.inexact)):
             return self.value <= other
         else:
-            raise TypeError('Cannot compare Clef and {0} of type {1}.'.format(other, type(other)))
+            raise TypeError(f'Cannot compare Clef and {other} of type {type(other)}.')
 
     def __eq__(self, other):
         if isinstance(other, Clef):
@@ -191,7 +191,7 @@ class Clef:
         elif isinstance(other, (int, np.integer, float, np.inexact)):
             return self.value == other
         else:
-            raise TypeError('Cannot compare Clef and {0} of type {1}.'.format(other, type(other)))
+            raise TypeError(f'Cannot compare Clef and {other} of type {type(other)}.')
 
     # ---------
     # Methods

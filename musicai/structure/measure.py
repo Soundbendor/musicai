@@ -1,5 +1,9 @@
 import re
+import warnings
 from enum import Enum
+
+import numpy as np
+from typing import Union
 
 from musicai.structure.note_mark import StemType
 from musicai.structure.clef import Clef
@@ -38,8 +42,28 @@ class BarlineType(Enum):
         obj._all_values = values
         return obj
 
+    # -----------
+    # Overrides
+    # -----------
     def __str__(self):
         return self.symbol
+
+    # -----------
+    # Methods
+    # -----------
+
+    # -----------
+    # Class Methods
+    # -----------
+    @classmethod
+    def from_str(cls, value: str) -> Union['BarlineType', None]:
+        value = ''.join(filter(str.isalpha, value)).upper()
+
+        if value in [bt.name for bt in BarlineType]:
+            return BarlineType[value]
+        else:
+            # warnings.warn(f'Barline {value.title()} does not exist--returning BarlineType.NONE', stacklevel=2)
+            return None
 
 
 # --------------------
@@ -59,7 +83,9 @@ class Barline:
     # -----------
     # Constructor
     # -----------
-    def __init__(self, barlinetype=BarlineType.REGULAR, barlinelocation=BarlineLocation.RIGHT):
+    def __init__(self,
+                 barlinetype: BarlineType = BarlineType.REGULAR,
+                 barlinelocation: BarlineLocation = BarlineLocation.RIGHT):
         self.barlinetype = barlinetype
         self.barlinelocation = barlinelocation
         self.left_repeat = 0
@@ -86,7 +112,7 @@ class Barline:
     def from_abc(cls, abc_barline):
         abc_barline = abc_barline.strip()
         if not re.match('^[\|\[\]\:\.]+$', abc_barline):
-            raise ValueError('Cannot match abc string \'{0}\' to a Barline'.format(abc_barline))
+            raise ValueError(f'Cannot match abc string \'{abc_barline}\' to a Barline')
         else:
             if abc_barline == '|':
                 barlinetype = BarlineType.REGULAR
@@ -130,7 +156,7 @@ class Measure:
         self.time = time
         self.clef = clef
         self.key = key
-        self.barline = BarlineType.REGULAR
+        self.barline: Union[Barline, BarlineType] = BarlineType.REGULAR
         self.is_full = False
         self.remaining = 1.0
         self.display_clef = False
@@ -146,8 +172,8 @@ class Measure:
         for note in self.notes:
             if note is None:
                 raise ValueError('note is None')
-            ret_str += ' ' + str(note)
-        ret_str += ' ' + str(self.barline)
+            ret_str += str(note) + ' '
+        ret_str += str(self.barline)
         # ret_str += ' ' + ''.join([str(barline) for barline in self.barlines])
         return ret_str
 
@@ -172,7 +198,7 @@ class Measure:
             self.stem_note(notes)
             self.notes.append(notes)
         else:
-            raise TypeError('Cannot add type {0} to Measure'.format(type(notes)))
+            raise TypeError(f'Cannot add type {type(notes)} to Measure')
         self.pack()
 
     def stem_note(self, note):  # TODO: update to match notation rules
@@ -195,6 +221,21 @@ class Measure:
                     # natural
                     note.accidental = Accidental.NATURAL
             pass
+
+    def set_barline(self, value: Union[Barline, BarlineType, str]):
+        if isinstance(value, str):
+            if (bt := BarlineType.from_str(value)) is not None:
+                self.barline = bt
+            else:
+                warnings.warn(f'"{value.title()}" is not a valid barline type--defaulting to Barlines.REGULAR.',
+                              stacklevel=2)
+                self.barline = BarlineType.REGULAR
+
+        elif isinstance(value, Union[BarlineType, Barline]):
+            self.barline = value
+
+        else:
+            raise TypeError(f'Cannot set a barline using type {type(value)}.')
 
     def beam(self):
         print("BEAMING")
@@ -255,6 +296,9 @@ class Measure:
         #         raise NotImplementedError
 
         self.beam()
+
+    def get_note(self, location: Union[int, np.integer, float, np.inexact]) -> Note:
+        pass
 
     # -------------
     # Class Methods

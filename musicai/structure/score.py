@@ -1,4 +1,5 @@
 from datetime import date
+from musicai.structure.measure import Measure
 
 
 # ----------
@@ -12,9 +13,11 @@ class Part:
     # Constructor
     # -----------
     def __init__(self):
-        self.measures = []
+        self.measures: list[Measure] = []
         self.id = ''  # string which can be used to differentiate parts
         self.name = ''
+        self.auto_update_barline_end = True
+
 
     # --------
     # Override
@@ -32,6 +35,18 @@ class Part:
     # ---------
     def append(self, measure):
         self.measures.append(measure)
+        if self.auto_update_barline_end:
+            self.update_final_barline()
+
+    def update_final_barline(self):
+        measure_count = len(self.measures)
+
+        if measure_count > 1:
+            self.measures[measure_count - 2].set_barline('REGULAR')
+            self.measures[measure_count - 1].set_barline('FINAL')
+
+        elif measure_count == 1:
+            self.measures[0].set_barline('FINAL')
 
 
 # ----------------
@@ -45,7 +60,7 @@ class PartSystem:
     # Constructor
     # -----------
     def __init__(self):
-        self.parts = []
+        self.parts: list[Part] = []
 
     # --------
     # Override

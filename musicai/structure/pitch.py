@@ -1,4 +1,3 @@
-import logging
 import warnings
 import re
 from enum import Enum
@@ -45,7 +44,7 @@ class Step(Enum):
         return str(self.name)
 
     def __repr__(self):
-        return '<{self.__class__.__name__}({self.name})>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.name})>'
 
     def __add__(self, other: Union['Step', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Step):
@@ -53,7 +52,7 @@ class Step(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value + other
         else:
-            raise TypeError('Cannot add Step and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot add Step and {other} of type {type(other)}.')
 
     def __sub__(self, other: Union['Step', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Step):
@@ -61,14 +60,14 @@ class Step(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value - other
         else:
-            raise TypeError('Cannot subtract Step and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot subtract Step and {other} of type {type(other)}.')
 
     def __mod__(self, other: Union['Step', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Step):
             return self.value % other.value
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value % other
-        raise TypeError('Cannot modulate Step and type {0}.'.format(type(other)))
+        raise TypeError(f'Cannot modulate Step and {other} of type {type(other)}.')
 
     # ---------
     # Methods
@@ -108,7 +107,7 @@ class Step(Enum):
 
             return count
         else:
-            raise TypeError('Cannot find difference between Step and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot find difference between Step and type {type(other)}.')
 
     # -------------
     # Class Methods
@@ -152,7 +151,7 @@ class Step(Enum):
 
             # TODO: open question, should we accept and ignore accidentals, e.g. C♭ -> C ?
 
-            raise ValueError('Cannot convert string {0} to Step'.format(str_step))
+            raise ValueError(f'Cannot convert string {str_step} to Step')
 
 
 # -----------
@@ -202,7 +201,7 @@ class Octave(Enum):
         return '' if self.value is None else str(self.value)
 
     def __repr__(self):
-        return '<{self.__class__.__name__}({self.name})>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.name})>'
 
     def __add__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
@@ -210,7 +209,7 @@ class Octave(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value + other
         else:
-            raise TypeError('Cannot add Octave and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot add Octave and type {type(other)}.')
 
     def __radd__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
@@ -218,7 +217,7 @@ class Octave(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other + self.value
         else:
-            raise TypeError('Cannot add Octave and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot add type {type(other)} and Octave.')
 
     def __sub__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
@@ -226,7 +225,7 @@ class Octave(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value - other
         else:
-            raise TypeError('Cannot subtract Octave and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot subtract Octave and type {type(other)}.')
 
     def __rsub__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
@@ -234,7 +233,7 @@ class Octave(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other - self.value
         else:
-            raise TypeError('Cannot subtract Octave and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot subtract type {type(other)} and Octave.')
 
     def __mul__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
@@ -242,7 +241,7 @@ class Octave(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value * other
         else:
-            raise TypeError('Cannot multiply Octave and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot multiply Octave and type {type(other)}.')
 
     def __rmul__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
@@ -250,7 +249,7 @@ class Octave(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other * self.value
         else:
-            raise TypeError('Cannot multiply Octave and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot multiply type {type(other)} and Octave.')
 
     def __truediv__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
@@ -258,7 +257,7 @@ class Octave(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value / other
         else:
-            raise TypeError('Cannot divide Octave and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot divide Octave and type {type(other)}.')
 
     def __rtruediv__(self, other: Union['Octave', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Octave):
@@ -266,7 +265,7 @@ class Octave(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other / self.value
         else:
-            raise TypeError('Cannot divide Octave and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot divide type {type(other)} and Octave.')
 
     # ---------
     # Methods
@@ -284,7 +283,7 @@ class Octave(Enum):
         if value in cls._value2member_map_:
             return Octave(value)
         else:
-            raise ValueError('{0} is not a valid value for Octave.'.format(value))
+            raise ValueError(f'{value} is not a valid value for Octave.')
 
 
     # @classmethod
@@ -292,7 +291,7 @@ class Octave(Enum):
     #    for name, value in Octave.__members__.items():
     #        if int(value) == int(value):
     #            return Octave[name]
-    #    raise ValueError('Error: octave {0} not found.'.format(value))
+    #    raise ValueError(f'Error: octave {value} not found.')
 
 
 # ---------------
@@ -352,7 +351,7 @@ class Accidental(Enum):
         return self.symbol
 
     def __repr__(self):
-        return '<{self.__class__.__name__}({self.name})>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.name})>'
 
     def __add__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -360,7 +359,7 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.alter + other
         else:
-            raise TypeError('Cannot add Accidental and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot add Accidental and type {type(other)}.')
 
     def __radd__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -368,7 +367,7 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other + self.alter
         else:
-            raise TypeError('Cannot add type {0} and Accidental.'.format(type(other)))
+            raise TypeError(f'Cannot add type {type(other)} and Accidental.')
 
     def __sub__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -376,7 +375,7 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.alter - other
         else:
-            raise TypeError('Cannot subtract Accidental and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot subtract Accidental and type {type(other)}.')
 
     def __rsub__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -384,7 +383,7 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other - self.alter
         else:
-            raise TypeError('Cannot subtract Accidental and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot subtract type {type(other)} and Accidental.')
 
     def __mul__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -392,7 +391,7 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.alter * other
         else:
-            raise TypeError('Cannot multiply Accidental and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot multiply Accidental and type {type(other)}.')
 
     def __rmul__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -400,7 +399,7 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other * self.alter
         else:
-            raise TypeError('Cannot multiply Accidental and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot multiply type {type(other)} and Accidental.')
 
     def __truediv__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -408,7 +407,7 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.alter / other
         else:
-            raise TypeError('Cannot divide Accidental and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot divide Accidental and type {type(other)}.')
 
     def __rtruediv__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -416,7 +415,7 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other / self.alter
         else:
-            raise TypeError('Cannot divide Accidental and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot divide type {type(other)} and Accidental.')
 
     # ---------
     # Methods
@@ -437,7 +436,7 @@ class Accidental(Enum):
             for name, offset in Accidental.__members__.items():
                 if float(offset) == float(value):
                     return Accidental[name]
-        raise ValueError('Error: accidental {0} not found.'.format(value))
+        raise ValueError(f'Error: accidental {value} not found.')
 
     @classmethod
     def from_mxml(cls, mxml_accidental: str) -> 'Accidental':
@@ -472,7 +471,7 @@ class Accidental(Enum):
             case '___':
                 return Accidental.TRIPLE_FLAT
             case _:
-                raise ValueError('Error: abc accidental {0} not found.'.format(abc_accidental))
+                raise ValueError(f'Error: abc accidental {abc_accidental} not found.')
 
 
 # -----------
@@ -499,7 +498,7 @@ class Pitch:
         # elif isinstance(step, str):
         #    self.step = Step.from_str(step)
         else:
-            raise TypeError('Error: Pitch cannot be made from a step of type {0}.'.format(type(step)))
+            raise TypeError(f'Error: Pitch cannot be made from a step of type {type(step)}.')
 
         self.octave = octave
         self.alter = alter
@@ -531,7 +530,7 @@ class Pitch:
     #         if Step.has_name(step_letter):
     #             self.step = Step[step_letter]
     #         else:
-    #             raise ValueError('Cannot find Pitch step for {0}'.format(step_letter))
+    #             raise ValueError(v'Cannot find Pitch step for {step_letter}')
     #
     #         # accidental (optional)
     #         split_lst = re.split('(-?\d+)', pitch)
@@ -545,7 +544,7 @@ class Pitch:
     #             octave_number = int(pitch)
     #             self.octave = Octave(octave_number)
     #         else:
-    #             raise ValueError('Cannot find Pitch octave for {0}'.format(pitch))
+    #             raise ValueError(f'Cannot find Pitch octave for {pitch}')
     #     elif isinstance(pitch, (float, np.inexact, int, np.integer)):
     #         # from numeric (midi)
     #         pitch = int(pitch)
@@ -560,9 +559,9 @@ class Pitch:
     #             self.step = pitch[0]
     #             self.octave = Octave(int(pitch[1]))
     #         else:
-    #             raise ValueError('Cannot find Pitch for {0}'.format(pitch))
+    #             raise ValueError(v'Cannot find Pitch for {pitch}')
     #     else:
-    #         raise ValueError('Cannot find Pitch for {0}'.format(pitch))
+    #         raise ValueError(f'Cannot find Pitch for {pitch}')
 
     # ----------
     # Properties
@@ -573,7 +572,7 @@ class Pitch:
 
     @midi.setter
     def midi(self, value):
-        logging.warning(f'Setting midi not implemented yet for Pitch in {str(self)}')
+        warnings.warn(f'Setting midi not implemented yet for Pitch in {str(self)}')
 
     @property
     def unaltered(self) -> int:
@@ -597,7 +596,7 @@ class Pitch:
         elif isinstance(other, Clef):
             return self.midi < other.value
         else:
-            raise TypeError('Cannot compare Pitch and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Pitch and type {type(other)}.')
 
     def __le__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> bool:
         if isinstance(other, Pitch):
@@ -607,7 +606,7 @@ class Pitch:
         elif isinstance(other, Clef):
             return self.midi <= other.value
         else:
-            raise TypeError('Cannot compare Pitch and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Pitch and type {type(other)}.')
 
     def __gt__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> bool:
         if isinstance(other, Pitch):
@@ -617,7 +616,7 @@ class Pitch:
         elif isinstance(other, Clef):
             return self.midi > other.value
         else:
-            raise TypeError('Cannot compare Pitch and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Pitch and type {type(other)}.')
 
     def __ge__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> bool:
         if isinstance(other, Pitch):
@@ -627,7 +626,7 @@ class Pitch:
         elif isinstance(other, Clef):
             return self.midi >= other.value
         else:
-            raise TypeError('Cannot compare Pitch and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Pitch and type {type(other)}.')
 
     def __eq__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> bool:
         if isinstance(other, Pitch):
@@ -637,7 +636,7 @@ class Pitch:
         elif isinstance(other, Clef):
             return self.midi == other.value
         else:
-            raise TypeError('Cannot compare Pitch and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Pitch and type {type(other)}.')
 
     def __ne__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> bool:
         if isinstance(other, Pitch):
@@ -647,7 +646,7 @@ class Pitch:
         elif isinstance(other, Clef):
             return self.midi != other.value
         else:
-            raise TypeError('Cannot compare Pitch and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot compare Pitch and type {type(other)}.')
 
     def __sub__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> Union[int, float]:
         if isinstance(other, Pitch):
@@ -657,7 +656,7 @@ class Pitch:
         elif isinstance(other, Clef):
             return self.midi - other.value
         else:
-            raise TypeError('Cannot subtract type {0} from Pitch.'.format(type(other)))
+            raise TypeError(f'Cannot subtract type {type(other)} from Pitch.')
 
     def __rsub__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> Union[int, float]:
         if isinstance(other, Pitch):
@@ -667,7 +666,7 @@ class Pitch:
         elif isinstance(other, Clef):
             return other.value - self.midi
         else:
-            raise TypeError('Cannot subtract Pitch from type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot subtract Pitch from type {type(other)}.')
 
     # ---------
     # Methods
@@ -682,7 +681,7 @@ class Pitch:
             print('diff', octave_diff, step_diff, octave_diff + step_diff)
             return octave_diff + step_diff
         else:
-            raise TypeError('Cannot find difference between Pitch and type {0}.'.format(type(other)))
+            raise TypeError(f'Cannot find difference between Pitch and type {type(other)}.')
 
     # -------------
     # Class Methods
@@ -692,7 +691,7 @@ class Pitch:
         # from numeric (midi)
         midi_pitch = int(midi_pitch)
         if midi_pitch > 128 or midi_pitch < 0:
-            raise ValueError('Cannot match Pitch to MIDI value {0}.'.format(midi_pitch))
+            raise ValueError(f'Cannot match Pitch to MIDI value {midi_pitch}.')
 
         # TODO use key info
 
@@ -712,7 +711,7 @@ class Pitch:
         # verify plausible abc pitch
         pitch_match = re.match('^([_^=]*[a-gA-G][\',]*)$', abc_pitch)
         if not pitch_match:
-            raise ValueError('Cannot match Pitch in abc string {0}.'.format(abc_pitch))
+            raise ValueError(f'Cannot match Pitch in abc string {abc_pitch}.')
 
         # accidental (optional)
         accidental_match = re.match('[_^=]+', abc_pitch)
@@ -729,7 +728,7 @@ class Pitch:
                 octave_number = 5
             pitch.step = Step.from_str(step_match.group(1))
         else:
-            raise ValueError('Cannot match Pitch in abc string {0}.'.format(abc_pitch))
+            raise ValueError(f'Cannot match Pitch in abc string {abc_pitch}.')
 
         # octave adjustment (optional)
         octave_match = re.match('.*?([\',]+)', abc_pitch)
@@ -815,7 +814,7 @@ class Chromatic(Enum):
         return self.abbr
 
     def __repr__(self):
-        return '<{self.__class__.__name__}({self.long_name})>'.format(self=self)
+        return f'<{self.__class__.__name__}({self.long_name})>'
 
     # ---------
     # Methods

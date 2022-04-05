@@ -200,7 +200,6 @@ class OctaveLineMark(MeasureMark):
             self.octave_change = int(octave_change)
             if int(octave_change) != octave_change:
                 warnings.warn(f'Warning: Octave change was shifted from {octave_change} to {int(octave_change)}')
-                #  looking into loggings.warning
 
         self.vertical_lines = vertical_dotted_line
         self.value_name = f'{self.octave_change} octaves'
