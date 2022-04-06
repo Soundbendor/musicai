@@ -26,14 +26,27 @@ class MeasureMark:
     # Constructor
     # -----------
     def __init__(self,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,  # relative to the start of measure
-                 end_time: Union[float, int, np.inexact, np.integer] = 0.0,  # relative to the start of measure
-                 note_connected: bool = False,  # if true, will initialize by pairing to a note based on start time
-                 divisions: Union[int, np.inexact] = 1024  # used to determine start / end time
+                 start_point: Union[float, int, np.inexact, np.integer] = 0.0,
+                 end_point: Union[float, int, np.inexact, np.integer] = 0.0,
+                 note_connected: bool = False,
+                 divisions: Union[int, np.inexact] = 256
                  ):
-        self.start_time = start_time
-        self.end_time = end_time
-        self._duration_ = end_time - start_time
+        """
+        Sets the values of a Measure Mark instance.
+
+        :param start_point: Where the measure mark starts, relative to the beginning of measure. One unit describes
+            1 / divisions of a quarter note.
+
+        :param end_point: Where the measure mark ends, relative to the beginning of a measure. If the mark spans
+            multiple measures, then it is relative to the beginning of the measure 'measure_span' in front of this in
+            the part. One unit describes 1 / divisions of a quarter note.
+
+        :param note_connected: Whether or not this marking's position is anchored to a note.  # TODO: remove this?
+        :param divisions: Provides basis for start_point and end_point--acts as the denominator.
+        """
+        self.start_point = start_point
+        self.end_time = end_point
+        self._duration_ = end_point - start_point
         self.note_connected = note_connected
 
         self.number = None  # used to distinguish overlapping elements
@@ -66,7 +79,7 @@ class MeasureMark:
             raise ValueError(f'The measure marking {str(self)} cannot have a duration of 0')
         else:
             self._duration_ = value
-            self.end_time = self.start_time + value
+            self.end_time = self.start_point + value
 
     # -----------
     # Methods
@@ -109,11 +122,39 @@ class HairpinType(Enum):
     """
     Enum to represent types of hairpins
     """
-    STANDARD = 0
-    SILENCED = 1  # from silence or to silence
+    NONE = 0
+    STANDARD = 1
     DASHED = 2
     DOTTED = 3
-    BRACKETED = 4
+    WAVY = 4
+    BRACKETED = 5
+
+    # -----------
+    # Class Methods
+    # -----------
+    @classmethod
+    def from_xml(cls, value: Union[str, int, np.integer]) -> 'HairpinType':
+
+        if isinstance(value, str):
+            if not value.isnumeric():
+                warnings.warn(f'Cannot make a HairpinType from xml attribute of string {value}. Defaulting to '
+                              f'HairpinType.STANDARD', stacklevel=2)
+                return HairpinType.STANDARD
+            else:
+                xml_numeric = int(value)
+        elif isinstance(value, Union[int, np.integer]):
+            xml_numeric = value
+        else:
+            warnings.warn(f'Cannot make a HairpinType from xml attribute of type {type(value)}. Defaulting to '
+                          f'HairpinType.STANDARD', stacklevel=2)
+            return HairpinType.STANDARD
+
+        if xml_numeric in [ht.value for ht in HairpinType]:
+            return HairpinType(xml_numeric)
+        else:
+            warnings.warn(f'Cannot make a HairpinType from xml attribute of value {xml_numeric}. Defaulting to '
+                          f'HairpinType.STANDARD', stacklevel=2)
+            return HairpinType.STANDARD
 
 
 # ---------------------
@@ -143,10 +184,10 @@ class TempoChangeMark(MeasureMark):
     def __init__(self,
                  tempo_change_type: TempoChangeType = TempoChangeType.RITARDANDO,
                  intensity: Intensity = Intensity.STANDARD,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
-                 end_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 start_point: Union[float, int, np.inexact, np.integer] = 0.0,
+                 end_point: Union[float, int, np.inexact, np.integer] = 0.0,
                  note_connected: bool = False):
-        MeasureMark.__init__(self, start_time, end_time, note_connected)
+        MeasureMark.__init__(self, start_point, end_point, note_connected)
         self.tempo_change_type = tempo_change_type
         self.intensity = intensity
         self.value_name = tempo_change_type.name.title()
@@ -157,7 +198,7 @@ class EnumChecker:
     # Class Methods
     # -----------
     @staticmethod
-    def find_enum(target_enum: enum.EnumMeta, value: Union[str, Enum]) -> Union[Enum, None]:
+    def find_enum(target_enum: enum.EnumMeta, value: Union[str, Enum, None]) -> Union[Enum, None]:
         """
             Returns the value as an enumeration member if it's the name of an enumeration or already an enumeration
             member.
@@ -166,10 +207,18 @@ class EnumChecker:
         if isinstance(value, str):
             if value.upper() in [e.name for e in target_enum]:
                 return target_enum[value.upper()]
+            elif value == '':
+                if 'NONE' in [e.name for e in target_enum]:
+                    return target_enum['NONE']
             else:
-                raise ValueError(f'\'{value}\' is not a valid type of {target_enum.__name__}.')
+                raise ValueError(f'\'{value}\' is not a valid member of {target_enum.__name__}.')
         elif isinstance(value, target_enum):
             return value
+        elif value is None:
+            if 'NONE' in [e.name for e in target_enum]:
+                return target_enum['NONE']
+            else:
+                raise ValueError(f'\'{value}\' is not a valid member of {target_enum.__name__}.')
         else:
             warnings.warn(f'Cannot make {target_enum.__name__} from {value} of type {type(value)}.',
                           stacklevel=2)
@@ -184,19 +233,22 @@ class DynamicChangeMark(MeasureMark):
     Class to represent a dynamic change between points in a measure
     """
     mark_name = 'Dynamic Change'
+    symbol = u'\U0001D192'  # TODO: Update-- this should only show for crescendo
+    # decrescendo: u'\U0001D193'
 
     # -----------
     # Constructor
     # -----------
     def __init__(self,  # TODO: make the starting condition types more generalized (like can take in str)
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
-                 end_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 start_point: Union[float, int, np.inexact, np.integer] = 0.0,
+                 end_point: Union[float, int, np.inexact, np.integer] = 0.0,
                  dynamic_change_type: Union[DynamicChangeType, str] = DynamicChangeType.CRESCENDO,
                  intensity: Union[Intensity, str] = Intensity.STANDARD,
                  hairpin: bool = True,
                  hairpin_type: Union[HairpinType, str] = HairpinType.STANDARD,
-                 divisions: Union[int, np.integer] = 1024):
-        MeasureMark.__init__(self, start_time, end_time, False, divisions)
+                 niente: Union[bool, str, None] = False,
+                 divisions: Union[int, np.integer] = 256):
+        MeasureMark.__init__(self, start_point, end_point, False, divisions)
 
         if isinstance(dynamic_change_type, str):
             if dynamic_change_type.upper() in [dct.name for dct in DynamicChangeType]:
@@ -206,7 +258,7 @@ class DynamicChangeMark(MeasureMark):
         elif isinstance(dynamic_change_type, DynamicChangeType):
             self.dynamic_change_type = dynamic_change_type
         else:
-            raise TypeError(f'Cannot make a Dynamic Change with change type {dynamic_change_type}'
+            raise TypeError(f'Cannot make a DynamicChangeMark with change type {dynamic_change_type} '
                             f'of type {type(dynamic_change_type)}.')
 
         if isinstance(intensity, str):
@@ -217,8 +269,7 @@ class DynamicChangeMark(MeasureMark):
         elif isinstance(intensity, Intensity):
             self.intensity = Intensity
         else:
-            raise TypeError(f'Cannot make an Intensity with change type {intensity}'
-                            f'of type {type(intensity)}.')
+            raise TypeError(f'Cannot make DynamicChangeMark with intensity {intensity} of type {type(intensity)}.')
 
         self.hairpin = hairpin
 
@@ -230,8 +281,21 @@ class DynamicChangeMark(MeasureMark):
         elif isinstance(hairpin_type, HairpinType):
             self.hairpin_type = HairpinType
         else:
-            raise TypeError(f'Cannot make HairpinType with {hairpin_type}'
-                            f'of type {type(hairpin_type)}.')
+            raise TypeError(f'Cannot make DynamicChangeMark with hairpin {hairpin_type} of type {type(hairpin_type)}.')
+
+        if isinstance(niente, str):
+            if niente.lower() == 'yes':
+                self.niente = True
+            elif niente.lower() == 'no':
+                self.niente = False
+            else:
+                raise ValueError(f'Cannot make a DynamicChangeMark with niente of value {niente}.')
+        elif isinstance(niente, bool):
+            self.niente = niente
+        elif niente is None:
+            self.niente = False
+        else:
+            raise TypeError(f'Cannot make a DynamicChangeMark with niente of type {type(niente)}.')
 
         self.value_name = self.dynamic_change_type.name.title()
 
@@ -250,11 +314,11 @@ class OctaveLineMark(MeasureMark):
     # -----------
     def __init__(self,
                  octave_change: Union[int, str, float, np.inexact, np.integer] = 0,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
-                 end_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 start_point: Union[float, int, np.inexact, np.integer] = 0.0,
+                 end_point: Union[float, int, np.inexact, np.integer] = 0.0,
                  note_connected: bool = False,
                  vertical_dotted_line: bool = False):
-        MeasureMark.__init__(self, start_time, end_time, note_connected)
+        MeasureMark.__init__(self, start_point, end_point, note_connected)
 
         if isinstance(octave_change, str):
             self.octave_change = self.octave_change_from_str(octave_change)
@@ -373,14 +437,14 @@ class PedalMark(MeasureMark):
     # -----------
     def __init__(self,
                  pedal_type: PedalType = PedalType.NONE,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
-                 end_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 start_point: Union[float, int, np.inexact, np.integer] = 0.0,
+                 end_point: Union[float, int, np.inexact, np.integer] = 0.0,
                  damper_release_sign: bool = False,
                  vertical_dotted_line: bool = False,
                  note_connected: bool = False,
                  half_pedalling: tuple = None  # tuples of time stamps and pedal intensities to use across the duration
                  ):
-        MeasureMark.__init__(self, start_time, end_time, note_connected)
+        MeasureMark.__init__(self, start_point, end_point, note_connected)
 
         self.pedal_type = pedal_type
         self.damper_release_sign = damper_release_sign
@@ -415,10 +479,10 @@ class VoltaBracketMark(MeasureMark):
     def __init__(self,
                  ending_count: Union[int, np.integer, tuple] = 0,  # tuple is used if a passage counts for many endings
                  volta_bracket_type: VoltaBracketType = VoltaBracketType.CLOSED,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
-                 end_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 start_point: Union[float, int, np.inexact, np.integer] = 0.0,
+                 end_point: Union[float, int, np.inexact, np.integer] = 0.0,
                  note_connected: bool = False):
-        MeasureMark.__init__(self, start_time, end_time, note_connected)
+        MeasureMark.__init__(self, start_point, end_point, note_connected)
 
         self.ending_count = ending_count
         self.volta_bracket_type = volta_bracket_type
@@ -435,13 +499,13 @@ class InstantaneousMeasureMark(MeasureMark):
     # Constructor
     # -----------
     def __init__(self,
-                 start_time: Union[float, int, np.inexact, np.integer, tuple] = 0.0,
+                 start_point: Union[float, int, np.inexact, np.integer, tuple] = 0.0,
                  note_connected: bool = False):
 
-        if isinstance(start_time, tuple):  # custom case where an "instantaneous" measure mark has a different end time
-            MeasureMark.__init__(self, start_time[0], start_time[1])
+        if isinstance(start_point, tuple):  # custom case where an "instantaneous" measure mark has a different end time
+            MeasureMark.__init__(self, start_point[0], start_point[1])
         else:
-            MeasureMark.__init__(self, start_time, start_time)
+            MeasureMark.__init__(self, start_point, start_point)
 
         self.note_connected = note_connected
 
@@ -455,7 +519,7 @@ class InstantaneousMeasureMark(MeasureMark):
     @duration.setter
     def duration(self, value: Union[float, int, np.inexact, np.integer]):
         self._duration_ = value
-        self.end_time = self.start_time + value
+        self.end_time = self.start_point + value
 
 
 # ---------------------
@@ -472,10 +536,10 @@ class TempoMark(InstantaneousMeasureMark):
     # -----------
     def __init__(self,
                  tempo_type: Union[TempoType, Tempo, str] = TempoType.NONE,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 start_point: Union[float, int, np.inexact, np.integer] = 0.0,
                  note_connected: bool = False):
 
-        InstantaneousMeasureMark.__init__(self, start_time, note_connected)
+        InstantaneousMeasureMark.__init__(self, start_point, note_connected)
 
         if isinstance(tempo_type, TempoType):  # Make a tempo from the common tempo types
             self.tempo = Tempo(tempo_type.value, tempo_type)
@@ -531,9 +595,9 @@ class DynamicMark(InstantaneousMeasureMark):
     # -----------
     def __init__(self,
                  dynamic_type: DynamicType = DynamicType.NONE,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 start_point: Union[float, int, np.inexact, np.integer] = 0.0,
                  note_connected: bool = False):
-        InstantaneousMeasureMark.__init__(self, start_time, note_connected)
+        InstantaneousMeasureMark.__init__(self, start_point, note_connected)
         self.dynamic_type = dynamic_type
         self.value_name = self.dynamic_type.name.title()
     # TODO: implement overrides / conversions, and (?) multipliers
@@ -576,8 +640,8 @@ class MiscMark(InstantaneousMeasureMark):
     # -----------
     def __init__(self,
                  misc_mark_type: MiscMarkType = MiscMarkType.NONE,
-                 start_time: Union[float, int, np.inexact, np.integer] = 0.0,
+                 start_point: Union[float, int, np.inexact, np.integer] = 0.0,
                  note_connected: bool = False):
-        InstantaneousMeasureMark.__init__(self, start_time, note_connected)
+        InstantaneousMeasureMark.__init__(self, start_point, note_connected)
         self.mark_type = misc_mark_type
         self.value_name = misc_mark_type.name.title()

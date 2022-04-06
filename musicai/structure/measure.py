@@ -288,7 +288,7 @@ class Measure:
         # determine note times
         time = 0
         for note in self.notes:
-            note.start_time = time
+            note.start_point = time
             time += note.value
         #if time > 1:
         #    raise NotImplementedError

@@ -133,7 +133,8 @@ class MusicXML:
             for item in part_item:
                 print('part', part)
                 if item.tag == 'measure':
-                    loaded_measure = _load_measure(item, Measure(time=time, key=key), divisions, measure_marks)
+                    loaded_measure = _load_measure(item, Measure(time=time, key=key), divisions, len(part.measures),
+                                                   measure_marks)
 
                     measure_marks = loaded_measure[1]
                     part.append(loaded_measure[0])
@@ -166,6 +167,7 @@ class MusicXML:
         def _load_measure(measure_element: ET.Element,
                           measure: Measure,
                           divisions: int,
+                          measure_index: int,
                           measure_marks: list[MeasureMark]) -> (Measure, list[MeasureMark]):
             """
             Loads a measure element from a partwise musicxml file
@@ -173,6 +175,7 @@ class MusicXML:
             :param measure_element: The musicxml measure element to be loaded
             :param measure: The measure which describes what key and clef the measure will take place in
             :param divisions: Divisions per quarter note, used to compute the note's value
+            :param measure_index: Dictates what index this measure will be in the part list it's appended to
             :param measure_marks: List used to keep a running total of to-be-inserted measure marks
             :return: The measure described by the xml file and an updated list of MeasureMarks
             """
@@ -274,6 +277,52 @@ class MusicXML:
                                 for dir_type in dir_child:
                                     match dir_type.tag:
                                         case 'wedge':
+                                            from musicai.structure.measure_mark import DynamicChangeMark
+
+                                            wedge_type = dir_type.get('type').lower()
+                                            print('Wedge type acquired: ', wedge_type)
+                                            if wedge_type == 'crescendo' or wedge_type == 'decrescendo':
+                                                dcm = DynamicChangeMark(current_musical_location, 0, wedge_type,
+                                                                        hairpin=True, divisions=divisions)
+                                                # ===== for multi-spanning measures =====
+                                                dcm.measure_index = measure_index
+                                                dcm.number = dir_type.get('number')
+                                                # ========
+                                                measure_marks.append(dcm)
+
+                                            elif wedge_type == 'stop':
+
+                                                if dir_type.get('number') is not None:
+                                                    # loops until it finds the corresponding measure mark
+                                                    for mm in measure_marks:
+                                                        if mm.number == dir_type.get('number') and \
+                                                                isinstance(mm, DynamicChangeMark):
+
+                                                            if mm.measure_span == 0:
+                                                                measure.measure_marks.append(mm)
+                                                            else:
+                                                                print(f'Multiple measure marks not implemented yet')
+                                                                # Add the measure to a previous one, based on its index
+                                                                pass
+
+                                                            # TODO: now remove the list item
+
+                                                            break
+                                                        # No way of checking if the loop failed so far
+
+                                                else:
+                                                    for mm in measure_marks:
+                                                        if isinstance(mm, DynamicChangeMark):
+                                                            measure.measure_marks.append(mm)
+
+                                            elif wedge_type == 'continue':
+                                                # Not sure if this attribute means anything for this project
+                                                pass
+                                            else:
+                                                warnings.warn(f'Measure mark wedge of value {wedge_type} is not '
+                                                              f'supported.', stacklevel=2)
+
+                                        case '':
                                             pass
                                         case _:
                                             print(f'{dir_type.tag.title()} in Measure has not been implemented yet')
