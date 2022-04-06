@@ -733,12 +733,18 @@ class Note:
     # -----------
     # Constructor
     # -----------
-    def __init__(self, value: NoteValue = NoteValue(NoteType.NONE), pitch: Pitch = Pitch(), marks: set = None):
+    def __init__(self,
+                 value: NoteValue = NoteValue(NoteType.NONE),
+                 pitch: Pitch = Pitch(),
+                 marks: set = None):
         self.value = value
         self.pitch = pitch
         if marks is None:
             marks = set()  # This is done because set is a mutable type
         self.marks = marks
+
+        self.location = 0
+        self.division = 1024
 
         self.show_accidental = False
         self.stem = StemType.UP

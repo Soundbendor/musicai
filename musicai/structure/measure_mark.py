@@ -1,3 +1,4 @@
+import enum
 import warnings
 from enum import Enum
 
@@ -27,12 +28,17 @@ class MeasureMark:
     def __init__(self,
                  start_time: Union[float, int, np.inexact, np.integer] = 0.0,  # relative to the start of measure
                  end_time: Union[float, int, np.inexact, np.integer] = 0.0,  # relative to the start of measure
-                 note_connected: bool = False  # if true, will initialize by pairing to a note based on start time
+                 note_connected: bool = False,  # if true, will initialize by pairing to a note based on start time
+                 divisions: Union[int, np.inexact] = 1024  # used to determine start / end time
                  ):
         self.start_time = start_time
         self.end_time = end_time
         self._duration_ = end_time - start_time
         self.note_connected = note_connected
+
+        self.number = None  # used to distinguish overlapping elements
+        self.measure_index = 0
+        self.measure_span = 0
 
         # Find out if it's connected to a note, and if so, then link it to that note
         if note_connected:
@@ -146,6 +152,30 @@ class TempoChangeMark(MeasureMark):
         self.value_name = tempo_change_type.name.title()
 
 
+class EnumChecker:
+    # -----------
+    # Class Methods
+    # -----------
+    @staticmethod
+    def find_enum(target_enum: enum.EnumMeta, value: Union[str, Enum]) -> Union[Enum, None]:
+        """
+            Returns the value as an enumeration member if it's the name of an enumeration or already an enumeration
+            member.
+
+        """
+        if isinstance(value, str):
+            if value.upper() in [e.name for e in target_enum]:
+                return target_enum[value.upper()]
+            else:
+                raise ValueError(f'\'{value}\' is not a valid type of {target_enum.__name__}.')
+        elif isinstance(value, target_enum):
+            return value
+        else:
+            warnings.warn(f'Cannot make {target_enum.__name__} from {value} of type {type(value)}.',
+                          stacklevel=2)
+            return None
+
+
 # ---------------------
 # DynamicChangeMark class
 # ---------------------
@@ -159,19 +189,51 @@ class DynamicChangeMark(MeasureMark):
     # Constructor
     # -----------
     def __init__(self,  # TODO: make the starting condition types more generalized (like can take in str)
-                 dynamic_change_type: DynamicChangeType = DynamicChangeType.CRESCENDO,
-                 intensity: Intensity = Intensity.STANDARD,
                  start_time: Union[float, int, np.inexact, np.integer] = 0.0,
                  end_time: Union[float, int, np.inexact, np.integer] = 0.0,
-                 note_connected: bool = False,
+                 dynamic_change_type: Union[DynamicChangeType, str] = DynamicChangeType.CRESCENDO,
+                 intensity: Union[Intensity, str] = Intensity.STANDARD,
                  hairpin: bool = True,
-                 hairpin_type: HairpinType = HairpinType.STANDARD):
-        MeasureMark.__init__(self, start_time, end_time, note_connected)
-        self.dynamic_change_type = dynamic_change_type
-        self.intensity = intensity
+                 hairpin_type: Union[HairpinType, str] = HairpinType.STANDARD,
+                 divisions: Union[int, np.integer] = 1024):
+        MeasureMark.__init__(self, start_time, end_time, False, divisions)
+
+        if isinstance(dynamic_change_type, str):
+            if dynamic_change_type.upper() in [dct.name for dct in DynamicChangeType]:
+                self.dynamic_change_type = DynamicChangeType[dynamic_change_type.upper()]
+            else:
+                raise ValueError(f'\'{dynamic_change_type}\' is not a valid Dynamic Change Type.')
+        elif isinstance(dynamic_change_type, DynamicChangeType):
+            self.dynamic_change_type = dynamic_change_type
+        else:
+            raise TypeError(f'Cannot make a Dynamic Change with change type {dynamic_change_type}'
+                            f'of type {type(dynamic_change_type)}.')
+
+        if isinstance(intensity, str):
+            if intensity.upper() in [i.name for i in Intensity]:
+                self.intensity = Intensity[intensity.upper()]
+            else:
+                raise ValueError(f'\'{intensity}\' is not a valid Intensity.')
+        elif isinstance(intensity, Intensity):
+            self.intensity = Intensity
+        else:
+            raise TypeError(f'Cannot make an Intensity with change type {intensity}'
+                            f'of type {type(intensity)}.')
+
         self.hairpin = hairpin
-        self.hairpin_type = hairpin_type
-        self.value_name = dynamic_change_type.name.title()
+
+        if isinstance(hairpin_type, str):
+            if hairpin_type.upper() in [ht.name for ht in HairpinType]:
+                self.hairpin_type = HairpinType[hairpin_type.upper()]
+            else:
+                raise ValueError(f'\'{hairpin_type}\' is not a valid Hairpin Type.')
+        elif isinstance(hairpin_type, HairpinType):
+            self.hairpin_type = HairpinType
+        else:
+            raise TypeError(f'Cannot make HairpinType with {hairpin_type}'
+                            f'of type {type(hairpin_type)}.')
+
+        self.value_name = self.dynamic_change_type.name.title()
 
 
 # ---------------------

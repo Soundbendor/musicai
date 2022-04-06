@@ -1,11 +1,12 @@
 import re
 import warnings
 from enum import Enum
-
 import numpy as np
 from typing import Union
 
 from musicai.structure.note_mark import StemType
+from musicai.structure.measure_mark import MeasureMark
+from musicai.structure import measure_mark
 from musicai.structure.clef import Clef
 from musicai.structure.key import Key
 from musicai.structure.time import TimeSignature
@@ -163,6 +164,7 @@ class Measure:
         self.display_time = False
         self.display_key = False
         self.measure_style = MeasureStyle.NONE
+        self.measure_marks: list[MeasureMark] = []
 
     # --------
     # Override
@@ -200,6 +202,17 @@ class Measure:
         else:
             raise TypeError(f'Cannot add type {type(notes)} to Measure')
         self.pack()
+
+        # NOW, ADJUST THE NOTE'S LOCATION
+
+    def append_at(self,
+                  location: Union[int, np.integer, float, np.inexact],
+                  notes: Union[Note, list[Note], tuple[Note]],
+                  division: Union[int, np.integer] = 1024):
+
+        # Check for if there is a note ON the start location or DURING the start location,
+        # what is present at the note's start location
+        pass
 
     def stem_note(self, note):  # TODO: update to match notation rules
         if note.pitch < self.clef:
@@ -298,6 +311,43 @@ class Measure:
         self.beam()
 
     def get_note(self, location: Union[int, np.integer, float, np.inexact]) -> Note:
+
+        # If there's an OCTAVE LINE MARK over the note, let that impact
+        # the note you return
+
+        # check if_over_note(measure_mark, note) for octave lines
+
+        pass
+
+    def insert_tempo_change(self):
+        pass
+
+    def insert_dynamic_change(self,
+                              start_point: Union[int, np.integer, np.inexact, float] = 0,
+                              end_point: Union[int, np.integer, np.inexact, float] = 0,
+                              dynamic_change_type: str = 'crescendo',
+                              intensity: str = 'standard',
+                              hairpin: bool = True,
+                              hairpin_type: str = '',
+                              divisions: Union[int, np.integer] = 1024):
+
+        dc = measure_mark.DynamicChangeMark(start_point, end_point, dynamic_change_type, intensity, hairpin,
+                                            hairpin_type, divisions)
+        self.measure_marks.append(dc)
+
+    def insert_octave_line(self):
+        pass
+
+    def insert_pedal(self):
+        pass
+
+    def insert_volta_bracket(self):
+        pass
+
+    def insert_tempo(self):
+        pass
+
+    def insert_dynamic(self):
         pass
 
     # -------------
