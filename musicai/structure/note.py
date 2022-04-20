@@ -463,7 +463,7 @@ class NoteValue:
             self.update_notevalue()
 
     @property
-    def value(self):
+    def value(self) -> float:
         if self.ratio is None:
             return self.notetype.value * self.dots
         else:
@@ -744,7 +744,7 @@ class Note:
         self.marks = marks
 
         self.location = 0
-        self.division = 1024
+        self.division = 256
 
         self.show_accidental = False
         self.stem = StemType.UP
@@ -820,7 +820,7 @@ class Note:
                    + ' ' + str(self.pitch)
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}() nt={self.notetype}, d={self.dots.value}, r={self.ratio}>'
+        return f'<{self.__class__.__name__}() nt={self.value.notetype}, d={self.value.dots}, r={self.value.ratio}>'
 
     def __lt__(self, other):
         if isinstance(other, Note):

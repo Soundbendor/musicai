@@ -1,5 +1,7 @@
 import warnings
 import xml.etree.ElementTree as ET
+
+import numpy as np
 from typing import Union
 
 from musicai.structure.note_mark import StemType, Beam, BeamType, TieType
@@ -7,15 +9,52 @@ from musicai.structure.clef import Clef, ClefOctave
 from musicai.structure.key import ModeType, KeyType, Key
 from musicai.structure.lyric import Lyric, SyllabicType
 from musicai.structure.measure import Measure
-from musicai.structure.measure_mark import MeasureMark
+from musicai.structure import measure_mark
+from musicai.structure.measure_mark import MeasureMark, InstantaneousMeasureMark
 from musicai.structure.note import NoteType, Ratio, NoteValue, Rest, Note
 from musicai.structure.pitch import Accidental, Pitch, Octave, Step
 from musicai.structure.score import Score, PartSystem, Part
 from musicai.structure.time import TimeSignature
 
 
-class MusicXML:
+class MeasureMarkFromXML:
+    from musicai.structure.measure_mark import HairpinType
 
+    # -----------
+    # Class Methods
+    # -----------
+    @classmethod
+    def hairpin_type(cls, value: Union[str, int, np.integer]) -> 'HairpinType':
+        from musicai.structure.measure_mark import HairpinType
+        if isinstance(value, str):
+            if not value.isnumeric():
+                warnings.warn(f'Cannot make a HairpinType from xml attribute of string {value}. Defaulting to '
+                              f'HairpinType.STANDARD', stacklevel=2)
+                return HairpinType.STANDARD
+            else:
+                xml_numeric = int(value)
+
+        elif isinstance(value, Union[int, np.integer]):
+            xml_numeric = value
+
+        else:
+            warnings.warn(f'Cannot make a HairpinType from xml attribute of type {type(value)}. Defaulting to '
+                          f'HairpinType.STANDARD', stacklevel=2)
+            return HairpinType.STANDARD
+
+        if xml_numeric in [ht.value for ht in HairpinType]:
+            return HairpinType(xml_numeric)
+
+        else:
+            warnings.warn(f'Cannot make a HairpinType from xml attribute of value {xml_numeric}. Defaulting to '
+                          f'HairpinType.STANDARD', stacklevel=2)
+            return HairpinType.STANDARD
+
+
+class MusicXML:
+    # -----------
+    # Class Methods
+    # -----------
     @staticmethod
     def load(xml_file: str) -> Score:
         """
@@ -62,7 +101,7 @@ class MusicXML:
                                         new_score.metadata.append_right(ident_element.text, '')
 
                                 case 'encoding':  # people who did digital encoding for the file
-                                    print('encoding registered, ', ident_element.text)  # TODO
+                                    print('Encoding registered, ', ident_element.text)  # TODO
 
                                 case 'source':  # source of the encoded music
                                     new_score.metadata.source = ident_element.text
@@ -71,7 +110,7 @@ class MusicXML:
                                     print('relation registered, ', ident_element.text)  # TODO
 
                                 case 'miscellaneous':  # custom metadata
-                                    print('misc info registered, ', ident_element.text)  # TODO
+                                    print('Misc info registered, ', ident_element.text)  # TODO
 
                                 case _:
                                     NotImplementedError(f'Unknown element \"{ident_element.tag}\" under the '
@@ -86,21 +125,21 @@ class MusicXML:
                                     new_score.metadata.work_title = work_element.text
                                 case 'opus':
                                     print('opus registered, ', work_element.text)  # TODO
-                                case _: NotImplementedError(f'Unknown element \"{work_element.tag}\" under the work'
-                                                            f'element.')
+                                case _: warnings.warn(f'Unknown element \"{work_element.tag}\" under the work '
+                                                      f'element.', stacklevel=2)
 
-                    case 'default':  # score-wide scaling defaults
-                        print(partwise_item.tag, partwise_item.text, partwise_item.attrib)  # TODO
+                    case 'defaults':  # score-wide scaling defaults
+                        print(f'{partwise_item.tag}, {partwise_item.attrib}, unused')  # TODO
 
                     case 'credit':  # appearence of information on the front pages
-                        print(partwise_item.tag, partwise_item.text, partwise_item.attrib)  # TODO
+                        print(f'{partwise_item.tag}, {partwise_item.attrib}, unused')  # TODO
 
                     case 'part-list':  # titles and info about parts of the document
-                        print(partwise_item.tag, partwise_item.text, partwise_item.attrib)  # TODO
+                        print(f'{partwise_item.tag}, {partwise_item.attrib}, unused')  # TODO
                         # TODO: Make this go AFTER <parts>?
 
                     case 'part':  # parts which contain measures
-                        print(partwise_item.tag, partwise_item.text, partwise_item.attrib)
+                        print(f'{partwise_item.tag}, {partwise_item.attrib}, unused')
                         part = _load_part(partwise_item)
                         new_system.append(part)
 
@@ -116,7 +155,7 @@ class MusicXML:
             divisions = None
 
             part = Part()
-            measure_marks = list[MeasureMark]
+            measure_marks: list[MeasureMark] = []
 
             if 'id' in part_item.attrib.keys():
                 part.id = part_item.get('id')
@@ -131,7 +170,7 @@ class MusicXML:
                 raise ImportError('No initial divisions value found')
 
             for item in part_item:
-                print('part', part)
+                # print('Part from _load_part(): ', part)  # TODO: When this is uncommented, it ruins things?
                 if item.tag == 'measure':
                     loaded_measure = _load_measure(item, Measure(time=time, key=key), divisions, len(part.measures),
                                                    measure_marks)
@@ -157,10 +196,37 @@ class MusicXML:
                 else:
                     loaded_measure[0].key = key
 
-            # appends remaining unresolved measure marks
+                # Implement every completed measure mark:
+                for mm in measure_marks:
+                    # A non-InstantaneousMeasureMark is completed if it's end_point is not 0
+                    if mm is not InstantaneousMeasureMark and mm.end_point != 0:
+
+                        if mm.measure_index < len(part.measures):
+                            print(
+                                f'MM starting at {mm.start_point}, ending at '
+                                f'{mm.end_point}, with measure_span {mm.measure_span} has been added to measure '
+                                f'{mm.measure_index}!')
+
+                            # Append the MeasureMark to the part's measure
+                            part.measures[mm.measure_index].measure_marks.append(mm)
+                            # Remove this MeasureMark from the running-total list of measure marks
+                            measure_marks.remove(mm)
+
+                # MeasureMarks that have not been resolved yet are noted to span for +1 measure
+                for mm in measure_marks:
+                    if isinstance(mm, MeasureMark):
+                        print(f'incrementing measure span for {mm}')
+                        mm.measure_span += 1
+
+                print(f'\nCurrent persisting MeasureMarks: {measure_marks}\n')
+
+
+
+            # At the end of the constructed part:
+            # Unresolved MeasureMarks are now wrapped up, with their end being at the score-end
             for mm in measure_marks:
-                mm.end_time = 0
-                part.measures[mm.measure_index].measure_marks.append(mm)  # TODO: find a way to update the measure_index
+                mm.end_point = 0
+                part.measures[mm.measure_index].measure_marks.append(mm)
 
             return part
 
@@ -181,11 +247,13 @@ class MusicXML:
             """
             print('=====measure=====')
 
-            # TODO: update measure_marks when a <direction> element is read
-
             current_musical_location = 0  # incremented as more notes are added
 
+            n = 1
             for item in measure_element:
+
+                print(f'{n}: Reading item of tag {item.tag} at location {current_musical_location}')
+                n += 1
 
                 match item.tag:
 
@@ -266,7 +334,8 @@ class MusicXML:
                         current_musical_location += loaded_note[1]
 
                     case 'backup':
-                        print(f'{item.tag.title()} in Measure has not been implemented yet')
+                        pass
+                        # print(f'{item.tag.title()} in Measure has not been implemented yet')
 
                     case 'forward':
                         pass
@@ -276,11 +345,14 @@ class MusicXML:
                             if dir_child.tag == 'direction-type':
                                 for dir_type in dir_child:
                                     match dir_type.tag:
+
                                         case 'wedge':
                                             from musicai.structure.measure_mark import DynamicChangeMark
 
                                             wedge_type = dir_type.get('type').lower()
                                             print('Wedge type acquired: ', wedge_type)
+
+                                            # Wedge creation starts
                                             if wedge_type == 'crescendo' or wedge_type == 'decrescendo':
                                                 dcm = DynamicChangeMark(current_musical_location, 0, wedge_type,
                                                                         hairpin=True, divisions=divisions)
@@ -290,30 +362,67 @@ class MusicXML:
                                                 # ========
                                                 measure_marks.append(dcm)
 
+                                            # Wedge creation is finished
                                             elif wedge_type == 'stop':
 
+                                                # If this is a numbered wedge mark
                                                 if dir_type.get('number') is not None:
+
                                                     # loops until it finds the corresponding measure mark
                                                     for mm in measure_marks:
                                                         if mm.number == dir_type.get('number') and \
                                                                 isinstance(mm, DynamicChangeMark):
 
+                                                            mm.end_point = current_musical_location
+
+                                                            # If this is across a single measure, append it to this
+                                                            # measure
                                                             if mm.measure_span == 0:
+                                                                print(f'Read wedge with st:{mm.start_point}, end:'
+                                                                      f'{mm.end_point}, and measure_span:'
+                                                                      f'{mm.measure_span}')
+
+                                                                # Adds the mark to the measure
                                                                 measure.measure_marks.append(mm)
+
+                                                                # Removes it from the list
+                                                                measure_marks.remove(mm)
+
                                                             else:
-                                                                print(f'Multiple measure marks not implemented yet')
-                                                                # Add the measure to a previous one, based on its index
+                                                                print(f'Read wedge with st:{mm.start_point}, end:'
+                                                                      f'{mm.end_point}, and measure_span:'
+                                                                      f'{mm.measure_span}')
+                                                                # The MeasureMark will be added outside this method,
+                                                                # In the _load_part() method
                                                                 pass
 
-                                                            # TODO: now remove the list item
+                                                            break  # (No way for checking if the loop failed yet)
 
-                                                            break
-                                                        # No way of checking if the loop failed so far
-
+                                                # Else this is not a numbered wedge mark
+                                                # There is likely only one dynamic mark in the list of marks
                                                 else:
                                                     for mm in measure_marks:
                                                         if isinstance(mm, DynamicChangeMark):
-                                                            measure.measure_marks.append(mm)
+
+                                                            mm.end_point = current_musical_location
+
+                                                            if mm.measure_span == 0:
+                                                                # The marking is taken out of list to be added to this
+                                                                # measure
+                                                                print(f'Read wedge with st:{mm.start_point}, end:'
+                                                                      f'{mm.end_point}, and measure_span:'
+                                                                      f'{mm.measure_span}')
+                                                                measure.measure_marks.append(mm)
+                                                                measure_marks.remove(mm)
+
+                                                            else:
+                                                                print(f'Read wedge with st:{mm.start_point}, end:'
+                                                                      f'{mm.end_point}, and measure_span:'
+                                                                      f'{mm.measure_span}')
+                                                                # The marking will be taken out in the _load_part()
+                                                                # function, so that it may be appended to a previous
+                                                                # measure
+                                                                pass
 
                                             elif wedge_type == 'continue':
                                                 # Not sure if this attribute means anything for this project
@@ -325,12 +434,15 @@ class MusicXML:
                                         case '':
                                             pass
                                         case _:
-                                            print(f'{dir_type.tag.title()} in Measure has not been implemented yet')
+                                            pass
+                                            # print(f'{dir_type.tag.title()} in Measure has not been implemented yet')
 
                             elif dir_child.tag == 'staff':
-                                print(f'{dir_child.tag.title()} in Measure has not been implemented yet')
+                                pass
+                                # print(f'{dir_child.tag.title()} in Measure has not been implemented yet')
                             else:
-                                print(f'{dir_child.tag.title()} in Measure has not been implemented yet')
+                                pass
+                                # print(f'{dir_child.tag.title()} in Measure has not been implemented yet')
 
                     case 'harmony':
                         pass
@@ -354,12 +466,10 @@ class MusicXML:
                     case _:
                         raise NotImplementedError(f'Measure for {item.tag}')
 
-            # Measure marks that have not been resolved yet are noted to exist for another measure
-            for mm in measure_marks:
-                if mm is MeasureMark:
-                    mm.measure_span += 1
-
             return measure, measure_marks
+
+        def _load_measure_mark(mark_element: ET.Element) -> MeasureMark:
+            pass
 
         def _load_note(note_item: ET.Element, divisions: int) -> (Note, int):
             """
@@ -458,7 +568,8 @@ class MusicXML:
                         note.value.notetype = new_notetype_value
 
                     case 'instrument':
-                        print(f'"{note_child.tag.title()}" note element has not been implemented yet.')
+                        pass
+                        # print(f'"{note_child.tag.title()}" note element has not been implemented yet.')
 
                     case 'footnote':
                         print(f'"{note_child.tag.title()}" note element has not been implemented yet.')
@@ -481,7 +592,8 @@ class MusicXML:
 
 
                     case 'stem':
-                        stem = StemType[note_child.text.upper()]
+                        pass
+                        # stem = StemType[note_child.text.upper()]
                     case 'notehead':
                         pass
                     case 'notehead-text':
@@ -605,6 +717,8 @@ class MusicXML:
             # if note is None:
             #     raise ValueError("note is None!!")
 
+            print(f'Note {note} has been finished with duration {duration}!')
+
             return note, duration
 
         # process xml root
@@ -622,8 +736,228 @@ class MusicXML:
             raise NotImplementedError('score-timewise')
         return loaded_score
 
+    @classmethod
+    def _save_part_metadata(cls, scorepart_elem: ET.Element, saved_part: Part, index: int) -> ET.Element:
+        # Adds an ID attribute
+        scorepart_elem.set('id', f'P{index}')
+        # Set the part name
+        part_name = ET.SubElement(scorepart_elem, 'part-name')
+        part_name.text = saved_part.name
 
-if __name__ == "__main__":
+        return scorepart_elem
+
+    @classmethod
+    def measure_mark_mxml_type(cls, mm: MeasureMark) -> str:
+        from musicai.structure.measure_mark import DynamicChangeMark
+
+        if isinstance(mm, DynamicChangeMark):
+            return mm.dynamic_change_type.name.lower()
+
+        else:
+            print('Other types of measure mark types not supported yet')
+            return 'not_supported_yet'
+
+    @classmethod
+    def _save_part_measures(cls, part_elem: ET.Element, saved_part: Part, index: int) -> ET.Element:
+        """
+        Currently does not support overlapping measure marks yet
+
+        :param part_elem:
+        :param saved_part:
+        :param index:
+        :return:
+        """
+        measure_count = 1
+
+        # Variables for keeping a running total of measure marks and the current time signature / clef
+        s_measure_marks_to_end = []
+        current_time_sig = None
+        current_clef = None
+
+        # FOR EVERY MEASURE
+        for measure in saved_part.measures:
+            new_measure_elem = ET.SubElement(part_elem, 'measure', {'number': f'{measure_count}'})
+
+            # Will be used if there is a new clef or time signature
+            attributes_elem = None
+
+            # NEW TIME SIGNATURE
+            if current_time_sig is not measure.time:
+                current_time_sig = measure.time
+
+                attributes_elem = ET.SubElement(new_measure_elem, 'attributes')
+                time_elem = ET.SubElement(attributes_elem, 'time')
+
+                ET.SubElement(time_elem, 'beats')
+                time_elem.find('beats').text = str(measure.time.numerator)
+                ET.SubElement(time_elem, 'beats-type')
+                time_elem.find('beats-type').text = str(measure.time.denominator)
+
+            # NEW CLEF
+            if current_clef is not measure.clef:
+                current_clef = measure.clef
+
+                # Make the 'attributes' elem if it hasn't been made yet
+                if attributes_elem is None:
+                    attributes_elem = ET.SubElement(new_measure_elem, 'attributes')
+                clef_elem = ET.SubElement(attributes_elem, 'clef')
+
+                # Sign
+                # TODO: must add a cleftype.to_xml() function
+                ET.SubElement(clef_elem, 'sign')
+                clef_elem.find('sign').text = str(measure.clef.cleftype.name)
+
+                # Line
+                ET.SubElement(clef_elem, 'line')
+                clef_elem.find('line').text = str(measure.clef.line)
+
+                # Octave change
+                if int(measure.clef.octave_change) != 0:
+                    ET.SubElement(clef_elem, 'clef-octave-change')
+                    clef_elem.find('clef-octave-change').text = str(int(measure.clef.octave_change))
+
+            # NOTES and MEASURE MARKS
+            current_musical_pos = 0
+            measure_marks_to_save = measure.measure_marks.copy()
+
+            for s_note in measure.notes:
+
+                # START A MEASURE MARK BEFORE THE NOTE
+                for mm in measure_marks_to_save:
+                    if mm.start_point <= current_musical_pos:
+                        # Print the mark and remove it from the list
+                        direction_elem = ET.SubElement(new_measure_elem, 'direction')
+
+                        # TODO: Add a function to add varying mark tags depending on the type of mark
+                        from musicai.structure.measure_mark import DynamicChangeMark
+                        if isinstance(mm, DynamicChangeMark):
+                            ET.SubElement(direction_elem, 'direction-type')
+                            ET.SubElement(direction_elem.find('direction-type'), 'wedge',
+                                          {'color':'#000000', 'type': MusicXML.measure_mark_mxml_type(mm)})
+
+                        # Add it to the list of opened measure marks (so mm will later be checked to be closed)
+                        s_measure_marks_to_end.append(mm)
+                        measure_marks_to_save.remove(mm)
+
+                # TODO: Currently only works for non-overlapping measure marks
+
+                # STOP A MEASURE MARK BEFORE THE NOTE
+                for mm in s_measure_marks_to_end:
+
+                    # If the measure mark is in this measure and its end point has been reached
+                    if mm.measure_span < 1 and mm.end_point <= current_musical_pos:
+                        direction_elem = ET.SubElement(new_measure_elem, 'direction')
+
+                        # TODO: Add a function to add 'STOP' tags depending on the mark-type
+                        from musicai.structure.measure_mark import DynamicChangeMark
+                        if isinstance(mm, DynamicChangeMark):
+                            ET.SubElement(direction_elem, 'direction-type')
+                            ET.SubElement(direction_elem.find('direction-type'), 'wedge',
+                                          {'color': '#000000', 'type': 'stop'})
+
+                        # The mark is discarded as now it's been implemented
+                        s_measure_marks_to_end.remove(mm)
+
+                # NOTE
+                # TODO: Modularize this into a function
+                note_elem = ET.SubElement(new_measure_elem, 'note', {'color': '#000000'})
+
+                # Pitch
+                pitch_elem = ET.SubElement(note_elem, 'pitch')
+
+                ET.SubElement(pitch_elem, 'step')
+                pitch_elem.find('step').text = str(s_note.pitch.step)
+                ET.SubElement(pitch_elem, 'octave')
+                pitch_elem.find('octave').text = str(int(s_note.pitch.octave))
+
+                from musicai.structure.pitch import Accidental
+                if s_note.pitch.alter != Accidental.NONE:
+                    # TODO: Implement accidental.to_mxml() (not high priority)
+                    ET.SubElement(pitch_elem, 'alter')
+                    pitch_elem.find('alter').text = str(float(s_note.pitch.alter))
+
+                # Duration
+                ET.SubElement(note_elem, 'duration')
+                duration_value = (s_note.value.value * 4) * s_note.division
+                note_elem.find('duration').text = str(duration_value)
+
+                # UPDATE CURRENT_MUSICAL_POSITION AND RUNNING LIST OF MEASURE MARKS
+                for mm in s_measure_marks_to_end:
+                    mm.measure_span -= 1
+                current_musical_pos += (s_note.value.value * 4) * s_note.division
+
+            # ADD LEFT OVER MEASURE MARKS
+            if len(s_measure_marks_to_end) > 0:
+                warnings.warn(f'Not all measure marks were completely added in part {saved_part}--adding them'
+                              f' to the end.')
+
+                # Identify the element of the final measure
+                all_measure_count = len(saved_part.measures)
+                measure_list = part_elem.findall('measure')
+                assert len(measure_list) == all_measure_count
+                final_measure_elem = measure_list[all_measure_count - 1]
+
+                # Add in a stop wedge at the end for the measure mark
+                from musicai.structure.measure_mark import DynamicChangeMark
+                for mm in s_measure_marks_to_end:
+                    # TODO: Add a function to add 'STOP' tags depending on the mark-type
+                    if isinstance(mm, DynamicChangeMark):
+
+                        ET.SubElement(final_measure_elem, 'direction-type')
+                        ET.SubElement(final_measure_elem.find('direction-type'), 'wedge',
+                                      {'color': '#000000', 'type': 'stop'})
+
+        return part_elem
+
+    @staticmethod
+    def save(score: Score, xml_file: str):
+
+        mxml_body = '<score-partwise version="4.0"><part-list></part-list>' \
+                    '</score-partwise>'
+
+        root = ET.fromstring(mxml_body)
+
+        partlist = root.find('part-list')
+
+        # Add a comment after the index of the partlist
+        parts_divider = ET.Comment('=========================================================')
+        root.insert(list(root.iter()).index(partlist) + 1, parts_divider)
+
+        # For each part in the score, saves its information
+        # TODO: Add distinctions between separator part systems, currently only works with =1 part system
+        for part_system in score.systems:
+            index = 1
+            for part in part_system.parts:
+                # Saves part metadata
+                partlist_elem = ET.SubElement(partlist, 'score-part')
+                partlist_elem = MusicXML._save_part_metadata(partlist_elem, part, index)
+
+                # Saves every measure in the part
+                part_elem = ET.SubElement(root, 'part', {'id': f'P{index}'})
+                part_elem = MusicXML._save_part_measures(part_elem, part, index)
+
+                # Adds a divider between every measure
+                measure_divider = ET.Comment('=======================================================')
+                part_elem.insert(index, measure_divider)
+
+                # Measure number is incremented
+                index += 1
+
+        # reparsed = minidom.parseString(ET.tostring(root))
+        # pretty_xml = reparsed.toprettyxml(encoding='UTF-8', standalone='no')
+        # import os
+        # pretty_xml = os.linesep.join([s for s in pretty_xml.splitlines() if s.strip()])
+
+        # with open(xml_file, 'w') as outfile:
+        #     outfile.write(pretty_xml)
+
+        tree = ET.ElementTree(root)
+        ET.indent(tree, space='\t')
+
+        tree.write(xml_file, encoding='UTF-8', xml_declaration=True)
+
+
+def main():
     # file = '../../examples/mxml/Binchois.musicxml'
     # file = '../../examples/mxml/BeetAnGeSample.musicxml'
     # file = '../../examples/mxml/BrahWiMeSample.musicxml'
@@ -632,8 +966,10 @@ if __name__ == "__main__":
     # file = '../../examples/mxml/DebuMandSample.musicxml'
     # file = '../../examples/mxml/Dichterliebe01.musicxml'
     # file = '../../examples/mxml/Echigo-Jishi.musicxml'
-    #   file = '../../examples/mxml/FaurReveSample.musicxml'
-    file = '../../examples/mxml/HelloWorld.musicxml'
+    # file = '../../examples/mxml/FaurReveSample.musicxml'
+    # file = '../../examples/mxml/HelloWorld.musicxml'
+    # file = '../../examples/mxml/HelloWorld2.musicxml'
+    file = '../../examples/mxml/HelloWorld3.musicxml'
     # file = '../../examples/mxml/MahlFaGe4Sample.musicxml'
     # file = '../../examples/mxml/MozaChloSample.musicxml'
     # file = '../../examples/mxml/MozartPianoSonata.musicxml'
@@ -642,13 +978,28 @@ if __name__ == "__main__":
     # file = '../../examples/mxml/Saltarello.musicxml'
     # file = '../../examples/mxml/SchbAvMaSample.musicxml'
     # file = '../../examples/mxml/Telemann.musicxml'
-    score = MusicXML.load(file)
 
-    print('\n\n\n')
-    print('Printing...', score)
+    new_file = '../../examples/mxml/new_saves/test1.musicxml'
 
-    print('FILLER')
+    # Create a score with a note and dynamic change mark
+    score_to_save = Score()
+    score_to_save.systems[0].parts[0].measures[0].append(Note())
+    from musicai.structure.measure_mark import DynamicChangeMark
+    score_to_save.systems[0].parts[0].measures[0].measure_marks.append(
+        DynamicChangeMark())
 
-    print(score.systems[0])
+    print('works')
 
-    # TODO: Sort out typing in score.py to make evything more clear
+    MusicXML.save(score_to_save, new_file)
+
+    # score = MusicXML.load(file)
+    #
+    # print('\n\n\n')
+    #
+    # score.print_measure_marks()
+    # print(f'Final score: {score}')
+    # score.print_measure_marks()
+
+
+if __name__ == "__main__":
+    main()

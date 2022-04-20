@@ -1,5 +1,8 @@
+import numpy as np
+from typing import Union
 from datetime import date
 from musicai.structure.measure import Measure
+from musicai.structure.note import Note
 
 
 # ----------
@@ -13,9 +16,9 @@ class Part:
     # Constructor
     # -----------
     def __init__(self):
-        self.measures: list[Measure] = []
+        self.measures: list[Measure] = [Measure()]
         self.id = ''  # string which can be used to differentiate parts
-        self.name = ''
+        self.name = 'Default'
         self.auto_update_barline_end = True
 
 
@@ -26,8 +29,9 @@ class Part:
         ret_str = ''
         for measure in self.measures:
             if measure is None:
-                raise ValueError('measure is None')
-            ret_str += '' + str(measure) + ' '
+                raise ValueError('Measure is None')
+            ret_str += str(measure) + ' '
+
         return ret_str
 
     # ---------
@@ -48,6 +52,61 @@ class Part:
         elif measure_count == 1:
             self.measures[0].set_barline('FINAL')
 
+    def get_note_at_location(self,
+                             location: Union[int, np.integer, float, np.inexact],
+                             measure_index: Union[int, np.integer]) -> Union[Note, None]:
+        """
+        Returns the note at the specific location if it exists
+
+        :param location: Where in the measure to find the note, in units of note value
+        :return: The note is returned if one exists at or after the location; otherwise, None is returned
+        """
+
+        current_location = 0
+        return_note = None
+
+        # Loop through every note until we hit the destination
+        for n in self.measures[measure_index].notes:
+
+            # If this is the first note equal to or after the desired location, then return it
+            if location <= current_location:
+                return_note = n
+                break
+
+            # Otherwise, we have not hit the right now yet
+            current_location += n.value
+
+        # Check for Measure Marks in this measure
+        # If there is an Octave Line over the note, this will be reflected
+        if return_note is not None:
+            pass
+
+        # Note: duration == (NoteType * divisions * 4) * dots * self.ratio.normal / self.ratio.actual
+        return return_note
+
+    def get_note_at_index(self,
+                             index: Union[int, np.integer],
+                             measure_index: Union[int, np.integer]) -> Union[Note, None]:
+        """
+        Returns the note at the specific index if it exists
+
+        :param location: Which index of the note to get in the measure to find the note
+        :return: The note is returned if one exists at or after the location; otherwise, None is returned
+        """
+
+        return_note = None
+
+        if index < len(self.measures[measure_index].notes):
+            return_note = self.measures[measure_index].notes[index]
+
+        # Check for Measure Marks in this measure
+        # If there is an Octave Line over the note, this will be reflected
+        if return_note is not None:
+            pass
+
+        # Note: duration == (NoteType * divisions * 4) * dots * self.ratio.normal / self.ratio.actual
+        return return_note
+
 
 # ----------------
 # PartSystem class
@@ -60,7 +119,7 @@ class PartSystem:
     # Constructor
     # -----------
     def __init__(self):
-        self.parts: list[Part] = []
+        self.parts: list[Part] = [Part()]
 
     # --------
     # Override
@@ -71,7 +130,7 @@ class PartSystem:
             if part is None:
                 #  ValueError('Part is None')
                 pass
-            ret_str += '' + str(part) + '\n'
+            ret_str += str(part) + '\n'
         return ret_str
 
     # ---------
@@ -154,7 +213,7 @@ class Score:
     # -----------
     def __init__(self):
         self.filename = ''
-        self.systems = []
+        self.systems: list[PartSystem] = [PartSystem()]
         self.metadata = Metadata()
 
     # --------
@@ -165,7 +224,8 @@ class Score:
         for system in self.systems:
             if system is None:
                 raise ValueError('system is None')
-            ret_str += '' + str(system) + ' '
+            ret_str += str(system) + ' '
+
         return ret_str
 
     # ---------
@@ -174,6 +234,28 @@ class Score:
     def append(self, system):
         self.systems.append(system)
 
+    def print_measure_marks(self):
+        """
+        Loops through every measure in each part and prints a measure there if one exists
+
+        :return:
+        """
+        print('=====Measure Marks:=====')
+        for part_sys in self.systems:
+            part_index = 0
+
+            for parts in part_sys.parts:
+
+                print(f'===Part {part_index}===')
+                for measure_index in range(len(parts.measures)):
+
+                    # If there are measure marks in this measure, then output it
+                    if len(parts.measures[measure_index].measure_marks) != 0:
+                        print(f'Measure {measure_index}: '
+                              f'{[repr(mm) for mm in parts.measures[measure_index].measure_marks]}')
+                part_index += 1
+
+        print('\n')
 
 def get_test_score():
     from musicai.structure.note import Note, NoteType

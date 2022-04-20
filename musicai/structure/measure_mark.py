@@ -1,4 +1,3 @@
-import enum
 import warnings
 from enum import Enum
 
@@ -45,9 +44,10 @@ class MeasureMark:
         :param divisions: Provides basis for start_point and end_point--acts as the denominator.
         """
         self.start_point = start_point
-        self.end_time = end_point
+        self.end_point = end_point
         self._duration_ = end_point - start_point
         self.note_connected = note_connected
+        self.divisions = divisions
 
         self.number = None  # used to distinguish overlapping elements
         self.measure_index = 0
@@ -64,7 +64,8 @@ class MeasureMark:
         return self.mark_name + ' ' + self.value_name
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__.title()}({self.value_name})>'
+        return f'<{self.__class__.__name__.title()}({self.value_name}) start:{self.start_point} end:{self.end_point}' \
+               f' measure_span:{self.measure_span} divs:{self.divisions}>'
 
     # -----------
     # Properties
@@ -79,7 +80,7 @@ class MeasureMark:
             raise ValueError(f'The measure marking {str(self)} cannot have a duration of 0')
         else:
             self._duration_ = value
-            self.end_time = self.start_point + value
+            self.end_point = self.start_point + value
 
     # -----------
     # Methods
@@ -129,33 +130,6 @@ class HairpinType(Enum):
     WAVY = 4
     BRACKETED = 5
 
-    # -----------
-    # Class Methods
-    # -----------
-    @classmethod
-    def from_xml(cls, value: Union[str, int, np.integer]) -> 'HairpinType':
-
-        if isinstance(value, str):
-            if not value.isnumeric():
-                warnings.warn(f'Cannot make a HairpinType from xml attribute of string {value}. Defaulting to '
-                              f'HairpinType.STANDARD', stacklevel=2)
-                return HairpinType.STANDARD
-            else:
-                xml_numeric = int(value)
-        elif isinstance(value, Union[int, np.integer]):
-            xml_numeric = value
-        else:
-            warnings.warn(f'Cannot make a HairpinType from xml attribute of type {type(value)}. Defaulting to '
-                          f'HairpinType.STANDARD', stacklevel=2)
-            return HairpinType.STANDARD
-
-        if xml_numeric in [ht.value for ht in HairpinType]:
-            return HairpinType(xml_numeric)
-        else:
-            warnings.warn(f'Cannot make a HairpinType from xml attribute of value {xml_numeric}. Defaulting to '
-                          f'HairpinType.STANDARD', stacklevel=2)
-            return HairpinType.STANDARD
-
 
 # ---------------------
 # TempoChangeType enum
@@ -193,38 +167,6 @@ class TempoChangeMark(MeasureMark):
         self.value_name = tempo_change_type.name.title()
 
 
-class EnumChecker:
-    # -----------
-    # Class Methods
-    # -----------
-    @staticmethod
-    def find_enum(target_enum: enum.EnumMeta, value: Union[str, Enum, None]) -> Union[Enum, None]:
-        """
-            Returns the value as an enumeration member if it's the name of an enumeration or already an enumeration
-            member.
-
-        """
-        if isinstance(value, str):
-            if value.upper() in [e.name for e in target_enum]:
-                return target_enum[value.upper()]
-            elif value == '':
-                if 'NONE' in [e.name for e in target_enum]:
-                    return target_enum['NONE']
-            else:
-                raise ValueError(f'\'{value}\' is not a valid member of {target_enum.__name__}.')
-        elif isinstance(value, target_enum):
-            return value
-        elif value is None:
-            if 'NONE' in [e.name for e in target_enum]:
-                return target_enum['NONE']
-            else:
-                raise ValueError(f'\'{value}\' is not a valid member of {target_enum.__name__}.')
-        else:
-            warnings.warn(f'Cannot make {target_enum.__name__} from {value} of type {type(value)}.',
-                          stacklevel=2)
-            return None
-
-
 # ---------------------
 # DynamicChangeMark class
 # ---------------------
@@ -233,8 +175,6 @@ class DynamicChangeMark(MeasureMark):
     Class to represent a dynamic change between points in a measure
     """
     mark_name = 'Dynamic Change'
-    symbol = u'\U0001D192'  # TODO: Update-- this should only show for crescendo
-    # decrescendo: u'\U0001D193'
 
     # -----------
     # Constructor
@@ -298,6 +238,16 @@ class DynamicChangeMark(MeasureMark):
             raise TypeError(f'Cannot make a DynamicChangeMark with niente of type {type(niente)}.')
 
         self.value_name = self.dynamic_change_type.name.title()
+
+    # -----------
+    # Overrides
+    # -----------
+    def __str__(self):
+        match self.dynamic_change_type:
+            case DynamicChangeType.DECRESCENDO:
+                return u'\U0001D193'  # Decrescendo Symbol
+            case _:
+                return u'\U0001D192'  # Crescendo Symbol
 
 
 # ---------------------
@@ -494,6 +444,7 @@ class VoltaBracketMark(MeasureMark):
 class InstantaneousMeasureMark(MeasureMark):
     """
     Class to represent common instantaneous notation in a measure
+    ! May be depreceated since some non-IMM's have duration 0 --> just make all IMM's an MM with duration = 0 !
     """
     # -----------
     # Constructor

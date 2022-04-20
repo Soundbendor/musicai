@@ -98,6 +98,9 @@ class ClefOctave(Enum):
     def __str__(self):
         return str(self.name)
 
+    def __int__(self):
+        return self._value_
+
     def __repr__(self):
         return f'<{self.__class__.__name__}({self.abbr})>'
 

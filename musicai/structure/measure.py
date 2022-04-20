@@ -153,7 +153,7 @@ class Measure:
     # -----------
     def __init__(self, measure_number=-1, time=TimeSignature(), key=Key(), clef=Clef()):
         self.measure_number = measure_number
-        self.notes = []
+        self.notes: list[Note] = []
         self.time = time
         self.clef = clef
         self.key = key
@@ -169,14 +169,34 @@ class Measure:
     # --------
     # Override
     # --------
-    def __str__(self):
+    def __str__(self) -> str:
+        current_musical_pos = 0  # Used to dictate MeasureMark position
+        mm_to_print = self.measure_marks.copy()
         ret_str = ''
+
+        # Print every note and measure mark
         for note in self.notes:
+
+            # Append the MeasureMark if it's at or behind the current note
+            for mm in mm_to_print:
+                if mm.start_point <= current_musical_pos:
+                    # Print the mark and remove it from the list
+                    ret_str += str(mm) + ' '
+                    mm_to_print.remove(mm)
+
+            # Append the note itself
             if note is None:
                 raise ValueError('note is None')
             ret_str += str(note) + ' '
+
+            # Update the current musical location
+            current_musical_pos += (note.value.value * 4) * note.division
+
+        # if isinstance(self.barline, list):
+        #     ret_str += [str(barline) for barline in self.barlines]
         ret_str += str(self.barline)
         # ret_str += ' ' + ''.join([str(barline) for barline in self.barlines])
+
         return ret_str
 
     def __len__(self):
@@ -209,6 +229,8 @@ class Measure:
                   location: Union[int, np.integer, float, np.inexact],
                   notes: Union[Note, list[Note], tuple[Note]],
                   division: Union[int, np.integer] = 1024):
+
+        # Must be aware if an octave measure marking exists at this point
 
         # Check for if there is a note ON the start location or DURING the start location,
         # what is present at the note's start location
@@ -251,7 +273,8 @@ class Measure:
             raise TypeError(f'Cannot set a barline using type {type(value)}.')
 
     def beam(self):
-        print("BEAMING")
+        pass
+        # print("BEAMING")
         # never beam over middle beat
         # time_signature_value = self.time.value
         #
@@ -310,14 +333,11 @@ class Measure:
 
         self.beam()
 
-    def get_note(self, location: Union[int, np.integer, float, np.inexact]) -> Note:
-
-        # If there's an OCTAVE LINE MARK over the note, let that impact
-        # the note you return
-
-        # check if_over_note(measure_mark, note) for octave lines
-
+    def set_note(self):
         pass
+
+    def print_measure_marks(self):
+        print([repr(mm) for mm in self.measure_marks])
 
     def insert_tempo_change(self):
         pass
@@ -338,7 +358,7 @@ class Measure:
     def insert_octave_line(self):
         pass
 
-    def insert_pedal(self):
+    def insert(self, marking_ype, *args):
         pass
 
     def insert_volta_bracket(self):
