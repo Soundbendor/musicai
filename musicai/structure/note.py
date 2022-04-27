@@ -102,7 +102,7 @@ class NoteType(Enum):
             return NoteType[mxml_notetype.upper()]
 
         match mxml_notetype.lower():
-            # allowed mxml values
+            # Allowed mxml values
             case '1024th':
                 return NoteType.ONE_THOUSAND_TWENTY_FOURTH
             case '512th':
@@ -122,7 +122,7 @@ class NoteType(Enum):
             case 'maxima':
                 return NoteType.LARGE
 
-            # unallowed mxml values
+            # Unallowed mxml values
             case '2048th':
                 return NoteType.TWO_THOUSAND_FORTY_EIGHTH
             case '4096th':
@@ -737,8 +737,8 @@ class Note:
                  value: NoteValue = NoteValue(NoteType.NONE),
                  pitch: Pitch = Pitch(),
                  marks: set = None):
-        self.value = value
-        self.pitch = pitch
+        self.value: NoteValue = value
+        self.pitch: Pitch = pitch
         if marks is None:
             marks = set()  # This is done because set is a mutable type
         self.marks = marks
@@ -882,6 +882,9 @@ class Note:
     def is_beamed(self):
         return len(self.beams) > 0
 
+    def is_rest(self) -> bool:
+        return False
+
     # -------------
     # Class Methods
     # -------------
@@ -991,6 +994,8 @@ class Rest(Note):
     # ---------
     # Methods
     # ---------
+    def is_rest(self) -> bool:
+        return True
 
     # -------------
     # Class Methods
@@ -1002,7 +1007,7 @@ class Rest(Note):
         for attr in vars(origin_note).items():  # for every item in the original note
             vars(new_rest).update({attr[0]: attr[1]})  # update this item in the rest
 
-        new_rest.pitch = None
+        # new_rest.pitch = Pitch.empty_pitch()  Remember the old pitch?
         return new_rest
 
 

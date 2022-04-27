@@ -65,7 +65,29 @@ class TimeSignature:
         return str(self.numerator) + '/' + str(self.denominator)
 
     def __repr__(self):
-        return '<TimeSignature: ' + str(self.numerator) + '/' + str(self.denominator) + '; ' + self.timesymboltype.__repr__() + '>'
+        return '<TimeSignature: ' + str(self.numerator) + '/' + str(self.denominator) \
+               + '; ' + self.timesymboltype.__repr__() + '>'
+
+    # -------------
+    # Methods
+    # -------------
+    def is_equivilant(self, other: 'TimeSignature') -> bool:
+        """
+        Tells whether this is notationally equivilant to another Time Signature. This is based on the numerator and
+        denominator
+
+        :param other: The other Time Signature to compare to the current one
+        :return: Bool describing if they are notationally equivilant or not. Based on numerator and
+        denominator
+        """
+        if isinstance(other, TimeSignature):
+            if self.numerator == other.numerator and self.denominator == other.denominator:
+                return True
+            else:
+                return False
+
+        else:
+            return False
 
     # -------------
     # Class Methods

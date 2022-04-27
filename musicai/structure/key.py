@@ -49,6 +49,7 @@ class ModeType(Enum):
                 if member.name == value.upper():
                     return ModeType[name]
 
+
 # ------------
 # KeyType enum
 # ------------
@@ -98,9 +99,12 @@ class KeyType(Enum):
     # ----------
     # Properties
     # ----------
-    def fifths(self, mode):
+    def fifths(self, mode: ModeType) -> int:
         # TODO: handle other modes
-        return self.minor_fifths if mode == ModeType.MINOR else self.major_fifths  #WRONG
+        if mode == ModeType.MINOR:
+            return self.minor_fifths
+        else:
+            return self.major_fifths
 
     # --------
     # Override
@@ -115,19 +119,22 @@ class KeyType(Enum):
     # Class Methods
     # -------------
     @classmethod
-    def find(cls, value, mode=ModeType.MAJOR):
+    def find(cls, value, mode=ModeType.MAJOR) -> 'KeyType':
         if isinstance(value, KeyType):
             return value
+
         elif isinstance(value, (float, np.inexact, int, np.integer)):
             idx = 0 if mode == ModeType.MAJOR else 1
             for name, member in cls.__members__.items():
                 if member.value[idx] == value:
-                    return name
+                    return KeyType[name]
+
         elif isinstance(value, str):
             if value.title() in cls.__members__:
                 return KeyType[value.title()]
             else:
                 raise ValueError(f'Unable to match value {value} to KeyType.')
+
         else:
             raise ValueError(f'Invalid type {type(value)} for KeyType.')
 
@@ -525,7 +532,9 @@ class Key:
     # -----------
     # Constructor
     # -----------
-    def __init__(self, keytype=KeyType.C, modetype=ModeType.MAJOR):
+    def __init__(self,
+                 keytype: KeyType = KeyType.C,
+                 modetype: ModeType = ModeType.MAJOR):
         self.keytype = KeyType.find(keytype)
         self.modetype = modetype
         self.scale = Scale(self)
@@ -547,6 +556,9 @@ class Key:
     def __str__(self) -> str:
         return str(self.keytype) + ' ' + str(self.modetype)
 
+    def __repr__(self) -> str:
+        return f'<{self.__class__.__name__} fifths={self.fifths()} modetype={self.modetype}>'
+
     # ---------
     # Methods
     # ---------
@@ -556,16 +568,16 @@ class Key:
     def has_accidental(self, midi: int) -> bool:
         return self.degree(midi) is None
 
-    def is_flat(self):
+    def is_flat(self) -> bool:
         return self.keytype.fifths(self.modetype) < 0
 
-    def is_sharp(self):
+    def is_sharp(self) -> bool:
         return self.keytype.fifths(self.modetype) > 0
 
-    def is_neutral(self):
+    def is_neutral(self) -> bool:
         return self.keytype.fifths(self.modetype) == 0
 
-    def fifths(self):
+    def fifths(self) -> int:
         return self.keytype.fifths(self.modetype)
 
     def altered(self):
@@ -610,6 +622,31 @@ class Key:
                 else:
                     raise ValueError(f'Error: could not match midi note {midi} in key {self}')
         return pitch
+
+    def is_minor(self) -> bool:
+        if self.modetype == ModeType.MINOR:
+            return False
+        else:
+            return True
+
+    def modetype_to_str(self) -> str:
+        return self.modetype.name.lower()
+
+    def is_equivilant(self, other: 'Key') -> bool:
+        """
+        Tells whether this is notationally equivilant to another Key. This is based on the key type and mode type
+
+        :param other: The other Key to compare to the current one
+        :return: Bool describing if they are notationally equivilant or not. Based on key type and mode type
+        """
+        if isinstance(other, Key):
+            if self.keytype == other.keytype and self.modetype == other.modetype:
+                return True
+            else:
+                return False
+
+        else:
+            return False
 
     # -------------
     # Class Methods

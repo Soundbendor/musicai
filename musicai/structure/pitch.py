@@ -492,7 +492,7 @@ class Pitch:
             alter: 'Accidental' = Accidental.NONE):
 
         if isinstance(step, Step):
-            self.step = step
+            self.step: Step = step
         # elif isinstance(step, (int, np.integer)): # from_int() and from_str() are not completed yet
         #    self.step = Step.from_int(step)
         # elif isinstance(step, str):
@@ -500,8 +500,8 @@ class Pitch:
         else:
             raise TypeError(f'Error: Pitch cannot be made from a step of type {type(step)}.')
 
-        self.octave = octave
-        self.alter = alter
+        self.octave: Octave = octave
+        self.alter: Accidental = alter
 
     # def __init__(self, pitch: Union[Step, str, float, int, np.inexact, np.integer, Tuple[Step, Octave]] = 'C4',
     #              alter: Accidental = Accidental.NONE):
@@ -686,6 +686,10 @@ class Pitch:
     # -------------
     # Class Methods
     # -------------
+    @classmethod
+    def empty_pitch(cls) -> 'Pitch':
+        return Pitch(Step.C, Octave.NONE, Accidental.NONE)
+
     @classmethod
     def from_midi(cls, midi_pitch, key=None):
         # from numeric (midi)

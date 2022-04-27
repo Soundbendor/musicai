@@ -18,18 +18,25 @@ from musicai.structure.pitch import Accidental
 # BarlineType enum
 # ----------------
 class BarlineType(Enum):
+    """
+    An enum to represent BarlineTypes. An instance of this enum by itself, outside a Barline class, will
+    always represent a right-sided barline
+
+    """
     NONE = 0, '', ''
-    SHORT = 1, '\U0001D105', 'barlineShort'
-    TICK = 2, '\U0001D105', 'barlineTick'
-    REGULAR = 3, '\U0001D100', 'barlineSingle'
-    DOUBLE = 4, '\U0001D101', 'barlineDouble'
-    FINAL = 5, '\U0001D102', 'barlineFinal'
-    REVERSE_FINAL = 5, '\U0001D103', 'barlineReverseFinal'
-    HEAVY = 6, '\U0001D100\U0001D100\U0001D100', 'barlineHeavy'
-    DOUBLE_HEAVY = 7, '\U0001D100\U0001D100\U0001D100\u0020\U0001D100\U0001D100\U0001D100', 'barlineHeavyHeavy'
-    DASHED = 8, '\U0001D104', 'barlineDashed'
-    DOTTED = 9, '\U0001D104', 'barlineDotted'
-    INVISIBLE = 10, '', ''
+    SHORT = 1, u'\U0001D105', 'barlineShort'
+    TICK = 2, u'\U0001D105', 'barlineTick'
+    REGULAR = 3, u'\U0001D100', 'barlineSingle'
+    DOUBLE = 4, u'\U0001D101', 'barlineDouble'
+    FINAL = 5, u'\U0001D102', 'barlineFinal'
+    REVERSE_FINAL = 5, u'\U0001D103', 'barlineReverseFinal'
+    HEAVY = 6, u'\U0001D100\U0001D100\U0001D100', 'barlineHeavy'
+    DOUBLE_HEAVY = 7, u'\U0001D100\U0001D100\U0001D100\u0020\U0001D100\U0001D100\U0001D100', 'barlineHeavyHeavy'
+    DASHED = 8, u'\U0001D104', 'barlineDashed'
+    DOTTED = 9, u'\U0001D104', 'barlineDotted'
+    LEFT_REPEAT = 10, u'\U0001D106', 'leftRepeat'
+    RIGHT_REPEAT = 11, u'\U0001D107', 'rightRepeat'
+    INVISIBLE = 12, '', ''
 
     # -----------
     # Constructor
@@ -105,6 +112,27 @@ class Barline:
     # ---------
     # Methods
     # ---------
+    def is_simple_final_barline(self) -> bool:
+        """
+        Used to distunguish between final barlines
+
+        :return:
+        """
+        if self.barlinetype == BarlineType.FINAL and self.barlinelocation == BarlineLocation.RIGHT \
+                and self.right_repeat == 0:
+            return True
+        else:
+            return False
+
+    def is_regular(self) -> bool:
+        """
+        Used to distunguish regular barlines
+
+        """
+        if self.barlinetype == BarlineType.REGULAR and self.barlinelocation == BarlineLocation.RIGHT:
+            return True
+        else:
+            return False
 
     # -------------
     # Class Methods
@@ -151,13 +179,18 @@ class Measure:
     # -----------
     # Constructor
     # -----------
-    def __init__(self, measure_number=-1, time=TimeSignature(), key=Key(), clef=Clef()):
+    def __init__(self,
+                 measure_number: Union[int, np.integer] = -1,
+                 time: TimeSignature = TimeSignature(),
+                 key: Key = Key(),
+                 clef: Clef = Clef(),
+                 barline=BarlineType.REGULAR):
         self.measure_number = measure_number
         self.notes: list[Note] = []
         self.time = time
         self.clef = clef
         self.key = key
-        self.barline: Union[Barline, BarlineType] = BarlineType.REGULAR
+        self.barline: Union[Barline, BarlineType, list[Barline, BarlineType]] = barline
         self.is_full = False
         self.remaining = 1.0
         self.display_clef = False
@@ -165,6 +198,7 @@ class Measure:
         self.display_key = False
         self.measure_style = MeasureStyle.NONE
         self.measure_marks: list[MeasureMark] = []
+        self.divisions = 256
 
     # --------
     # Override
@@ -370,9 +404,70 @@ class Measure:
     def insert_dynamic(self):
         pass
 
+    def has_ls_barline(self) -> bool:
+        """
+        Describes if the measure has any left-sided barlines
+
+        :return: If this measure has any left-sided barlines
+        """
+        # If there are a list of barlines
+        if isinstance(self.barline, list):
+
+            for bl in self.barline:
+                if isinstance(bl, Barline):
+                    if bl.barlinelocation == BarlineLocation.LEFT:
+                        return True
+
+            return False
+
+        # Otherwise, if the only barline here is left-sided
+        elif isinstance(self.barline, Barline):
+            return self.barline.barlinelocation == BarlineLocation.LEFT
+
+        else:
+            return False
+
+    def has_irregular_rs_barline(self) -> bool:
+        """
+        Describes if the measure has a right-sided barline that isn't regular
+
+        :return: If this measure has a right-sided barline that isn't regular
+        """
+        # If there are a list of barlines
+        if isinstance(self.barline, list):
+
+            for bl in self.barline:
+                if isinstance(bl, Barline):
+                    if bl.barlinelocation == BarlineLocation.RIGHT and bl.barlinetype != BarlineType.REGULAR:
+                        return True
+
+            return False
+
+        elif isinstance(self.barline, Barline):
+            if self.barline.barlinelocation == BarlineLocation.RIGHT:
+                return self.barline.barlinetype != BarlineType.REGULAR
+
+            else:
+                return False
+
+        elif isinstance(self.barline, BarlineType):
+            return self.barline != BarlineType.REGULAR
+
+        else:
+            raise TypeError(f'Measure {self} has a barline of invalid type {type(self.barline)}.')
+
     # -------------
     # Class Methods
     # -------------
+    @classmethod
+    def empty_measure(cls) -> 'Measure':
+        empty_measure = Measure()
+        empty_measure.key = None
+        empty_measure.time = None
+        empty_measure.clef = None
+        empty_measure.divisions = None
+        return empty_measure
+
     @classmethod
     def from_abc(cls):
         pass

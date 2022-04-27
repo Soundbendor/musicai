@@ -167,7 +167,7 @@ class Clef:
         return int(self.value)
 
     def __str__(self):
-        return str(self.cleftype + self.octave_change)
+        return f'{self.cleftype} {self.octave_change}'
 
     def __repr__(self):
         return f'<{self.__class__.__name__}({self.cleftype}{self.octave_change})>'
@@ -199,6 +199,23 @@ class Clef:
     # ---------
     # Methods
     # ---------
+    def is_equivilant(self, other: 'Clef') -> bool:
+        """
+        Tells whether this is notationally equivilant to another clef. This is based on if the two clefs have
+        the same clef type, octave change, and line.
+
+        :param other: The other clef to compare to the current one
+        :return: Bool describing if they are notationally equivilant or not. Based on clef type, octave change, and line
+        """
+        if isinstance(other, Clef):
+            if self.cleftype == other.cleftype and self.octave_change == other.octave_change \
+                    and self.line == other.line:
+                return True
+            else:
+                return False
+
+        else:
+            return False
 
     # -------------
     # Class Methods

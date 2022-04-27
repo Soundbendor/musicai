@@ -16,7 +16,8 @@ class Part:
     # Constructor
     # -----------
     def __init__(self):
-        self.measures: list[Measure] = [Measure()]
+        from musicai.structure.measure import BarlineType
+        self.measures: list[Measure] = []
         self.id = ''  # string which can be used to differentiate parts
         self.name = 'Default'
         self.auto_update_barline_end = True
@@ -39,18 +40,38 @@ class Part:
     # ---------
     def append(self, measure):
         self.measures.append(measure)
+
         if self.auto_update_barline_end:
             self.update_final_barline()
 
-    def update_final_barline(self):
+    def update_final_barline(self) -> None:
+        """
+        Used to automatically make the last measure in a part have a final barline, typically called
+        when a part has a measure appended. Does not affect non-regular barlines
+
+        """
+        from musicai.structure.measure import Barline, BarlineLocation, BarlineType
         measure_count = len(self.measures)
 
+        # Gives the latest measure a final barline and gives the preceding measure a regular barline
         if measure_count > 1:
-            self.measures[measure_count - 2].set_barline('REGULAR')
-            self.measures[measure_count - 1].set_barline('FINAL')
 
+            # Sets the preceeding from FINAL barline to REGULAR
+            if isinstance(self.measures[measure_count - 2].barline, Barline):
+                if self.measures[measure_count - 2].barline.is_simple_final_barline():
+                    self.measures[measure_count - 2].set_barline('REGULAR')
+            else:
+                # This is necessary for some reason...
+                self.measures[measure_count - 2].set_barline('REGULAR')
+
+            # Sets the following from REGULAR barline to FINAL
+            if not self.measures[measure_count - 1].has_irregular_rs_barline():
+                self.measures[measure_count - 1].set_barline('FINAL')
+
+        # Gives the latest measure a final barline
         elif measure_count == 1:
-            self.measures[0].set_barline('FINAL')
+            if not self.measures[0].has_irregular_rs_barline():
+                self.measures[0].set_barline('FINAL')
 
     def get_note_at_location(self,
                              location: Union[int, np.integer, float, np.inexact],
@@ -119,7 +140,7 @@ class PartSystem:
     # Constructor
     # -----------
     def __init__(self):
-        self.parts: list[Part] = [Part()]
+        self.parts: list[Part] = []
 
     # --------
     # Override
@@ -198,7 +219,7 @@ class Metadata:
     # Methods
     # -----------
     def append_right(self, description: str, rights_type: str = ''):
-        self.rights.append(description, rights_type)
+        self.rights.append((description, rights_type))
 
 
 # -----------
@@ -213,7 +234,7 @@ class Score:
     # -----------
     def __init__(self):
         self.filename = ''
-        self.systems: list[PartSystem] = [PartSystem()]
+        self.systems: list[PartSystem] = []
         self.metadata = Metadata()
 
     # --------
@@ -256,6 +277,31 @@ class Score:
                 part_index += 1
 
         print('\n')
+
+    def print_in_depth(self):
+        print(f'\n')
+        print(f'Score:')
+        print(f'======================')
+        print(f'Number of systems: {len(self.systems)}')
+        print(f'======================')
+
+        system_index = 0
+        for system in self.systems:
+            print(f'--------------------')
+            print(f'System: {system_index}')
+            print(f'Number of parts in system {system_index}: {len(system.parts)}')
+
+            part_index = 0
+            for part in system.parts:
+
+                print(f'Part {part_index}--------')
+                print(f'Number of measures in part {part_index}: {len(part.measures)}')
+                for measure in part.measures:
+                    print(f'(k={measure.key} c={measure.clef} t={measure.time}) {measure} ', end='')
+                part_index += 1
+
+            system_index += 1
+            print(f'\n--------------------\n')
 
 def get_test_score():
     from musicai.structure.note import Note, NoteType

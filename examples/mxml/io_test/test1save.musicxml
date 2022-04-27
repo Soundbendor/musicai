@@ -9,24 +9,41 @@
 	<part id="P1">
 		<measure number="1">
 			<attributes>
+				<divisions>256</divisions>
 				<key>
 					<fifths>0</fifths>
 					<mode>major</mode>
 				</key>
 				<time>
 					<beats>4</beats>
-					<beats-type>4</beats-type>
+					<beat-type>4</beat-type>
 				</time>
 				<clef>
 					<sign>G</sign>
 					<line>2</line>
 				</clef>
 			</attributes>
+			<note color="#000000">
+				<pitch>
+					<step>C</step>
+					<octave>4</octave>
+				</pitch>
+				<duration>512</duration>
+				<type>half</type>
+			</note>
 			<direction>
 				<direction-type>
 					<wedge color="#000000" type="crescendo" />
 				</direction-type>
 			</direction>
+			<note color="#000000">
+				<pitch>
+					<step>C</step>
+					<octave>4</octave>
+				</pitch>
+				<duration>256</duration>
+				<type>quarter</type>
+			</note>
 			<direction>
 				<direction-type>
 					<wedge color="#000000" type="stop" />
@@ -37,12 +54,26 @@
 					<step>C</step>
 					<octave>4</octave>
 				</pitch>
-				<duration>0</duration>
+				<duration>256</duration>
+				<type>quarter</type>
+			</note>
+			<barline location="right">
+				<bar-style>regular</bar-style>
+			</barline>
+		</measure>
+		<!--=======================================================-->
+		<measure number="1">
+			<note color="#000000">
+				<pitch>
+					<step>A</step>
+					<octave>4</octave>
+				</pitch>
+				<duration>1024</duration>
+				<type>whole</type>
 			</note>
 			<barline location="right">
 				<bar-style>light-heavy</bar-style>
 			</barline>
 		</measure>
-		<!--=======================================================-->
 	</part>
 </score-partwise>
