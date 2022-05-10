@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Union
 import enum
 from enum import Enum
@@ -39,3 +40,34 @@ class EnumChecker:
             warnings.warn(f'Cannot make {target_enum.__name__} from {value} of type {type(value)}.',
                           stacklevel=2)
             return None
+
+
+class General:
+    # -----------
+    # Class Methods
+    # -----------
+    @classmethod
+    def find_closest(cls, sorted_list: list[int | float | np.integer | np.inexact],
+                     num: int | float | np.integer | np.inexact) \
+            -> int | float | np.integer | np.inexact:
+        """
+        From a sorted list, returns the value closest to the passed in number. Aided by users on Stack Exchange.
+
+        :param sorted_list: A sorted list of integers
+        :param num: a number to compare with
+        :return:
+        """
+        from bisect import bisect_left
+
+        position = bisect_left(sorted_list, num)
+        if position == 0:
+            return sorted_list[0]
+        if position == len(sorted_list):
+            return sorted_list[-1]
+
+        prev = sorted_list[position - 1]
+        nex = sorted_list[position]
+        if nex - num < num - prev:
+            return nex
+        else:
+            return prev

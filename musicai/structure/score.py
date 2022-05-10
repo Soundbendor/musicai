@@ -1,8 +1,44 @@
+import warnings
+
 import numpy as np
 from typing import Union
-from datetime import date
+from enum import Enum
+# from datetime import date
 from musicai.structure.measure import Measure
 from musicai.structure.note import Note
+
+
+# -------------------
+# GroupingSymbol Enum
+# -------------------
+from musicai.structure.time import Tempo
+
+
+class GroupingSymbol(Enum):
+    """
+    Enum to represent how parts will be connected
+    """
+    NONE = 0, u''
+    BRACE = 1, u'\U0001D114'
+    BRACKET = 2, u'\U0001D115'
+    LINE = 3, u'\U0001D100\U0001D100\U0001D100'
+    SQUARE = 4, u'\U0001D101'
+
+    # -------------
+    # Constructor
+    # -------------
+    def __new__(cls, *values):
+        obj = object.__new__(cls)
+        # first value is canonical value
+        obj._value_ = values[0]
+        obj.symbol = values[1]
+        return obj
+
+    # -------------
+    # Constructor
+    # -------------
+    def __str__(self):
+        return self.symbol
 
 
 # ----------
@@ -16,62 +52,143 @@ class Part:
     # Constructor
     # -----------
     def __init__(self):
-        from musicai.structure.measure import BarlineType
         self.measures: list[Measure] = []
         self.id = ''  # string which can be used to differentiate parts
         self.name = 'Default'
         self.auto_update_barline_end = True
 
+        # 2D array of measures for multi-staved parts
+        self.multi_staves: list[list[Measure]] = []
+        self.grouping_symbol = GroupingSymbol.NONE
+
+        # To-consider: all staves, including the first, could be represented in an encompassing
+        # list[list[Measure]] member
 
     # --------
     # Override
     # --------
     def __str__(self):
         ret_str = ''
-        for measure in self.measures:
-            if measure is None:
-                raise ValueError('Measure is None')
-            ret_str += str(measure) + ' '
+
+        # Multi-staff part:
+        if len(self.multi_staves) > 0:
+
+            ret_str += '((Multi-staved))\n'
+
+            # FIRST MEASURE
+            ret_str += 'Staff 0\n'
+            for measure in self.measures:
+                if measure is None:
+                    raise ValueError('Measure is None')
+                ret_str += f'(k={measure.key} c={measure.clef} t={measure.time}) '
+                ret_str += str(measure) + ' '
+            ret_str += '\n'
+
+            # REMAINING MEASURES
+            multi_staff_count = 1
+            for measure_list in self.multi_staves:
+                ret_str += f'Staff {multi_staff_count}\n'
+                for measure in measure_list:
+                    if measure is None:
+                        raise ValueError('Measure is None')
+                    ret_str += f'(k={measure.key} c={measure.clef} t={measure.time}) '
+                    ret_str += str(measure) + ' '
+
+        # Single-staff part
+        else:
+            for measure in self.measures:
+                if measure is None:
+                    raise ValueError('Measure is None')
+                ret_str += str(measure) + ' '
 
         return ret_str
 
     # ---------
     # Methods
     # ---------
-    def append(self, measure):
-        self.measures.append(measure)
+    def append(self, measure: Measure, staff: int = 1):
+        """
+        Appends a measure to this part's list of measures. If the staff argument is not 1, the appended measure will
+         be added to the corresponding staff. Automatically updates the barline if auto_update_barline_end
+         is set to true
+        :param measure:
+        :param staff:
+        :return:
+        """
+        if staff == 1:
+            # Primary staff
+            self.measures.append(measure)
+
+        else:
+
+            # Makes sure the secondary staff exists
+            while len(self.multi_staves) < (staff - 1):
+                self.multi_staves.append([])
+
+            # Append to this secondary-staff
+            # -2 because the 2nd staff starts at multi_staves[0]
+            self.multi_staves[staff - 2].append(measure)
 
         if self.auto_update_barline_end:
-            self.update_final_barline()
+            self.update_final_barline(staff)
 
-    def update_final_barline(self) -> None:
+    def update_final_barline(self, staff: int = 1) -> None:
         """
         Used to automatically make the last measure in a part have a final barline, typically called
         when a part has a measure appended. Does not affect non-regular barlines
-
         """
         from musicai.structure.measure import Barline, BarlineLocation, BarlineType
-        measure_count = len(self.measures)
 
-        # Gives the latest measure a final barline and gives the preceding measure a regular barline
-        if measure_count > 1:
+        # UPDATE FIRST STAFF
+        if staff == 1:
+            measure_count = len(self.measures)
 
-            # Sets the preceeding from FINAL barline to REGULAR
-            if isinstance(self.measures[measure_count - 2].barline, Barline):
-                if self.measures[measure_count - 2].barline.is_simple_final_barline():
+            # Gives the latest measure a final barline and gives the preceding measure a regular barline
+            if measure_count > 1:
+
+                # Sets the preceeding from FINAL barline to REGULAR
+                if isinstance(self.measures[measure_count - 2].barline, Barline):
+                    if self.measures[measure_count - 2].barline.is_simple_final_barline():
+                        self.measures[measure_count - 2].set_barline('REGULAR')
+                else:
+                    # This is necessary for some reason...
                     self.measures[measure_count - 2].set_barline('REGULAR')
-            else:
-                # This is necessary for some reason...
-                self.measures[measure_count - 2].set_barline('REGULAR')
 
-            # Sets the following from REGULAR barline to FINAL
-            if not self.measures[measure_count - 1].has_irregular_rs_barline():
-                self.measures[measure_count - 1].set_barline('FINAL')
+                # Sets the following from REGULAR barline to FINAL
+                if not self.measures[measure_count - 1].has_irregular_rs_barline():
+                    self.measures[measure_count - 1].set_barline('FINAL')
 
-        # Gives the latest measure a final barline
-        elif measure_count == 1:
-            if not self.measures[0].has_irregular_rs_barline():
-                self.measures[0].set_barline('FINAL')
+            # Gives the latest measure a final barline
+            elif measure_count == 1:
+                if not self.measures[0].has_irregular_rs_barline():
+                    self.measures[0].set_barline('FINAL')
+
+        # UPDATE NON-FIRST STAFF
+        else:
+            # The multi-stave index is -2 because the 2nd staff starts at 0
+            ms_index = staff - 2
+
+            measure_count = len(self.multi_staves[ms_index])
+
+            # Gives the latest measure a final barline and gives the preceding measure a regular barline
+            if measure_count > 1:
+
+                # Sets the preceeding from FINAL barline to REGULAR
+                if isinstance(self.multi_staves[ms_index][measure_count - 2].barline, Barline):
+                    if self.multi_staves[ms_index][measure_count - 2].barline.is_simple_final_barline():
+                        self.multi_staves[ms_index][measure_count - 2].set_barline('REGULAR')
+                else:
+                    # This is necessary for some reason...
+                    self.multi_staves[ms_index][measure_count - 2].set_barline('REGULAR')
+
+                # Sets the following from REGULAR barline to FINAL
+                if not self.multi_staves[ms_index][measure_count - 1].has_irregular_rs_barline():
+                    self.multi_staves[ms_index][measure_count - 1].set_barline('FINAL')
+
+            # Gives the latest measure a final barline
+            elif measure_count == 1:
+                if not self.multi_staves[ms_index][0].has_irregular_rs_barline():
+                    self.multi_staves[ms_index][0].set_barline('FINAL')
 
     def get_note_at_location(self,
                              location: Union[int, np.integer, float, np.inexact],
@@ -80,6 +197,7 @@ class Part:
         Returns the note at the specific location if it exists
 
         :param location: Where in the measure to find the note, in units of note value
+        :param measure_index:
         :return: The note is returned if one exists at or after the location; otherwise, None is returned
         """
 
@@ -111,7 +229,8 @@ class Part:
         """
         Returns the note at the specific index if it exists
 
-        :param location: Which index of the note to get in the measure to find the note
+        :param index: Which index of the note to get in the measure to find the note
+        :param measure_index:
         :return: The note is returned if one exists at or after the location; otherwise, None is returned
         """
 
@@ -128,6 +247,12 @@ class Part:
         # Note: duration == (NoteType * divisions * 4) * dots * self.ratio.normal / self.ratio.actual
         return return_note
 
+    def staff_count(self) -> int:
+        return 1 + len(self.multi_staves)
+
+    def has_multiple_staves(self) -> bool:
+        return self.staff_count() > 1
+
 
 # ----------------
 # PartSystem class
@@ -141,12 +266,15 @@ class PartSystem:
     # -----------
     def __init__(self):
         self.parts: list[Part] = []
+        self.grouping_symbol = GroupingSymbol.NONE
 
     # --------
     # Override
     # --------
     def __str__(self):
         ret_str = ''
+
+        ret_str += self.grouping_symbol.symbol
         for part in self.parts:
             if part is None:
                 #  ValueError('Part is None')
@@ -237,6 +365,11 @@ class Score:
         self.systems: list[PartSystem] = []
         self.metadata = Metadata()
 
+        # Need to implement a beatmap system which vertically tracks the tempo for all instruments
+        # Only supports one tempo currently
+        # TODO: Deprecate this
+        self.tempo: Tempo | None = None
+
     # --------
     # Override
     # --------
@@ -287,45 +420,118 @@ class Score:
 
         system_index = 0
         for system in self.systems:
-            print(f'--------------------')
+            print(f'-------------------------------')
             print(f'System: {system_index}')
             print(f'Number of parts in system {system_index}: {len(system.parts)}')
 
             part_index = 0
             for part in system.parts:
 
-                print(f'Part {part_index}--------')
+                print(f'----Part {part_index}----')
                 print(f'Number of measures in part {part_index}: {len(part.measures)}')
-                for measure in part.measures:
-                    print(f'(k={measure.key} c={measure.clef} t={measure.time}) {measure} ', end='')
+                print(f'{part}')
+                # for measure in part.measures:
+                #     print(f'(k={measure.key} c={measure.clef} t={measure.time}) {measure} ', end='')
                 part_index += 1
 
             system_index += 1
-            print(f'\n--------------------\n')
+            print(f'\n-------------------------------\n')
+
+    def append_to_latest_partsystem(self, appended_part: Part) -> None:
+        """
+        Appends a part to this score's latest partsystem
+
+        :param appended_part:
+        :return:
+        """
+        if len(self.systems) == 0:
+            warnings.warn(f'There is no partsystem avaiable to append {appended_part} to.', stacklevel=2)
+            return
+
+        latest_index = len(self.systems) - 1
+        self.systems[latest_index].append(appended_part)
+
+    def get_part_by_mxml_index(self, value: int) -> Part:
+        """
+        Gets the score's part based on the mxml index, derived from mxml text such as "P1", "P2", "P9", "P12", etc.
+        The integer to the right of "P" is what is inserted to to this method
+
+        :param value: An integer greater than 1
+        :return:
+        """
+        current_count = 1
+        system_index = 0
+        part_index = 0
+
+        # Finds the correct part
+        while current_count < value:
+
+            # Increment to the next existing part index
+            if part_index < len(self.systems[system_index].parts) - 1:
+                part_index += 1
+
+            # No more parts exist in this system; increment the system index and begin at the new part index
+            else:
+                system_index += 1
+                part_index = 0
+
+            current_count += 1
+
+        return self.systems[system_index].parts[part_index]
+
+    def set_part_by_mxml_index(self, new_part: Part, value: int) -> None:
+        """
+        Sets the score's part based on the mxml index, derived from mxml text such as "P1", "P2", "P9", "P12", etc.
+        The integer to the right of "P" is what is inserted to this method
+
+        :param new_part:
+        :param value: An integer greater than 1
+        :return:
+        """
+        current_count = 1
+        system_index = 0
+        part_index = 0
+
+        # Finds the correct part
+        while current_count < value:
+
+            # Increment to the next existing part index
+            if part_index < len(self.systems[system_index].parts) - 1:
+                part_index += 1
+
+            # No more parts exist in this system; increment the system index and begin at the new part index
+            else:
+                system_index += 1
+                part_index = 0
+
+            current_count += 1
+
+        self.systems[system_index].parts[part_index] = new_part
+
 
 def get_test_score():
-    from musicai.structure.note import Note, NoteType
-    from musicai.structure.pitch import Pitch, Step
+    from musicai.structure.note import Note, NoteType, NoteValue
+    from musicai.structure.pitch import Pitch
     from musicai.structure.measure import Measure
     from musicai.structure.score import Part, PartSystem
     from musicai.structure.clef import Clef
     from musicai.structure.key import Key, KeyType, ModeType
 
-    n1 = Note(value=NoteType.EIGHTH, pitch=Pitch('A3'))
-    n2 = Note(value=NoteType.EIGHTH, pitch=Pitch('B3'))
-    n3 = Note(value=NoteType.EIGHTH, pitch=Pitch('C4'))
-    n4 = Note(value=NoteType.SIXTEENTH, pitch=Pitch('D4'))
-    n5 = Note(value=NoteType.SIXTEENTH, pitch=Pitch('E4'))
-    n6 = Note(value=NoteType.SIXTEENTH, pitch=Pitch('G5'))
-    n7 = Note(value=NoteType.SIXTEENTH, pitch=Pitch('A5'))
-    n8 = Note(value=NoteType.SIXTEENTH, pitch=Pitch('B5'))
-    n9 = Note(value=NoteType.SIXTEENTH, pitch=Pitch('C6'))
+    n1 = Note(value=NoteValue(NoteType.EIGHTH), pitch=Pitch('A3'))
+    n2 = Note(value=NoteValue(NoteType.EIGHTH), pitch=Pitch('B3'))
+    n3 = Note(value=NoteValue(NoteType.EIGHTH), pitch=Pitch('C4'))
+    n4 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('D4'))
+    n5 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('E4'))
+    n6 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('G5'))
+    n7 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('A5'))
+    n8 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('B5'))
+    n9 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('C6'))
 
     m1 = Measure()
 
     m1.clef = Clef()  # treble
-    #m1.clef = Clef(ClefType.BASS)
-    #m1.key = Key()     # CMaj
+    # m1.clef = Clef(ClefType.BASS)
+    # m1.key = Key()     # CMaj
 
     m1.key = Key(keytype=KeyType.Bb, modetype=ModeType.MAJOR)  # CMaj
     m1.append([n1, n2, n3, n4, n5, n6, n7, n8, n9])
@@ -339,6 +545,5 @@ def get_test_score():
 
     score = Score()
     score.append(s1)
-
 
     return score

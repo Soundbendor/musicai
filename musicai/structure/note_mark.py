@@ -27,6 +27,12 @@ class ArticulationType(Enum):
         return obj
 
     # -------------
+    # Override
+    # -------------
+    def __str__(self) -> str:
+        return self.symbol
+
+    # -------------
     # Class Methods
     # -------------
     @classmethod
@@ -46,7 +52,6 @@ class MiscMarks(Enum):
     FERMATA_LONG = 2, ''
     ARPEGGIATO = 3, u'\U0001D183'
     ARPEGGIATO_DOWN = 4, u'\U0001D184'
-    TIE = 5, ''
 
     # -------------
     # Constructor
@@ -127,17 +132,39 @@ class NoteheadType(Enum):
     """
     Class to represent the shape of the notehead
     """
-    ROUND = 0
-    SQUARE = 1
-    X = 1
-    CIRCLE = 3
-    PLUS = 3
-    # DIAMOND
-    #
-    # TRIANGLE_RIGHT
-    # TRIANGLE_LEFT
-    #
-    # TRIANGLE_UP
+    NONE = 0
+    NORMAL = 1
+    CROSSHEAD = 2
+    DIAMOND = 3
+    SLASH = 4
+    TRIANGLE = 5
+    CIRCLE_CROSS = 6
+
+    # Solfège according to Aikin's 7-shape system
+    DO = 7
+    RE = 8
+    MI = 9
+    FA = 10
+    FA_UP = 11
+    SO = 12
+    LA = 13
+    TI = 14
+
+    ARROW_DOWN = 15
+    ARROW_UP = 16
+    BACK_SLASHED = 17
+    CIRCLE_DOT = 18
+    CIRCLE_X = 19
+    CIRCLED = 20
+    CLUSTER = 21
+    CROSS = 22
+    INVERTED_TRIANGLE = 23
+    LEFT_TRIANGLE = 24
+    RECTANGLE = 25
+    SQUARE = 26
+    SLASHED = 27
+
+    # ALTERNATIVE_BREVIS
     #
     # MOON
     # TRIANGLE_ROUND
@@ -149,15 +176,31 @@ class NoteheadType(Enum):
     # ARROWHEAD_LEFT
     # TRIANGLE_ROUND_LEFT
 
-    # TODO ...
-
 
 # -----------------
 # NoteheadFill enum
 # -----------------
-class NoteheadFill(Enum):
-    WHITE = 0
-    BLACK = 1
+# class NoteheadFill(Enum):
+#     """
+#     Class to represent the shape of the notehead
+#     """
+#     WHITE = 0
+#     BLACK = 1
+
+
+class Notehead:
+    """
+    Class to represent the notehead of a note
+    """
+    # -----------
+    # Constructor
+    # -----------
+    def __init__(self,
+                 notehead_type: NoteheadType = NoteheadType.NORMAL,
+                 bracketed: bool = False):
+
+        self.notehead_type = notehead_type
+        self.bracketed = bracketed
 
 
 # -------------
@@ -179,6 +222,13 @@ class BeamType(Enum):
     CONTINUE = 2
     END = 3
     BACKWARD_HOOK = 4
+    FORWARD_HOOK = 5
+
+    # --------
+    # Override
+    # --------
+    def __str__(self) -> str:
+        return self.name
 
 
 # ----------
@@ -188,7 +238,9 @@ class Beam:
     # -----------
     # Constructor
     # -----------
-    def __init__(self, beamtype=BeamType.NONE, number=1):
+    def __init__(self,
+                 beamtype: BeamType = BeamType.NONE,
+                 number: int | np.integer = 1):
         self.beamtype = beamtype
         self.number = number
 
@@ -196,7 +248,7 @@ class Beam:
     # Override
     # --------
     def __str__(self):
-        return self.beamtype.title()
+        return str(self.beamtype).title()
 
     def __repr__(self):
         return f'<{self.__class__.__name__}({self.beamtype.name}) num={self.number}>'
@@ -208,6 +260,16 @@ class Beam:
 class TieType(Enum):
     STOP = 0
     START = 1
+    CONTINUE = 2
+
+
+# ------------
+# TieType enum
+# ------------
+class SlurType(Enum):
+    STOP = 0
+    START = 1
+    CONTINUE = 2
 
 
 # --------------------
@@ -314,9 +376,6 @@ class Articulation:
     pass
 
 
-
-
-
 # --------------
 # TrillType enum
 # --------------
@@ -330,6 +389,3 @@ class TrillType(Enum):
 # ----------------
 class Decoration:
     pass
-
-
-

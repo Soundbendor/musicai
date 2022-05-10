@@ -1,7 +1,7 @@
 import warnings
 import re
 from enum import Enum
-from typing import Union, Tuple
+from typing import Union
 import numpy as np
 
 from musicai.structure.clef import Clef
@@ -285,7 +285,6 @@ class Octave(Enum):
         else:
             raise ValueError(f'{value} is not a valid value for Octave.')
 
-
     # @classmethod
     # def find(cls, value):
     #    for name, value in Octave.__members__.items():
@@ -489,7 +488,8 @@ class Pitch:
             self,
             step: Union['Step', str, int, np.integer] = Step.C,
             octave: 'Octave' = Octave.ONE_LINE,
-            alter: 'Accidental' = Accidental.NONE):
+            alter: 'Accidental' = Accidental.NONE,
+            is_pitched: bool = True):
 
         if isinstance(step, Step):
             self.step: Step = step
@@ -502,6 +502,8 @@ class Pitch:
 
         self.octave: Octave = octave
         self.alter: Accidental = alter
+
+        self.is_pitched: bool = is_pitched
 
     # def __init__(self, pitch: Union[Step, str, float, int, np.inexact, np.integer, Tuple[Step, Octave]] = 'C4',
     #              alter: Accidental = Accidental.NONE):
@@ -647,6 +649,12 @@ class Pitch:
             return self.midi != other.value
         else:
             raise TypeError(f'Cannot compare Pitch and type {type(other)}.')
+
+    def __add__(self, other: int) -> 'Pitch':
+        pass
+        # if isinstance(other, int):
+        #     self.
+        #     return s
 
     def __sub__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> Union[int, float]:
         if isinstance(other, Pitch):

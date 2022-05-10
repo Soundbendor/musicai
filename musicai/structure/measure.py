@@ -9,7 +9,7 @@ from musicai.structure.measure_mark import MeasureMark
 from musicai.structure import measure_mark
 from musicai.structure.clef import Clef
 from musicai.structure.key import Key
-from musicai.structure.time import TimeSignature
+from musicai.structure.time import TimeSignature, Tempo
 from musicai.structure.note import Note, Rest
 from musicai.structure.pitch import Accidental
 
@@ -170,6 +170,48 @@ class MeasureStyle(Enum):
 
 
 # -------------
+# Transposition class
+# -------------
+class Transposition:
+    """
+    Class to represent automatically-applied transpositions to a measure
+    """
+    # -----------
+    # Constructor
+    # -----------
+    def __init__(self,
+                 diatonic: int | np.integer = 0,
+                 chromatic: int | np.integer = 0,
+                 octave_change: int | np.integer = 0,
+                 doubled: bool = False):
+
+        self.diatonic: int | np.integer = diatonic
+        self.chromatic: int | np.integer = chromatic
+        self.octave_change: int | np.integer = octave_change
+        self.doubled: bool = doubled
+
+    # -----------
+    # Methods
+    # -----------
+    def is_equivilant(self, other: 'Transposition') -> bool:
+        """
+        Tells whether this is notationally equivilant to another Transposition object. This is based on if the two
+        objects have the same attributes
+
+        :param other: The other Transposition object to compare to the current one
+        :return: Bool describing if they are notationally equivilant or not. Based on their attributes
+        """
+        if isinstance(other, Transposition):
+            if vars(self) == vars(other):
+                return True
+            else:
+                return False
+
+        else:
+            return False
+
+
+# -------------
 # Measure class
 # -------------
 class Measure:
@@ -185,20 +227,27 @@ class Measure:
                  key: Key = Key(),
                  clef: Clef = Clef(),
                  barline=BarlineType.REGULAR):
-        self.measure_number = measure_number
+
+        self.measure_number: int | np.integer = measure_number
+        self.measure_marks: list[MeasureMark] = []
         self.notes: list[Note] = []
-        self.time = time
-        self.clef = clef
-        self.key = key
-        self.barline: Union[Barline, BarlineType, list[Barline, BarlineType]] = barline
-        self.is_full = False
+
+        self.time: TimeSignature | None = time
+        self.clef: Clef | None = clef
+        self.key: Key | None = key
+        # self.tempo: Tempo | None = None  # Currently only one tempo is supported in the Score class
+        self.transposition: Transposition | None = Transposition()
+        self.divisions: int | np.integer = 256
+
+        self.barline: Barline | BarlineType | list[Barline, BarlineType] = barline
+
+        # TODO: Implement...
+        self.is_full: bool = False
         self.remaining = 1.0
         self.display_clef = False
         self.display_time = False
         self.display_key = False
         self.measure_style = MeasureStyle.NONE
-        self.measure_marks: list[MeasureMark] = []
-        self.divisions = 256
 
     # --------
     # Override
@@ -251,11 +300,12 @@ class Measure:
         elif isinstance(notes, Rest):
             self.notes.append(notes)
         elif isinstance(notes, Note):
-            self.stem_note(notes)
+            # self.stem_note(notes) TODO: Automatic note stemming
             self.notes.append(notes)
         else:
             raise TypeError(f'Cannot add type {type(notes)} to Measure')
         self.pack()
+
 
         # NOW, ADJUST THE NOTE'S LOCATION
 
@@ -461,11 +511,17 @@ class Measure:
     # -------------
     @classmethod
     def empty_measure(cls) -> 'Measure':
+        """
+        Used for keeping track of when a measure has unset elements in mxml.py
+
+        :return:
+        """
         empty_measure = Measure()
         empty_measure.key = None
         empty_measure.time = None
         empty_measure.clef = None
         empty_measure.divisions = None
+        empty_measure.transposition = None
         return empty_measure
 
     @classmethod

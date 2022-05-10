@@ -7,7 +7,9 @@ from enum import Enum
 from typing import Union
 import numpy as np
 
-from musicai.structure.note_mark import StemType
+import musicai.util
+from musicai.structure.lyric import Lyric
+from musicai.structure.note_mark import StemType, Beam, TieType, Notehead
 from musicai.structure.pitch import Accidental, Pitch
 
 
@@ -19,23 +21,23 @@ class NoteType(Enum):
     Representation the relative duration of a note or rest symbol
     """
 
-    LARGE = (8.0, 'Large', '\U0001D1B6', '\U0001D13A')  # Alternate name: duplex longa, maxima
-    LONG = (4.0, 'Long', '\U0001D1B7', '\U0001D13A')
-    DOUBLE = (2.0, 'Double', '\U0001D15C', '\U0001D13B')  # Alternate name: breve
-    WHOLE = (1.0, 'Whole', '\U0001D15D', '\U0001D13B')
-    HALF = (0.5, 'Half', '\U0001D15E', '\U0001D13C')
-    QUARTER = (0.25, 'Quarter', '\U0001D15F', '\U0001D13D')
-    EIGHTH = (0.125, '8th', '\U0001D160', '\U0001D13E')
-    SIXTEENTH = (0.0625, '16th', '\U0001D161', '\U0001D13F')
-    THIRTY_SECOND = (0.03125, '32nd', '\U0001D162', '\U0001D140')
-    SIXTY_FOURTH = (0.015625, '64th', '\U0001D163', '\U0001D141')
-    ONE_TWENTY_EIGHTH = (0.0078125, '128th', '\U0001D164', '\U0001D142')
-    TWO_FIFTY_SIXTH = (0.00390625, '256th', '256th', 'r256th')
-    FIVE_HUNDRED_TWELFTH = (0.001953125, '512th', '512th', 'r512th')
-    ONE_THOUSAND_TWENTY_FOURTH = (0.000976563, '1024th', '1024th', 'r1024th')
-    TWO_THOUSAND_FORTY_EIGHTH = (0.000488281, '2048th', '2048th', 'r2048th')
-    FOUR_THOUSAND_NINETY_SIXTH = (0.000244141, '4096th', '4096th', 'r4096th')
     NONE = (0.0, '', '', '')
+    FOUR_THOUSAND_NINETY_SIXTH = (0.000244141, '4096th', '4096th', 'r4096th')
+    TWO_THOUSAND_FORTY_EIGHTH = (0.000488281, '2048th', '2048th', 'r2048th')
+    ONE_THOUSAND_TWENTY_FOURTH = (0.000976563, '1024th', '1024th', 'r1024th')
+    FIVE_HUNDRED_TWELFTH = (0.001953125, '512th', '512th', 'r512th')
+    TWO_FIFTY_SIXTH = (0.00390625, '256th', '256th', 'r256th')
+    ONE_TWENTY_EIGHTH = (0.0078125, '128th', '\U0001D164', '\U0001D142')
+    SIXTY_FOURTH = (0.015625, '64th', '\U0001D163', '\U0001D141')
+    THIRTY_SECOND = (0.03125, '32nd', '\U0001D162', '\U0001D140')
+    SIXTEENTH = (0.0625, '16th', '\U0001D161', '\U0001D13F')
+    EIGHTH = (0.125, '8th', '\U0001D160', '\U0001D13E')
+    QUARTER = (0.25, 'Quarter', '\U0001D15F', '\U0001D13D')
+    HALF = (0.5, 'Half', '\U0001D15E', '\U0001D13C')
+    WHOLE = (1.0, 'Whole', '\U0001D15D', '\U0001D13B')
+    DOUBLE = (2.0, 'Double', '\U0001D15C', '\U0001D13B')  # Alternate name: breve
+    LONG = (4.0, 'Long', '\U0001D1B7', '\U0001D13A')
+    LARGE = (8.0, 'Large', '\U0001D1B6', '\U0001D13A')  # Alternate name: duplex longa, maxima
 
     # -----------
     # Constructor
@@ -181,6 +183,9 @@ class DotType(Enum):
     # --------
     def __str__(self) -> str:
         return self.name.title()
+
+    def __int__(self) -> int:
+        return self._value_
 
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__}({self.name}) {self.scalar}>'
@@ -376,6 +381,9 @@ class Ratio:
             return self._actual_ == 1 and self._normal_ == 1
         return self._tuplettype_ is TupletType.REGULAR
 
+    def is_custom(self) -> bool:
+        return self.custom
+
 
 # ---------------
 # Notevalue class
@@ -483,7 +491,7 @@ class NoteValue:
         return self.notetype.note
 
     @property
-    def rest(self):
+    def rest(self) -> str:
         return self.notetype.rest
 
     # --------
@@ -651,6 +659,31 @@ class NoteValue:
     def update_notevalue(self):
         self._value_ = self.notetype.value * self.dots * self.ratio.normal / self.ratio.actual
 
+    # TODO: Update this method to work with all notetypes and all ratios
+    def get_ratiod_notetype(self) -> NoteType:
+        """
+        Returns the notetype associated with the current ratio. e.g. A "quarter" note under a ratio of (3, 2) is
+        typically represented as an "eighth" note, so an eighth note would be returned
+
+        :return:
+        """
+        if self.ratio.is_regular():
+            return self.notetype
+
+        if self.ratio.is_custom():
+            # TODO: Look into how custom ratios may affect displayed note type
+            return self.notetype
+
+        # Calculates what the new notetype value SHOULD be according to the normal
+        divider = self.ratio.normal
+        new_value = self.notetype.value / divider
+
+        # Based on the new value, finds it in NoteType list
+        from musicai.util import General
+        new_value = General.find_closest([nt.value for nt in NoteType], new_value)
+
+        return NoteType(new_value)
+
     # -------------
     # Class Methods
     # -------------
@@ -737,22 +770,27 @@ class Note:
                  value: NoteValue = NoteValue(NoteType.NONE),
                  pitch: Pitch = Pitch(),
                  marks: set = None):
+
         self.value: NoteValue = value
         self.pitch: Pitch = pitch
         if marks is None:
-            marks = set()  # This is done because set is a mutable type
-        self.marks = marks
+            marks = set()  # Done for mutable type
+        self.marks: set = marks
 
-        self.location = 0
-        self.division = 256
+        self.location: int | np.int = 0
+        self.division: int | np.int = 256
 
-        self.show_accidental = False
-        self.stem = StemType.UP
-        self.voice = 1
-        self.attack = 0
-        self.decay = 0
-        self.pizzicato = False
-        self.beams = []
+        self.show_accidental: bool = False
+
+        self.stem: StemType = StemType.UP
+        self.beams: list[Beam] = []
+        self.notehead: Notehead = Notehead()
+        self.lyric: Lyric | None = None
+
+        self.voice: int | np.int = 1
+        self.attack: int | np.int = 0
+        self.decay: int | np.int = 0
+        self.pizzicato: bool = False
 
     # ----------
     # Properties
@@ -808,16 +846,31 @@ class Note:
         glyph_code += self.stem.name.title()
         return glyph_code
 
+    @property
+    def is_pitched(self) -> bool:
+        return self.pitch.is_pitched
+
+    @is_pitched.setter
+    def is_pitched(self, value: bool):
+        self.pitch.is_pitched = value
+
     # --------
     # Override
     # --------
-    def __str__(self):
+    def __str__(self) -> str:
+        ret_str = ''
+
+        for m in self.marks:
+            ret_str += str(m) + ' '
+
         if self._notevalue_.ratio.is_regular():
-            return str(self._notevalue_.note) + self._notevalue_.dots.symbol + ' ' + str(self.pitch)
+            ret_str += str(self._notevalue_.note) + self._notevalue_.dots.symbol + ' ' + str(self.pitch)
         else:
-            return str(
+            ret_str += str(
                 self._notevalue_.ratio.actual) + '[' + self._notevalue_.note + self._notevalue_.dots.symbol + ']' \
                    + ' ' + str(self.pitch)
+
+        return ret_str
 
     def __repr__(self):
         return f'<{self.__class__.__name__}() nt={self.value.notetype}, d={self.value.dots}, r={self.value.ratio}>'
@@ -876,14 +929,49 @@ class Note:
     # def contains_start_tie(self) -> bool:
         # return (x in note_marks where x is a note mark of type tie)
 
-    def add_beam(self, beam):
+    def add_beam(self, beam) -> None:
         self.beams.append(beam)
 
-    def is_beamed(self):
+    def is_beamed(self) -> bool:
         return len(self.beams) > 0
 
     def is_rest(self) -> bool:
         return False
+
+    def is_note_group(self) -> bool:
+        return False
+
+    def add_notemark(self, note_mark: object | list) -> None:
+        """
+        Adds a notemark or a list of notemarks to this note's list of marks
+
+        :param note_mark:
+        :return:
+        """
+        if note_mark is not None:
+
+            # List of note marks
+            if isinstance(note_mark, list):
+                for nm in note_mark:
+                    if nm not in self.marks:
+                        self.marks.add(nm)
+
+            # Note mark
+            elif note_mark not in self.marks:
+                self.marks.add(note_mark)
+
+    def get_dot_count(self) -> int:
+        return int(self.value.dots)
+
+    def is_tied_start(self) -> bool:
+        return TieType.START in self.marks
+
+    def is_tied_stop(self) -> bool:
+        return TieType.STOP in self.marks
+
+    def has_normal_notehead(self) -> bool:
+        from musicai.structure.note_mark import NoteheadType
+        return self.notehead.notehead_type == NoteheadType.NORMAL
 
     # -------------
     # Class Methods
@@ -968,7 +1056,7 @@ class Rest(Note):
     # Constructor
     # -----------
     def __init__(self, value: NoteType = NoteType.NONE):
-        super().__init__(value=value)
+        super().__init__(value=NoteValue(value))
 
     # ----------
     # Properties
@@ -1015,19 +1103,118 @@ class Rest(Note):
 # NoteGroup class
 # ---------------
 class NoteGroup(Note):
-    # self.pitch = pitch
-    # self.value = value
-    # self.accidental = accidental
-    # self.stem = StemType.UP
-    # self.beams = []
-
+    """
+    Class to represent a group of notes, or a "chord"
+    """
     # -----------
     # Constructor
     # -----------
-    def __init__(self):
-        self.notes = []
+    def __init__(self,
+                 value: NoteValue = NoteValue(NoteType.NONE),
+                 marks: set = None,
+                 notes: list[Note] | None = None):
 
-    pass
+        if notes is None:
+            notes = [Note()]
+        self.notes: list[Note] = notes
+
+        super().__init__(value=value, marks=marks)
+
+    # ----------
+    # Properties
+    # ----------
+    @property
+    def value(self) -> NoteValue:
+        return self.notes[0]._notevalue_
+
+    @value.setter
+    def value(self, value: Union['NoteValue', 'NoteType', float, int, np.integer, np.inexact]):
+        # set NoteValue
+        if isinstance(value, NoteValue):
+            # from NoteValue
+            self.notes[0]._notevalue_ = value
+        elif isinstance(value, NoteType):
+            # from NoteType
+            self.notes[0]._notevalue_ = NoteValue(notetype=value)
+        elif isinstance(value, (float, np.inexact, int, np.integer)):
+            # from numeric
+            self.notes[0]._notevalue_ = NoteValue.find(value)
+        else:
+            raise TypeError(f'Invalid type {type(value)} for NoteValue.')
+
+    @property
+    def midi(self):
+        return self.notes[0].pitch.midi
+
+    @property
+    def accidental(self):
+        return self.notes[0].pitch.alter
+
+    @accidental.setter
+    def accidental(self, accidental: Accidental):
+        self.notes[0].pitch.alter = accidental
+
+    @property
+    def glyph(self):
+        return 'todo'
+
+    # --------
+    # Override
+    # --------
+    def __str__(self):
+        ret_str = ''
+
+        # Note marks
+        for m in self.marks:
+            ret_str += str(m) + ' '
+
+        # Notetype
+        if self._notevalue_.ratio.is_regular():
+            ret_str += str(self._notevalue_.note) + self._notevalue_.dots.symbol
+        else:
+            ret_str += str(
+                self._notevalue_.ratio.actual) + '[' + self._notevalue_.note + self._notevalue_.dots.symbol + ']'
+
+        # Pitches
+        for note in self.notes:
+            ret_str += ' ' + str(note.pitch)
+
+        return ret_str
+
+    # ---------
+    # Methods
+    # ---------
+    def is_note_group(self) -> bool:
+        return True
+
+    def append_note(self, added_note: Note) -> None:
+
+        if not isinstance(added_note, Note) or isinstance(added_note, NoteGroup):
+            raise TypeError(f'Cannot add a note {added_note} of type {type(added_note)} to note group {self}.')
+
+        # Remove the first note if it's a default
+        # if len(self.notes) == 1 and self.notes[0] == Note():
+        #     self.notes.pop(0)
+
+        if isinstance(added_note, Note):
+            # For now, only supported grouped notes of all the same value
+            # assert self.value == added_note.value
+            self.notes.append(added_note)
+
+    # -----------
+    # Class Methods
+    # -----------
+    @classmethod
+    def from_note(cls, origin_note: Note) -> 'NoteGroup':
+        new_chord = NoteGroup()
+
+        for attr in vars(origin_note).items():  # for every item in the original note
+            vars(new_chord).update({attr[0]: attr[1]})  # update this item in the rest
+
+        new_chord.notes.pop(0)
+        new_chord.notes.append(origin_note)
+        # new_rest.pitch = Pitch.empty_pitch()  Remember the old pitch?
+        return new_chord
 
 
 class TiedNote(NoteGroup):

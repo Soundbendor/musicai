@@ -19,7 +19,7 @@ class ClefType(Enum):
     SEMIPITCHED = 5, 0, 'semipitchedPercussionClef1'
     TAB4 = 6, 0, '4stringTabClef'
     TAB6 = 7, 0, '6stringTabClef'
-    #JIANPU = 8, 0, ''
+    # JIANPU = 8, 0, ''
 
     # -----------
     # Constructor

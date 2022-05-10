@@ -49,7 +49,7 @@ class NoteTypeTest(unittest.TestCase):
         self.assertEqual(NoteType.from_str('\U0001D164'), NoteType.ONE_TWENTY_EIGHTH)
 
         # valid values for rest
-        self.assertEqual(NoteType.from_str('\U0001D13A'), NoteType.LARGE)
+        self.assertEqual(NoteType.from_str('\U0001D13A'), NoteType.LONG)
         self.assertEqual(NoteType.from_str('\U0001D13F'), NoteType.SIXTEENTH)
         self.assertEqual(NoteType.from_str('r4096th'), NoteType.FOUR_THOUSAND_NINETY_SIXTH)
 
@@ -69,8 +69,8 @@ class NoteTypeTest(unittest.TestCase):
         self.assertWarns(UserWarning, NoteType.from_mxml, 'foo')
 
     def test_list(self):
-        self.assertEqual(NoteType.list(), [8.0, 4.0, 2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125,
-                                           0.00390625, 0.001953125, 0.000976563, 0.000488281, 0.000244141, 0.0])
+        self.assertEqual(NoteType.list(), [0.0, 0.000244141, 0.000488281, 0.000976563, 0.001953125, 0.00390625,
+                                           0.0078125, 0.015625, 0.03125, 0.0625, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0])
 
 
 class DotTypeTest(unittest.TestCase):

@@ -2,6 +2,7 @@ import warnings
 from enum import Enum
 from typing import Union
 import numpy as np
+from musicai.structure.note import NoteType
 
 
 # -------------------
@@ -9,13 +10,15 @@ import numpy as np
 # -------------------
 class TimeSymbolType(Enum):
     """
-     Class to represent the type of a time signature
+     Class to represent the type of time signature
      """
     NORMAL = 0
     COMMON = 1
     CUT = 2
     SINGLE = 3
     # SENZA_MISURA = 4
+    NOTE = 5
+    DOTTED_NOTE = 6
 
     # --------
     # Override
@@ -163,10 +166,13 @@ class Tempo:
     # Constructor
     # -------------------
     def __init__(self,
-                 tempo: Union[int, float, np.inexact, np.integer],  # TODO: how is tempo classified? bpm?
+                 tempo: Union[int, float, np.inexact, np.integer],
+                 beat_unit: NoteType = NoteType.QUARTER,
                  tempo_name: Union[str, 'TempoType'] = '',
                  description: str = ''):
+
         self.tempo = tempo
+        self.beat_unit = beat_unit
 
         if isinstance(tempo_name, TempoType):
             self.tempo_name = tempo_name.name.title()
@@ -188,11 +194,11 @@ class Tempo:
 
 
 class TempoAdjustmentType(Enum):
-    # TODO: is this necessary? The point of this enum could be simply to add a description/explanation to the most
-    # common types of tempo markings. So if a user wanted to get a small description, this package has them included
+    # TODO: Different type of implementation...
     """
     Enum to represent common tempo markings used in music
     """
+
     A_TEMPO = 'resume previous tempo'
     TEMPO_PRIMO = 'return to base tempo'
     AU_MOUVEMENT = 'play the main tempo'
