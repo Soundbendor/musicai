@@ -9,9 +9,9 @@
   <creator type="lyricist">Johann Georg Jacobi</creator>
   <rights>Copyright © 2002 MakeMusic, Inc.</rights>
   <encoding>
-   <encoding-date>2022-05-06</encoding-date>
+   <encoding-date>2022-05-10</encoding-date>
    <encoder>Max</encoder>
-   <software>Sibelius 21.2.0</software>
+   <software>Sibelius 22.3.0</software>
    <software>Direct export, not from Dolet</software>
    <encoding-description>Sibelius / MusicXML 3.0</encoding-description>
    <supports element="print" type="yes" value="yes" attribute="new-system" />
@@ -88,11 +88,6 @@
  </credit>
  <part-list>
   <score-part id="P1">
-   <identification>
-    <miscellaneous>
-     <miscellaneous-field name="show-rhythms">false</miscellaneous-field>
-    </miscellaneous>
-   </identification>
    <part-name>Voice</part-name>
    <part-name-display>
     <display-text>Voice</display-text>
@@ -153,9 +148,9 @@
    </attributes>
    <direction>
     <direction-type>
-     <metronome default-y="30" color="#000000" font-family="Times New Roman" font-style="normal" font-size="10.5469" font-weight="bold">
+     <metronome default-y="30" color="#000000" font-family="Opus Text Std" font-style="normal" font-size="10.125" font-weight="normal">
       <beat-unit>quarter</beat-unit>
-      <per-minute>100</per-minute>
+      <per-minute>126</per-minute>
      </metronome>
     </direction-type>
     <voice>1</voice>
@@ -343,9 +338,9 @@
    </direction>
    <direction>
     <direction-type>
-     <metronome default-y="30" color="#000000" font-family="Times New Roman" font-style="normal" font-size="10.5469" font-weight="bold">
+     <metronome default-y="30" color="#000000" font-family="Opus Text Std" font-style="normal" font-size="10.125" font-weight="normal">
       <beat-unit>quarter</beat-unit>
-      <per-minute>100</per-minute>
+      <per-minute>126</per-minute>
      </metronome>
     </direction-type>
     <voice>1</voice>

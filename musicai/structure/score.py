@@ -5,8 +5,7 @@ from typing import Union
 from enum import Enum
 # from datetime import date
 from musicai.structure.measure import Measure
-from musicai.structure.note import Note
-
+from musicai.structure.note import Note, NoteGroup
 
 # -------------------
 # GroupingSymbol Enum
@@ -63,6 +62,24 @@ class Part:
 
         # To-consider: all staves, including the first, could be represented in an encompassing
         # list[list[Measure]] member
+
+    # ----------
+    # Properties
+    # ----------
+    # TODO: Make self.measures based off of a total, all-encompassing self.staves of type list[list[Measure]]...
+    # @property
+    # def measures(self) -> list[Measure] | None:
+    #     if len(self.multi_staves) > 0:
+    #         return self.multi_staves[0]
+    #     else:
+    #         return None  # or return [] ?
+
+    # @measures.setter
+    # def measures(self, value: list[Measure]):
+    #     if len(self.multi_staves) > 0:
+    #         self.multi_staves[0] = value
+    #     else:
+    #         self.multi_staves.append(value)
 
     # --------
     # Override
@@ -252,6 +269,23 @@ class Part:
 
     def has_multiple_staves(self) -> bool:
         return self.staff_count() > 1
+
+    def get_staff(self, staff_index: int) -> list[Measure]:
+        """
+        Depending on the inputted staff, returns what that list of measures should be
+
+        # TODO: To be changed and made to work with the measures property
+
+        :param staff_index: Starting at 0 to represent the primary measure
+        :return:
+        """
+
+        if staff_index == 0:
+            return self.measures
+
+        else:
+            assert staff_index - 1 < len(self.multi_staves)
+            return self.multi_staves[staff_index - 1]
 
 
 # ----------------
@@ -508,42 +542,43 @@ class Score:
 
         self.systems[system_index].parts[part_index] = new_part
 
+    def add_to_pitch(self, added_num: int = 1) -> None:
+        """
+        Used for the CUE demo. Goes through every note in the score, and adds "1" to every pitch.
 
-def get_test_score():
-    from musicai.structure.note import Note, NoteType, NoteValue
-    from musicai.structure.pitch import Pitch
-    from musicai.structure.measure import Measure
-    from musicai.structure.score import Part, PartSystem
-    from musicai.structure.clef import Clef
-    from musicai.structure.key import Key, KeyType, ModeType
+        :return:
+        """
 
-    n1 = Note(value=NoteValue(NoteType.EIGHTH), pitch=Pitch('A3'))
-    n2 = Note(value=NoteValue(NoteType.EIGHTH), pitch=Pitch('B3'))
-    n3 = Note(value=NoteValue(NoteType.EIGHTH), pitch=Pitch('C4'))
-    n4 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('D4'))
-    n5 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('E4'))
-    n6 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('G5'))
-    n7 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('A5'))
-    n8 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('B5'))
-    n9 = Note(value=NoteValue(NoteType.SIXTEENTH), pitch=Pitch('C6'))
+        for part_sys in self.systems:
+            for part in part_sys.parts:
 
-    m1 = Measure()
+                # PRIMARY STAFF
+                for measure in part.measures:
+                    for note in measure.notes:
 
-    m1.clef = Clef()  # treble
-    # m1.clef = Clef(ClefType.BASS)
-    # m1.key = Key()     # CMaj
+                        # NOTE GROUPS
+                        if isinstance(note, NoteGroup):
+                            for grouped_note in note.notes:
+                                if grouped_note.is_pitched:
+                                    grouped_note.pitch += added_num
 
-    m1.key = Key(keytype=KeyType.Bb, modetype=ModeType.MAJOR)  # CMaj
-    m1.append([n1, n2, n3, n4, n5, n6, n7, n8, n9])
-    m1.set_accidentals()
+                        # NOTES
+                        elif isinstance(note, Note):
+                            if note.is_pitched:
+                                note.pitch += added_num
 
-    p1 = Part()
-    p1.append(m1)
+                # SECONDARY STAFF
+                for all_staves in part.multi_staves:
+                    for sec_measure in all_staves:
+                        for note in sec_measure.notes:
 
-    s1 = PartSystem()
-    s1.append(p1)
+                            # NOTE GROUPS
+                            if isinstance(note, NoteGroup):
+                                for grouped_note in note.notes:
+                                    if grouped_note.is_pitched:
+                                        grouped_note.pitch += added_num
 
-    score = Score()
-    score.append(s1)
-
-    return score
+                            # NOTES
+                            elif isinstance(note, Note):
+                                if note.is_pitched:
+                                    note.pitch += added_num

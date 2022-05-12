@@ -112,7 +112,7 @@ class DynamicChangeType(Enum):
     """
     Enum to represent the change in dynamics
     """
-    DECRESCENDO = -1.0
+    DIMINUENDO = -1.0
     CRESCENDO = 1.0
 
 
@@ -244,8 +244,8 @@ class DynamicChangeMark(MeasureMark):
     # -----------
     def __str__(self):
         match self.dynamic_change_type:
-            case DynamicChangeType.DECRESCENDO:
-                return u'\U0001D193'  # Decrescendo Symbol
+            case DynamicChangeType.DIMINUENDO:
+                return u'\U0001D193'  # Diminuendo Symbol
             case _:
                 return u'\U0001D192'  # Crescendo Symbol
 

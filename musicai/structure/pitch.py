@@ -650,11 +650,14 @@ class Pitch:
         else:
             raise TypeError(f'Cannot compare Pitch and type {type(other)}.')
 
-    def __add__(self, other: int) -> 'Pitch':
-        pass
-        # if isinstance(other, int):
-        #     self.
-        #     return s
+    def __add__(self, other: int | np.integer | float | np.inexact) -> 'Pitch':
+        if isinstance(other, int | np.integer):
+            for x in range(other):
+                self.step_up()
+            return self
+
+        else:
+            raise TypeError(f'Addition for pitch and type {type(other)} has not been implemented yet.')
 
     def __sub__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> Union[int, float]:
         if isinstance(other, Pitch):
@@ -690,6 +693,20 @@ class Pitch:
             return octave_diff + step_diff
         else:
             raise TypeError(f'Cannot find difference between Pitch and type {type(other)}.')
+
+    def step_up(self) -> None:
+        """
+        Increases the alter until it is a value 1.00 higher than what it used to be.
+
+        :return:
+        """
+        if self.alter == Accidental.TRIPLE_SHARP:
+            raise ValueError(f'Method step_up() does not work yet for {self} due to its Accidental {self.alter}.')
+
+        old_acci = self.alter
+        while self.alter.alter - old_acci.alter < 1:
+            new_acci = [ac for ac in Accidental].index(self.alter)
+            self.alter = [ac for ac in Accidental][new_acci + 1]
 
     # -------------
     # Class Methods
