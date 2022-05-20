@@ -93,6 +93,7 @@ class MXMLConversion:
         :param value:
         :return:
         """
+        
         if not isinstance(value, Union[Barline, BarlineType]):
             raise TypeError(f'Cannot make a mxml barline element from type {type(value)}')
 
