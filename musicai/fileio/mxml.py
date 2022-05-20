@@ -11,7 +11,6 @@ from musicai.structure.clef import Clef, ClefOctave, ClefType
 from musicai.structure.key import ModeType, KeyType, Key
 from musicai.structure.lyric import Lyric, SyllabicType
 from musicai.structure.measure import Measure, Barline, BarlineType, BarlineLocation, Transposition
-from musicai.structure import measure_mark
 from musicai.structure.measure_mark import MeasureMark, InstantaneousMeasureMark, DynamicMark, DynamicType
 from musicai.structure.note import NoteType, Ratio, NoteValue, Rest, Note, NoteGroup
 from musicai.structure.pitch import Accidental, Pitch, Octave, Step
@@ -19,7 +18,11 @@ from musicai.structure.score import Score, PartSystem, Part, GroupingSymbol
 from musicai.structure.time import TimeSignature, TimeSymbolType, Tempo
 
 
-class XMLConversion:
+class MXMLConversion:
+    """
+    Class to contain static conversions from MusicAI elements to MusicXML elements or vice versa.
+    """
+
     from musicai.structure.measure_mark import HairpinType
     from musicai.structure.note_mark import Articulation, ArticulationType, Notehead, NoteheadType
     from musicai.structure.measure import BarlineType, Barline, BarlineLocation
@@ -30,6 +33,13 @@ class XMLConversion:
     # -----------
     @classmethod
     def barline_to_barstyle(cls, value: Union[Barline, BarlineType]) -> str:
+        """
+        Returns an appropriate barstyle based on passed in Barline. For use in the <bar-style> element.
+
+        :param value:
+        :return:
+        """
+
         if isinstance(value, list):
             warnings.warn(f'Does not support multiple measures yet.', stacklevel=2)
             return ''
@@ -73,8 +83,10 @@ class XMLConversion:
             raise TypeError(f'Cannot generate an mxml barline from type {type(value)}.')
 
     @classmethod
-    def barline_to_mxml(cls, value: Union[Barline, BarlineType]) -> ET.Element:
+    def barline_to_elem(cls, value: Union[Barline, BarlineType]) -> ET.Element:
         """
+        Returns an appropriate <barline> element based on passed in Barline.
+
         Currenty only used for right-sided barlines, however has functionality for left-sided
         repeats
 
@@ -124,11 +136,18 @@ class XMLConversion:
 
         # This is a non-repeat barline: Deal with accordingly
         ET.SubElement(bl_elem, 'bar-style')
-        bl_elem.find('bar-style').text = XMLConversion.barline_to_barstyle(value)
+        bl_elem.find('bar-style').text = MXMLConversion.barline_to_barstyle(value)
         return bl_elem
 
     @classmethod
-    def barlinetype_from_mxml(cls, value: str) -> BarlineType:
+    def barlinetype_from_str(cls, value: str) -> BarlineType:
+        """
+        Parses the text of a <bar-style> element from <barline> and returns the BarlineType representation.
+
+        :param value:
+        :return:
+        """
+
         if not isinstance(value, str):
             return BarlineType.NONE
 
@@ -159,7 +178,14 @@ class XMLConversion:
                 return BarlineType.NONE
 
     @classmethod
-    def barlinelocation_from_mxml(cls, value: str) -> BarlineLocation:
+    def barlinelocation_from_str(cls, value: str) -> BarlineLocation:
+        """
+        Takes in a "location" attribute from <barline> and returns the associated BarlineLocation.
+
+        :param value:
+        :return:
+        """
+
         if not isinstance(value, str):
             return BarlineLocation.NONE
 
@@ -174,12 +200,21 @@ class XMLConversion:
                 return BarlineLocation.NONE
 
     @classmethod
-    def barline_from_mxml(cls, bl_elem: ET.Element) -> Barline:
+    def barline_from_elem(cls, bl_elem: ET.Element) -> Barline:
+        """
+        Parses a <barline> element from <measure> and returns the Barline representation.
+
+        TODO: Add functionality to read multiple barlines
+
+        :param bl_elem:
+        :return:
+        """
+
         new_bl = Barline()
 
         # Barline location
         if 'location' in bl_elem.attrib.keys():
-            new_bl.barlinelocation = XMLConversion.barlinelocation_from_mxml(bl_elem.get('location'))
+            new_bl.barlinelocation = MXMLConversion.barlinelocation_from_str(bl_elem.get('location'))
 
         # Barline type
         if bl_elem.find('repeat') is not None:
@@ -191,20 +226,20 @@ class XMLConversion:
 
         elif bl_elem.find('bar-style') is not None:
             # Non-repeating barline
-            new_bl.barlinetype = XMLConversion.barlinetype_from_mxml(bl_elem.find('bar-style').text)
+            new_bl.barlinetype = MXMLConversion.barlinetype_from_str(bl_elem.find('bar-style').text)
 
-        # For now, single barline type is supported
-        print(f'NEW BARLINE: {new_bl.barlinelocation}, {new_bl.barlinetype}')
+        # For now, only single barline type is supported
         return new_bl
 
     @classmethod
-    def time_symbol_type_from_mxml(cls, time_elem: ET.Element) -> TimeSymbolType:
+    def time_symbol_type_from_elem(cls, time_elem: ET.Element) -> TimeSymbolType:
         """
-        Given an element, reports what the time signature type would be.
+        Parses a <time> element from <attributes> and returns the TimeSymbolType representation.
 
         :param time_elem:
         :return:
         """
+
         if not isinstance(time_elem, ET.Element):
             raise TypeError(f'Cannot find a time symbol type from {time_elem} of type {type(time_elem)}.')
 
@@ -225,9 +260,9 @@ class XMLConversion:
                 return TimeSymbolType.NORMAL
 
     @classmethod
-    def time_symbol_type_to_mxml(cls, time: TimeSignature) -> str:
+    def time_symbol_type_to_str(cls, time: TimeSignature) -> str:
         """
-        Given a time signature, returns the string which represents that time signature
+        Returns a time-symbol based on passed in TimeSignature. For the "symbol" attribute in the <time> element.
 
         :param time:
         :return:
@@ -242,15 +277,15 @@ class XMLConversion:
             return time.timesymboltype.name.lower().replace('_', '-')
 
     @classmethod
-    def clef_to_mxml(cls, clef: Clef, clef_number: int = 1) -> ET.Element:
+    def clef_to_elem(cls, clef: Clef, clef_number: int = 1) -> ET.Element:
         """
-        Given a clef object, returns its represenation as a clef object with subelements <sign>, <line>,
-        and <clef-octave-change>
+        Returns an appropriate <clef> element based on passed in note information.
 
         :param clef:
         :param clef_number:
         :return:
         """
+
         if not isinstance(clef, Clef):
             raise TypeError(f'Cannot make a mxml clef element from {clef} of type {type(clef)}.')
 
@@ -288,14 +323,15 @@ class XMLConversion:
         return clef_elem
 
     @classmethod
-    def notetype_to_mxml(cls, value: Union[Note, NoteValue, NoteType]) -> str:
+    def notetype_to_str(cls, value: Union[Note, NoteValue, NoteType]) -> str:
         """
-        Returns a string that would be used for the text in a note's <type> element
+        Returns a string for the text of <type> in <note>, based on passed in Note.
 
         :param value: The note, value, or notetype to be converted to note-type-value. If a notetype is passed in,
         it should have already been adjusted according to the ratio's normal value
         :return: A string for mxml note-type-value. Returns an empty string '' if no valid value exists
         """
+
         if isinstance(value, Note):
             value = value.value.get_ratiod_notetype()
 
@@ -350,11 +386,12 @@ class XMLConversion:
     @classmethod
     def in_prev_notegroup(cls, note: ET.Element) -> bool:
         """
-        Tells if a <note> element is supposed to be a part of a previous note group.
+        Checks if a <note> element is supposed to be a part of a previous note group.
 
         :param note:
         :return: True if the note contains a <chord> element
         """
+
         if not isinstance(note, ET.Element):
             raise TypeError(f'Cannot check if type {type(note)} is in the previous notegroup.')
 
@@ -364,9 +401,9 @@ class XMLConversion:
             return False
 
     @classmethod
-    def ratio_to_mxml(cls, saved_note: Note) -> ET.Element:
+    def ratio_to_elem(cls, saved_note: Note) -> ET.Element:
         """
-        Based on the passed in note, returns an appropriate <time-modification> element
+        Returns an appropriate <time-modification> element based on passed in note.
         TODO: Add dot capabilities
 
         :param saved_note:
@@ -388,9 +425,9 @@ class XMLConversion:
         return tm_elem
 
     @classmethod
-    def stemtype_from_mxml(cls, stem_elem: ET.Element) -> StemType:
+    def stemtype_from_elem(cls, stem_elem: ET.Element) -> StemType:
         """
-        Takes in a <stem> element from <note> to return a StemType
+        Parses a <stem> element stem_elem from <note> and returns the StemType representation.
 
         :param stem_elem:
         :return:
@@ -407,9 +444,9 @@ class XMLConversion:
             raise ValueError(f'Cannot make a stem from stemtype {stem_elem.text}.')
 
     @classmethod
-    def stemtype_to_mxml(cls, value: StemType) -> ET.Element:
+    def stemtype_to_elem(cls, value: StemType) -> ET.Element:
         """
-        Takes in a StemType and returns it as a <stem> element used for <note> elements
+        Returns a <stem> element used in <note> based on the passed in StemType.
 
         :param value:
         :return:
@@ -426,7 +463,15 @@ class XMLConversion:
         return st_elem
 
     @classmethod
-    def beam_from_mxml(cls, beam_elem: ET.Element) -> Beam | None:
+    def beam_from_elem(cls, beam_elem: ET.Element) -> Beam | None:
+        """
+        Parses a <beam> element from <note> and returns the Beam representation if it exists. Returns None if the
+        element has an invalid beam-value.
+
+        :param beam_elem:
+        :return:
+        """
+
         bt_name = beam_elem.text.replace(' ', '_').upper()
 
         if bt_name not in [bt_enum.name for bt_enum in BeamType]:
@@ -441,7 +486,13 @@ class XMLConversion:
             return Beam(beamtype=bt)
 
     @classmethod
-    def beam_to_mxml(cls, beam: Beam) -> ET.Element:
+    def beam_to_elem(cls, beam: Beam) -> ET.Element:
+        """
+        Returns a <beam> element used in <note> based on the passed in Beam.
+
+        :param beam:
+        :return:
+        """
 
         beam_elem = ET.Element('beam', {'number': f'{beam.number}'})
         beam_elem.text = str(beam.beamtype).replace('_', ' ').lower()
@@ -449,13 +500,14 @@ class XMLConversion:
         return beam_elem
 
     @classmethod
-    def notehead_from_mxml(cls, nh_elem: ET.Element) -> Notehead:
+    def notehead_from_elem(cls, nh_elem: ET.Element) -> Notehead:
         """
-        From the <notehead> mxml element, returns an object of the Notehead class
+        Parses a <notehead> element used in <note> and returns the Notehead representation.
 
         :param nh_elem:
         :return:
         """
+
         if not isinstance(nh_elem, ET.Element):
             raise TypeError(f'Cannot make a notehead from {nh_elem} of type {type(nh_elem)}.')
 
@@ -471,9 +523,9 @@ class XMLConversion:
             raise ValueError(f'Cannot make a notehead type from mxml element with text {nh_elem.text}.')
 
     @classmethod
-    def notehead_to_mxml(cls, nh: Notehead) -> ET.Element:
+    def notehead_to_elem(cls, nh: Notehead) -> ET.Element:
         """
-        Given a notehead nh, returns its <notehead> mxml element
+        Returns a <notehead> element used in <note> based on the passed in Notehead.
 
         :param nh:
         :return:
@@ -489,14 +541,16 @@ class XMLConversion:
         return nh_elem
 
     @classmethod
-    def lyric_from_mxml(cls, lyric_elem: ET.Element) -> Lyric:
+    def lyric_from_elem(cls, lyric_elem: ET.Element) -> Lyric:
         """
-        Given a mxml <lyric> element, returns a lyric object. Currently, does not support ellisions or multi-text
-        lyrics.
+        Parses a <lyric> element used in <note> and returns the Lyric representation.
+
+        TODO: Implement ellisions and multi-text functionality.
 
         :param lyric_elem:
         :return:
         """
+
         if not isinstance(lyric_elem, ET.Element):
             raise TypeError(f'Cannot make a Lyric out of {lyric_elem} of type {type(lyric_elem)}.')
 
@@ -524,14 +578,16 @@ class XMLConversion:
         return lyr
 
     @classmethod
-    def lyric_to_mxml(cls, lyr: Lyric) -> ET.Element:
+    def lyric_to_elem(cls, lyr: Lyric) -> ET.Element:
         """
-        Given a lyric object, returns a mxml <lyric> element. Currently, does not support ellisions or multi-text
-        lyrics.
+        Returns a <lyric> element used in <note> based on the passed in Lyric.
+
+        TODO: Implement ellisions and multi-text functionality.
 
         :param lyr:
         :return:
         """
+
         lyric_elem = ET.Element('lyric')
 
         # SINGLE SYLLABIC
@@ -550,7 +606,17 @@ class XMLConversion:
         return lyric_elem
 
     @classmethod
-    def hairpin_type(cls, value: Union[str, int, np.integer]) -> 'HairpinType':
+    def hairpin_type_from_str(cls, value: Union[str, int, np.integer]) -> 'HairpinType':
+        """
+        Parses the "line-type" attribute in a <wedge> element used in <direction-type> and returns
+        the HairpinType representation.
+
+        TODO: Currently not implemented in wedge parsing yet. Consider changing the name as well.
+
+        :param value:
+        :return:
+        """
+
         from musicai.structure.measure_mark import HairpinType
         if isinstance(value, str):
             if not value.isnumeric():
@@ -577,7 +643,14 @@ class XMLConversion:
             return HairpinType.STANDARD
 
     @classmethod
-    def note_mark_from_mxml(cls, marking: ET.Element) -> object:
+    def note_mark_from_elem(cls, marking: ET.Element) -> object:
+        """
+        Parses a child of the <notations> element used in <note> and returns the NoteMark representation.
+
+        :param marking:
+        :return:
+        """
+
         match marking.tag:
 
             case 'tied':
@@ -610,17 +683,37 @@ class XMLConversion:
                 return None
 
     @classmethod
+    def mm_type_to_str(cls, mm: MeasureMark) -> str:
+        """
+        Returns a string for use in the "type" attribute in an element that's a child of <direction-type>, based on the
+        passed in MeasureMark.
+
+        Currently only supports DynamicChangeMarks.
+
+        :param mm:
+        :return:
+        """
+
+        from musicai.structure.measure_mark import DynamicChangeMark
+
+        if isinstance(mm, DynamicChangeMark):
+            return mm.dynamic_change_type.name.lower()
+
+        else:
+            print('Other types of measure mark types not supported yet')
+            return 'not_supported_yet'
+
+    @classmethod
     def notations_order_key(cls, notat_child: ET.Element) -> int:
         """
-        Each child the <notation> element from <note> must be in a specified order. This is used as a key to determine
-        what the child element's order should be
+        Used as a key for determining the child-order for children in the <notations> element.
 
         :param notat_child:
         :return:
         """
 
-        # Magnitude represents the maximum spacing between elements, i.e. how many elements of one type exist before
-        # they go beyond the key, and it may no longer work
+        # Magnitude represents the maximum spacing between elements,
+        # i.e. how many elements of one type exist before they go beyond the key, and the key no longer works flawlessly
         magnitude = 8
 
         match notat_child.tag[0:4]:
@@ -661,13 +754,14 @@ class XMLConversion:
                 return 16 * magnitude
 
     @classmethod
-    def grouping_symbol_from_mxml(cls, gs_elem: ET.Element) -> GroupingSymbol:
+    def grouping_symbol_from_elem(cls, gs_elem: ET.Element) -> GroupingSymbol:
         """
-        Uses the <group-symbol> element to determine the grouping symbol
+        Parses a <group-symbol> element used in <part-group> and returns the GroupingSymbol representation.
 
         :param gs_elem:
         :return:
         """
+
         if not isinstance(gs_elem, ET.Element):
             return GroupingSymbol.NONE
 
@@ -686,13 +780,14 @@ class XMLConversion:
                 return GroupingSymbol.NONE
 
     @classmethod
-    def grouping_symbol_to_mxml(cls, gs: GroupingSymbol) -> str:
+    def grouping_symbol_to_str(cls, gs: GroupingSymbol) -> str:
         """
-        Makes the text for the <group-symbol> element
+        Returns the text for a <group-symbol> element used in <part-group> based on the passed in GroupingSymbol.
 
         :param gs:
         :return:
         """
+
         if not isinstance(gs, GroupingSymbol):
             return ''
 
@@ -703,14 +798,16 @@ class XMLConversion:
             return gs.name.lower()
 
     @classmethod
-    def dynamic_marks_from_mxml(cls, dynamic_elem: ET.Element, start_point: int) -> list[DynamicMark]:
+    def dynamic_marks_from_elem(cls, dynamic_elem: ET.Element, start_point: int) -> list[DynamicMark]:
         """
-        Given a <dynamic> element, returns a list of all DynamicMarks it describes.
+        Parses a <dynamics> element used in <direction-type> and <direcion> and returns a list of all the described
+        DynamicMarks.
 
         :param dynamic_elem:
         :param start_point:
         :return:
         """
+
         if not isinstance(dynamic_elem, ET.Element):
             raise TypeError(f'Cannot make a DynamicMark from {dynamic_elem} of type {type(dynamic_elem)}.')
 
@@ -749,20 +846,27 @@ class XMLConversion:
 
 
 class MusicXML:
+    """
+    Class to oversee saving and loading to the MusicXML file format.
+    """
+
     # -----------
     # Class Methods
     # -----------
     @classmethod
     def _load_partwise(cls, loaded_root: ET.Element) -> Score:
         """
-        Parses a partwise mxml file into a score, partsystem, part, measure, and note.
+        Returns a Score built from parsing a partwise mxml file.
 
         Currently, only one tempo is supported in the Score class. This tempo is added at the beginning of this
         function. Only reads one tempo from the top of the score.
 
+        TODO: Add ability to read files that compensate for multi-staved parts, e.g, there's a jump from P1 to P3
+
         :param loaded_root:
         :return:
         """
+
         new_score = Score()
 
         # Finds the first tempo marking and sets tempo
@@ -862,7 +966,7 @@ class MusicXML:
 
                                 # Records what this grouping symbol is
                                 if (pg_child := part_list_elem.find('group-symbol')) is not None:
-                                    nested_grouping_symbols.append(XMLConversion.grouping_symbol_from_mxml(pg_child))
+                                    nested_grouping_symbols.append(MXMLConversion.grouping_symbol_from_elem(pg_child))
                                 else:
                                     nested_grouping_symbols.append(GroupingSymbol.NONE)
 
@@ -930,10 +1034,12 @@ class MusicXML:
     @classmethod
     def _get_staff_count(cls, part_elem: ET.Element) -> int:
         """
-        Finds the amount of staves in a <part> element
+        Returns the amount of staves in a <part> element
+
         :param part_elem:
         :return:
         """
+
         # Staff count from an <attributes> element
         for measure_elem in part_elem.findall('measure'):
             if (attr_elem := measure_elem.find('attributes')) is not None:
@@ -955,21 +1061,30 @@ class MusicXML:
         """
         Determines which staff an attribute element applies to. Note (in the beginning of the file, unspecified
         attributes may apply to all staves)
+
         :param attr_elem:
         :return:
         """
+
         pass
 
     @classmethod
     def _load_part(cls, part_item: ET.Element, loaded_part: Part) -> Part:
+        """
+        Parses a <part> element and adds its information to the pre-existing passed in Part. Returns this loaded
+        information in the Part.
+
+        :param part_item:
+        :param loaded_part:
+        :return:
+        """
+
         staff_count: int = MusicXML._get_staff_count(part_item)
 
         print(f'\nStaff Count: {staff_count}\n')
 
-        # Keeps a running count for time, key, and divs are lists for every staff in the part
+        # Used to a running count for time, key, divs, and measure marks for every staff in the part
         prev_measure: list[Measure | None] = [Measure.empty_measure() for x in range(0, staff_count)]
-
-        measure_marks: list[list[MeasureMark] | None] = [[] for x in range(0, staff_count)]  # [[]] * staff_count
 
         if 'id' in part_item.attrib.keys():
             loaded_part.id = part_item.get('id')
@@ -1002,11 +1117,9 @@ class MusicXML:
                                                         initial_m,
                                                         prev_measure[staff].divisions,
                                                         current_measure,
-                                                        # measure_marks[staff],
                                                         prev_measure[staff].measure_marks,
                                                         staff=(staff + 1))
                 prev_measure[staff].measure_marks = loaded_measure[1]
-                # measure_marks[staff] = loaded_measure[1]
 
                 loaded_part.append(loaded_measure[0], staff + 1)
 
@@ -1048,7 +1161,7 @@ class MusicXML:
 
                 for mm in prev_measure[staff].measure_marks:
                     # A non-InstantaneousMeasureMark is completed if it's end_point is not 0
-                    # TODO: What if the measure mark ends at 0 on the next measure?
+                    # TODO: What if the measure mark ends at 0 on the next measure? This doesn't work then
                     if mm is not InstantaneousMeasureMark and mm.end_point != 0:
 
                         if mm.measure_index < len(loaded_part.measures):
@@ -1068,62 +1181,33 @@ class MusicXML:
                         print(f'incrementing measure span for {mm}')
                         mm.measure_span += 1
 
-                # for mm in measure_marks[staff]:
-                #     # A non-InstantaneousMeasureMark is completed if it's end_point is not 0
-                #     if mm is not InstantaneousMeasureMark and mm.end_point != 0:
-                #
-                #         if mm.measure_index < len(loaded_part.measures):
-                #             print(
-                #                 f'MM starting at {mm.start_point}, ending at '
-                #                 f'{mm.end_point}, with measure_span {mm.measure_span} has been added to measure '
-                #                 f'{mm.measure_index}!')
-                #
-                #             # Append the MeasureMark to the part's measure
-                #             loaded_part.measures[mm.measure_index].measure_marks.append(mm)
-                #             # Remove this MeasureMark from the running-total list of measure marks
-                #             measure_marks.remove(mm)
-
-                # # TODO: Set this up so it appends to staff-specific measure mark lists
-                # # MeasureMarks that have not been resolved yet are noted to span for +1 measure
-                # for mm in measure_marks:
-                #     if isinstance(mm, MeasureMark):
-                #         print(f'incrementing measure span for {mm}')
-                #         mm.measure_span += 1
-
                 print(f'\nCurrent persisting MeasureMarks: {prev_measure[staff].measure_marks}\n')
 
             current_measure += 1
 
         # At the end of the constructed part:
         # Unresolved MeasureMarks are now wrapped up, with their end being at the score-end
-
         for staff in range(staff_count):
 
             for mm in prev_measure[staff].measure_marks:
                 mm.end_point = 0
                 loaded_part.measures[mm.measure_index].measure_marks.append(mm)
 
-        # # TODO: Set this up so it appends to staff-specific measure mark lists
-        # for mm in measure_marks[0]:  # TODO: <- this [0] is a stand-in
-        #     mm.end_point = 0
-        #     loaded_part.measures[mm.measure_index].measure_marks.append(mm)
-
         return copy.deepcopy(loaded_part)
-
-    @classmethod
-    def _load_measure_mark(cls, mark_element: ET.Element) -> MeasureMark:
-        pass
 
     @classmethod
     def _element_is_in_staff(cls, elem: ET.Element, staff: int) -> bool:
         """
-        Tells if the passed in element interacts with the specific, passed in staff number. Currently, works for <note>,
-         <direction>, <clef>, <time>, <key>, and <forward> elements. Used when loading elements in _load_measure()
+        Tells if the passed in element interacts with the particular passed in staff number.
+
+        Currently, works for <note>, <direction>, <clef>, <time>, <key>, and <forward> elements. Used when
+        loading elements in _load_measure()
 
         :param elem: The element to test if it only applies to a certain staff
         :param staff: The staff number, starting from 1 and increasing for every staff
         :return:
         """
+
         if not isinstance(elem, ET.Element):
             raise TypeError(f'Cannot use {elem} of type {type(elem)} as an element.')
 
@@ -1160,8 +1244,8 @@ class MusicXML:
     def _load_notegroup(cls, first_note: Note | NoteGroup, added_elem: ET.Element, divisions: int) \
             -> (NoteGroup, int):
         """
-        This turns the new element into a note and then adds it to the first group, making it a notegroup. This
-         new notegroup is then returned, along with the change in musical location.
+        The new note added_elem is parsed into a note and then added to the first as a NoteGroup.
+        Returns the new NoteGroup and change in musical location.
 
         :param first_note:
         :param added_elem:
@@ -1186,7 +1270,8 @@ class MusicXML:
                       measure_marks: list[MeasureMark],
                       staff: int = 1) -> (Measure, list[MeasureMark]):
         """
-        Loads a measure element from a partwise musicxml file
+        Parses a <measure> element from a partwise musicxml file. Returns the Measure representation and running list of
+        MeasureMarks.
 
         :param measure_element: The musicxml measure element to be loaded
         :param measure: The measure which describes what key and clef the measure will take place in
@@ -1196,6 +1281,7 @@ class MusicXML:
         :param staff: Dynamically searches for staff-specific elements based on the staff number that is passed in
         :return: The measure described by the xml file and an updated list of MeasureMarks
         """
+
         print(f'=====Measure {measure_index}, staves:{staff}=====')
 
         current_musical_location = 0  # incremented as more notes are added
@@ -1277,7 +1363,7 @@ class MusicXML:
                                         print(f'{time_item.tag} is not supported yet')
 
                                 # Time symbol type
-                                new_time_signature.timesymboltype = XMLConversion.time_symbol_type_from_mxml(child)
+                                new_time_signature.timesymboltype = MXMLConversion.time_symbol_type_from_elem(child)
 
                                 measure.time = new_time_signature
 
@@ -1358,8 +1444,8 @@ class MusicXML:
 
                                     case 'dynamics':
                                         for dynamic_mark in \
-                                                XMLConversion.dynamic_marks_from_mxml(dir_type,
-                                                                                      current_musical_location):
+                                                MXMLConversion.dynamic_marks_from_elem(dir_type,
+                                                                                       current_musical_location):
                                             measure.measure_marks.append(dynamic_mark)
 
                                     # TODO: Move this to a _load_measure_mark() func that keeps a running total
@@ -1472,7 +1558,7 @@ class MusicXML:
                     pass
 
                 case 'barline':
-                    measure.barline = XMLConversion.barline_from_mxml(item)
+                    measure.barline = MXMLConversion.barline_from_elem(item)
 
                 case 'grouping':
                     pass
@@ -1489,13 +1575,16 @@ class MusicXML:
     @classmethod
     def _load_note(cls, note_item: ET.Element, divisions: int) -> (Note, int, int):
         """
-        Returns a note described by the musicxml file and how far the measure has proceeded
+        Parses a <note> element. Returns the Note representaiton and how far the measure has proceded.
+
+        TODO: Calculating NoteType from the duration element doesn't work perfectly. Requires a fix.
 
         :param note_item: Note element from the musicxml file
         :param divisions: Divisions per quarter note, used to compute the note's value
         :return: The note described by the musicxml file, an integer describing how far the measure has
         proceeded, in relation to the divisions, and which staff this should be applied to
         """
+
         # Deep copy needs to be called for some reason? Otherwise, note attributes persist when Note() is called again
         note = copy.deepcopy(Note())
         duration = 0
@@ -1619,10 +1708,10 @@ class MusicXML:
                                       stacklevel=2)
 
                 case 'stem':
-                    note.stem = XMLConversion.stemtype_from_mxml(note_child)
+                    note.stem = MXMLConversion.stemtype_from_elem(note_child)
 
                 case 'notehead':
-                    note.notehead = XMLConversion.notehead_from_mxml(note_child)
+                    note.notehead = MXMLConversion.notehead_from_elem(note_child)
 
                 case 'notehead-text':
                     pass
@@ -1631,7 +1720,7 @@ class MusicXML:
                     staff = int(note_child.text)
 
                 case 'beam':
-                    if (new_beam := XMLConversion.beam_from_mxml(note_child)) is not None:
+                    if (new_beam := MXMLConversion.beam_from_elem(note_child)) is not None:
                         note.add_beam(new_beam)
 
                 case 'notations':
@@ -1639,21 +1728,21 @@ class MusicXML:
                     for notation in note_child:
 
                         if notation.tag == 'tied' or notation.tag == 'slur':
-                            note.add_notemark(XMLConversion.note_mark_from_mxml(notation))
+                            note.add_notemark(MXMLConversion.note_mark_from_elem(notation))
 
                         elif notation.tag == 'articulations':
                             for articulation in notation:
-                                note.add_notemark(XMLConversion.note_mark_from_mxml(articulation))
+                                note.add_notemark(MXMLConversion.note_mark_from_elem(articulation))
 
                         elif notation.tag == 'ornaments':
                             for ornament in notation:
-                                note.add_notemark(XMLConversion.note_mark_from_mxml(ornament))
+                                note.add_notemark(MXMLConversion.note_mark_from_elem(ornament))
 
                         else:
                             pass
 
                 case 'lyric':
-                    note.lyric = XMLConversion.lyric_from_mxml(note_child)
+                    note.lyric = MXMLConversion.lyric_from_elem(note_child)
 
                 case 'play':
                     pass
@@ -1676,16 +1765,19 @@ class MusicXML:
         return copy.deepcopy(note), duration, staff
 
     @staticmethod
-    def load(xml_file: str) -> Score:
+    def load(mxml_filepath: str) -> Score:
         """
         Loads a MusicXML file and converts to a Score.
 
+        Only works for part-wise mxml files.
 
+        :param mxml_filepath:
+        :return:
         """
 
         # process xml root
         # create element tree object
-        tree = ET.parse(xml_file)
+        tree = ET.parse(mxml_filepath)
 
         # get root element
         root = tree.getroot()
@@ -1694,13 +1786,22 @@ class MusicXML:
         if root.tag == 'score-partwise':
             loaded_score = MusicXML._load_partwise(root)
         elif root.tag == 'score-timewise':
-            # convert to timewise and then
+            # Convert to timewise and then load
             raise NotImplementedError('score-timewise')
 
         return loaded_score
 
     @classmethod
     def _save_part_metadata(cls, scorepart_elem: ET.Element, saved_part: Part, index: int) -> ET.Element:
+        """
+        Adds metadata from a passed in part to an already created <score-part> element. Returns this updated element.
+
+        :param scorepart_elem:
+        :param saved_part:
+        :param index:
+        :return:
+        """
+
         # Adds an ID attribute
         scorepart_elem.set('id', f'P{index}')
         # Set the part name
@@ -1710,28 +1811,18 @@ class MusicXML:
         return scorepart_elem
 
     @classmethod
-    def measure_mark_mxml_type(cls, mm: MeasureMark) -> str:
-        from musicai.structure.measure_mark import DynamicChangeMark
-
-        if isinstance(mm, DynamicChangeMark):
-            return mm.dynamic_change_type.name.lower()
-
-        else:
-            print('Other types of measure mark types not supported yet')
-            return 'not_supported_yet'
-
-    @classmethod
     def _save_measure_attributes(cls,
                                  part: Part,
                                  m_index: int) -> ET.Element | None:
         """
-        Based on the passed in measure index, reviews the indexed measure for every single staff in the part and then
-        constructs an attribute element based off of that
+        Returns an <attributes> element used in <measure> based on the passed-in measure index and part.
+        Returns None if there are no new attribute settings.
 
         :param part: The part being accessed with the measure index
         :param m_index: The index of the saved measure: index of the measure this attribute element is based on
         :return: A measure's attribute element
         """
+
         # Will be used if there is a new key, clef, or time signature
         attributes_elem = None
 
@@ -1767,7 +1858,7 @@ class MusicXML:
             time_elem = ET.SubElement(attributes_elem, 'time')
 
             # Symbol
-            time_elem.attrib['symbol'] = XMLConversion.time_symbol_type_to_mxml(part.measures[m_index].time)
+            time_elem.attrib['symbol'] = MXMLConversion.time_symbol_type_to_str(part.measures[m_index].time)
 
             # Beats and beat type
             ET.SubElement(time_elem, 'beats')
@@ -1789,7 +1880,7 @@ class MusicXML:
             if attributes_elem is None:
                 attributes_elem = ET.Element('attributes')
 
-            attributes_elem.append(XMLConversion.clef_to_mxml(part.measures[m_index].clef, clef_number=1))
+            attributes_elem.append(MXMLConversion.clef_to_elem(part.measures[m_index].clef, clef_number=1))
 
         # NEW SECONDARY-STAFF CLEFS
         for staff in range(part.staff_count() - 1):
@@ -1806,7 +1897,7 @@ class MusicXML:
                 if attributes_elem is None:
                     attributes_elem = ET.Element('attributes')
 
-                attributes_elem.append(XMLConversion.clef_to_mxml(new_st_clef, clef_number=staff + 2))
+                attributes_elem.append(MXMLConversion.clef_to_elem(new_st_clef, clef_number=staff + 2))
 
         # NEW PRIMARY_STAFF TRANSPOSE
         first_irregular_trans = m_index == 0 and not part.measures[m_index].transposition.is_equivilant(Transposition())
@@ -1862,14 +1953,14 @@ class MusicXML:
     @classmethod
     def _sort_note_notations(cls, notat_elem: ET.Element) -> ET.Element:
         """
-        The children of the <notations> element must follow a specific order. This takes in a <notations> element
-        and returns the properly sorted one
+        Takes in a <notations> element and returns that element with its children properly sorted.
 
         :param notat_elem:
         :return:
         """
+
         # Makes a sorted list of <notation>'s children
-        new_notat_order = sorted([child for child in notat_elem], key=XMLConversion.notations_order_key)
+        new_notat_order = sorted([child for child in notat_elem], key=MXMLConversion.notations_order_key)
 
         # Replaces each child with the sorted one
         for i in range(len([child for child in notat_elem])):
@@ -1929,13 +2020,16 @@ class MusicXML:
     @classmethod
     def _save_note(cls, saved_note: Note, staff: int = 1, voice: int = 1) -> ET.Element:
         """
-        Creates a note mxml element based on a MusicAI note and staff line. Staff lines start at 1, and increase for
-        every secondary staff. <voice> does not have complete functionality yet.
+        Returns a <note> element used in <measure>. This is based on the passed in note and staff line.
+
+        Staff lines start at 1, and increase for every secondary staff.
+        <voice> does not have complete functionality yet.
 
         :param saved_note:
         :param staff: Represents which staff the note starts one, and starts at 1
         :return:
         """
+
         note_elem = ET.Element('note', {'color': '#000000'})
 
         # REST
@@ -1997,7 +2091,7 @@ class MusicXML:
         note_elem.find('voice').text = f'{voice_rep}'
 
         # TYPE
-        if (type_text := XMLConversion.notetype_to_mxml(saved_note)) != '':
+        if (type_text := MXMLConversion.notetype_to_str(saved_note)) != '':
             ET.SubElement(note_elem, 'type')
             note_elem.find('type').text = type_text
 
@@ -2008,15 +2102,15 @@ class MusicXML:
 
         # TIME MODIFICATION
         if not saved_note.value.ratio.is_regular():
-            note_elem.append(XMLConversion.ratio_to_mxml(saved_note))
+            note_elem.append(MXMLConversion.ratio_to_elem(saved_note))
 
         # STEM
         if not saved_note.is_rest():
-            note_elem.append(XMLConversion.stemtype_to_mxml(saved_note.stem))
+            note_elem.append(MXMLConversion.stemtype_to_elem(saved_note.stem))
 
         # NOTEHEAD
         if not saved_note.has_normal_notehead():
-            note_elem.append(XMLConversion.notehead_to_mxml(saved_note.notehead))
+            note_elem.append(MXMLConversion.notehead_to_elem(saved_note.notehead))
 
         # STAFF
         ET.SubElement(note_elem, 'staff')
@@ -2024,7 +2118,7 @@ class MusicXML:
 
         # BEAM
         for beam in saved_note.beams:
-            note_elem.append(XMLConversion.beam_to_mxml(beam))
+            note_elem.append(MXMLConversion.beam_to_elem(beam))
 
         # NOTATIONS
         if len(saved_note.marks) != 0:
@@ -2033,14 +2127,17 @@ class MusicXML:
 
         # LYRIC
         if saved_note.lyric is not None:
-            note_elem.append(XMLConversion.lyric_to_mxml(saved_note.lyric))
+            note_elem.append(MXMLConversion.lyric_to_elem(saved_note.lyric))
 
         return note_elem
 
     @classmethod
     def _save_note_group(cls, saved_note: NoteGroup, staff: int = 1, voice: int = 1) -> list[ET.Element]:
         """
-        Creates a list of note elements that have the <chord> element, which collectively form a chord
+        Returns a list of <note> elements used in <measure> which represents a chord, based on the passed in
+        NoteGroup.
+
+        Every <note> after the first one has a <chord> child element.
 
         :param saved_note:
         :param staff:
@@ -2072,11 +2169,14 @@ class MusicXML:
     @classmethod
     def _save_part(cls, part_elem: ET.Element, saved_part: Part, part_count: int) -> ET.Element:
         """
-        Currently does not support overlapping measure marks yet
+        Returns a <part> element based on a passed in pre-existing <part> element, a MusicAI Part, and the part ID
+        number.
+
+        TODO: Fix issues with measure marks on a multistaved part
 
         :param part_elem:
         :param saved_part:
-        :param part_count:
+        :param part_count: The Part ID number, e.g. "P3". No adjustment needed, it already starts at 1.
         :return:
         """
 
@@ -2143,7 +2243,7 @@ class MusicXML:
                             elif isinstance(mm, DynamicChangeMark):
                                 ET.SubElement(direction_elem, 'direction-type')
                                 ET.SubElement(direction_elem.find('direction-type'), 'wedge',
-                                              {'color': '#000000', 'type': MusicXML.measure_mark_mxml_type(mm)})
+                                              {'color': '#000000', 'type': MXMLConversion.mm_type_to_str(mm)})
 
                                 # Add it to the list of opened measure marks (so mm will later be checked to be closed)
                                 s_measure_marks_to_end[staff].append(mm)
@@ -2194,7 +2294,7 @@ class MusicXML:
             # IRREGULAR RS BARLINE
             if measure.has_irregular_rs_barline():
 
-                bl_elem = XMLConversion.barline_to_mxml(measure.barline)
+                bl_elem = MXMLConversion.barline_to_elem(measure.barline)
                 new_measure_elem.append(bl_elem)
 
             # REGULAR RS BARLINE
@@ -2237,22 +2337,25 @@ class MusicXML:
         return part_elem
 
     @staticmethod
-    def save(score: Score, xml_file: str):
+    def save(score: Score, mxml_filepath: str) -> None:
         """
-        Saves every partsystem, part, measure, and note into the <part-list> and <part> mxml elements.
+        Saves a score into an mxml partwise score at the passed in filepath.
 
+        TODO:
         Currently, only one tempo is supported in the Score class. This tempo is appended to the tree at the end of
         this function. Only places one tempo at the top of the file.
 
-        Currently, functions like save_note and save_notegroup takes in a note which sometimes isn't enough informaiton
-        to write for all the mxml elements: I may need to reformat this into just taking the entire
+        TODO:
+        Currently, functions like _save_measure or _save_note take in a measure/note argument which sometimes isn't
+        enough informaiton to write for all the mxml elements: This may need to be reformatted to just taking the entire
         score and then taking the index of the part, measure, and note, so I can check information outside the scope of
-        just the note
+        just the measure/note.
 
         :param score:
-        :param xml_file:
+        :param mxml_filepath:
         :return:
         """
+
         mxml_body = '<score-partwise version="4.0"><part-list></part-list>' \
                     '</score-partwise>'
 
@@ -2272,7 +2375,7 @@ class MusicXML:
                 if str(part_system.grouping_symbol) != '':
                     ET.SubElement(part_group_elem, 'group-symbol')
                     part_group_elem.find('group-symbol').text = \
-                        XMLConversion.grouping_symbol_to_mxml(part_system.grouping_symbol)
+                        MXMLConversion.grouping_symbol_to_str(part_system.grouping_symbol)
 
             # ADD MEASURE INFO
             for part in part_system.parts:
@@ -2285,7 +2388,7 @@ class MusicXML:
                     if str(part.grouping_symbol) != '':
                         ET.SubElement(partgroup, 'group-symbol')
                         partgroup.find('group-symbol').text = \
-                            XMLConversion.grouping_symbol_to_mxml(part.grouping_symbol)
+                            MXMLConversion.grouping_symbol_to_str(part.grouping_symbol)
 
                 # SAVE PARTLIST METADATA
                 score_part_elem = ET.SubElement(partlist, 'score-part')
@@ -2316,7 +2419,7 @@ class MusicXML:
             dirtype_elem = ET.SubElement(dir_elem, 'direction-type')
             metronome = ET.SubElement(dirtype_elem, 'metronome')
             ET.SubElement(metronome, 'beat-unit')
-            metronome.find('beat-unit').text = XMLConversion.notetype_to_mxml(score.tempo.beat_unit)
+            metronome.find('beat-unit').text = MXMLConversion.notetype_to_str(score.tempo.beat_unit)
             ET.SubElement(metronome, 'per-minute')
             metronome.find('per-minute').text = str(score.tempo.tempo)
 
@@ -2326,7 +2429,7 @@ class MusicXML:
         tree = ET.ElementTree(root)
         ET.indent(tree, space='\t')
 
-        tree.write(xml_file, encoding='UTF-8', xml_declaration=True)
+        tree.write(mxml_filepath, encoding='UTF-8', xml_declaration=True)
 
 
 def main():
@@ -2340,21 +2443,17 @@ def main():
     # file = '../../examples/mxml/Echigo-Jishi.musicxml'
     # file = '../../examples/mxml/FaurReveSample.musicxml'
     # file = '../../examples/mxml/HelloWorld.musicxml'
-    # file = '../../examples/mxml/HelloWorld2.musicxml'
-    # file = '../../examples/mxml/HelloWorld3.musicxml'
-    # file = '../../examples/mxml/io_test/pianotest0.2.musicxml'
     # file = '../../examples/mxml/MahlFaGe4Sample.musicxml'
     # file = '../../examples/mxml/MozaChloSample.musicxml'
-    file = '../../examples/mxml/io_test/castaways_fixed.musicxml'
     # file = '../../examples/mxml/MozartPianoSonata.musicxml'
     # file = '../../examples/mxml/MozartTrio.musicxml'
     # file = '../../examples/mxml/MozaVeilSample.musicxml'
     # file = '../../examples/mxml/Saltarello.musicxml'
     # file = '../../examples/mxml/SchbAvMaSample.musicxml'
     # file = '../../examples/mxml/Telemann.musicxml'
+    file = '../../examples/mxml/io_test/capabilities_test.musicxml'
 
-    # save_file = '../../examples/mxml/io_test/multi_mm_test_save.musicxml'
-    save_file = '../../examples/mxml/io_test/castaways_save.musicxml'
+    save_file = '../../examples/mxml/io_test/capabilities_test_save.musicxml'
 
     # Create a score with a note and dynamic change mark
     score_to_save = MusicXML.load(file)
@@ -2362,7 +2461,6 @@ def main():
     # score_to_save.print_in_depth()
     # print(f'{score_to_save}')
 
-    score_to_save.add_to_pitch(1)
     MusicXML.save(score_to_save, save_file)
 
 

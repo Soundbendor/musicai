@@ -66,7 +66,7 @@ class Part:
     # ----------
     # Properties
     # ----------
-    # TODO: Make self.measures based off of a total, all-encompassing self.staves of type list[list[Measure]]...
+    # TODO: Implement self.measures, based off of a total, all-encompassing self.staves of type list[list[Measure]]...
     # @property
     # def measures(self) -> list[Measure] | None:
     #     if len(self.multi_staves) > 0:

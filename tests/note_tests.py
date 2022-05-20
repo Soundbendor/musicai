@@ -1,7 +1,7 @@
 import operator
 import unittest
 
-from musicai.structure.note import Note, NoteType, NoteValue, DotType, Ratio, TupletType
+from musicai.structure.note import NoteType, NoteValue, DotType, Ratio, TupletType
 
 
 class NoteTypeTest(unittest.TestCase):
@@ -15,7 +15,8 @@ class NoteTypeTest(unittest.TestCase):
         # valid values
         self.assertEqual(repr(NoteType.LARGE), '<NoteType(LARGE) 8.0>')
         self.assertEqual(repr(NoteType.SIXTEENTH), '<NoteType(SIXTEENTH) 0.0625>')
-        self.assertEqual(repr(NoteType.FOUR_THOUSAND_NINETY_SIXTH), '<NoteType(FOUR_THOUSAND_NINETY_SIXTH) 0.000244141>')
+        self.assertEqual(repr(NoteType.FOUR_THOUSAND_NINETY_SIXTH), '<NoteType(FOUR_THOUSAND_NINETY_SIXTH) 0.000244141>'
+                         )
 
     def test_from_float(self):
         # valid values

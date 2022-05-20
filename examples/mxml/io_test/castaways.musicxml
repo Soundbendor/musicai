@@ -137,7 +137,7 @@
    </score-instrument>
   </score-part>
   <part-group type="stop" number="1" />
-  <score-part id="P4">
+  <score-part id="P3">
    <identification>
     <miscellaneous>
      <miscellaneous-field name="show-rhythms">false</miscellaneous-field>
@@ -163,7 +163,7 @@
   <part-group type="start" number="2">
    <group-symbol>bracket</group-symbol>
   </part-group>
-  <score-part id="P5">
+  <score-part id="P4">
    <identification>
     <miscellaneous>
      <miscellaneous-field name="show-rhythms">false</miscellaneous-field>
@@ -185,7 +185,7 @@
     </virtual-instrument>
    </score-instrument>
   </score-part>
-  <score-part id="P6">
+  <score-part id="P5">
    <identification>
     <miscellaneous>
      <miscellaneous-field name="show-rhythms">false</miscellaneous-field>
@@ -6542,7 +6542,7 @@
    </note>
   </measure>
  </part>
- <part id="P4">
+ <part id="P3">
   <!--============== Part: P4, Measure: 1 ==============-->
   <measure number="1" width="327">
    <print new-page="yes">
@@ -7859,7 +7859,7 @@
    </barline>
   </measure>
  </part>
- <part id="P5">
+ <part id="P4">
   <!--============== Part: P5, Measure: 1 ==============-->
   <measure number="1" width="327">
    <print new-page="yes">
@@ -11100,7 +11100,7 @@
    </barline>
   </measure>
  </part>
- <part id="P6">
+ <part id="P5">
   <!--============== Part: P6, Measure: 1 ==============-->
   <measure number="1" width="327">
    <print new-page="yes">
