@@ -4,13 +4,13 @@ import numpy as np
 from typing import Union
 from enum import Enum
 # from datetime import date
-from musicai.structure.measure import Measure
-from musicai.structure.note import Note, NoteGroup
+from structure.measure import Measure
+from structure.note import Note, NoteGroup
 
 # -------------------
 # GroupingSymbol Enum
 # -------------------
-from musicai.structure.time import Tempo
+from structure.time import Tempo
 
 
 class GroupingSymbol(Enum):
@@ -50,6 +50,7 @@ class Part:
     # -----------
     # Constructor
     # -----------
+
     def __init__(self):
         self.measures: list[Measure] = []
         self.id = ''  # string which can be used to differentiate parts
@@ -154,7 +155,7 @@ class Part:
         Used to automatically make the last measure in a part have a final barline, typically called
         when a part has a measure appended. Does not affect non-regular barlines
         """
-        from musicai.structure.measure import Barline, BarlineLocation, BarlineType
+        from structure.measure import Barline, BarlineLocation, BarlineType
 
         # UPDATE FIRST STAFF
         if staff == 1:
@@ -193,14 +194,17 @@ class Part:
                 # Sets the preceeding from FINAL barline to REGULAR
                 if isinstance(self.multi_staves[ms_index][measure_count - 2].barline, Barline):
                     if self.multi_staves[ms_index][measure_count - 2].barline.is_simple_final_barline():
-                        self.multi_staves[ms_index][measure_count - 2].set_barline('REGULAR')
+                        self.multi_staves[ms_index][measure_count -
+                                                    2].set_barline('REGULAR')
                 else:
                     # This is necessary for some reason...
-                    self.multi_staves[ms_index][measure_count - 2].set_barline('REGULAR')
+                    self.multi_staves[ms_index][measure_count -
+                                                2].set_barline('REGULAR')
 
                 # Sets the following from REGULAR barline to FINAL
                 if not self.multi_staves[ms_index][measure_count - 1].has_irregular_rs_barline():
-                    self.multi_staves[ms_index][measure_count - 1].set_barline('FINAL')
+                    self.multi_staves[ms_index][measure_count -
+                                                1].set_barline('FINAL')
 
             # Gives the latest measure a final barline
             elif measure_count == 1:
@@ -241,8 +245,8 @@ class Part:
         return return_note
 
     def get_note_at_index(self,
-                             index: Union[int, np.integer],
-                             measure_index: Union[int, np.integer]) -> Union[Note, None]:
+                          index: Union[int, np.integer],
+                          measure_index: Union[int, np.integer]) -> Union[Note, None]:
         """
         Returns the note at the specific index if it exists
 
@@ -298,6 +302,7 @@ class PartSystem:
     # -----------
     # Constructor
     # -----------
+
     def __init__(self):
         self.parts: list[Part] = []
         self.grouping_symbol = GroupingSymbol.NONE
@@ -333,6 +338,7 @@ class Work:
     # -----------
     # Constructor
     # -----------
+
     def __init__(self):
         self.title = ''
         self.number = 0
@@ -364,6 +370,7 @@ class Metadata:
     # -----------
     # Constructor
     # -----------
+
     def __init__(self):
         self.title = ''
         self.number = ''
@@ -394,6 +401,7 @@ class Score:
     # -----------
     # Constructor
     # -----------
+
     def __init__(self):
         self.filename = ''
         self.systems: list[PartSystem] = []
@@ -456,13 +464,15 @@ class Score:
         for system in self.systems:
             print(f'-------------------------------')
             print(f'System: {system_index}')
-            print(f'Number of parts in system {system_index}: {len(system.parts)}')
+            print(
+                f'Number of parts in system {system_index}: {len(system.parts)}')
 
             part_index = 0
             for part in system.parts:
 
                 print(f'----Part {part_index}----')
-                print(f'Number of measures in part {part_index}: {len(part.measures)}')
+                print(
+                    f'Number of measures in part {part_index}: {len(part.measures)}')
                 print(f'{part}')
                 # for measure in part.measures:
                 #     print(f'(k={measure.key} c={measure.clef} t={measure.time}) {measure} ', end='')
@@ -479,7 +489,8 @@ class Score:
         :return:
         """
         if len(self.systems) == 0:
-            warnings.warn(f'There is no partsystem avaiable to append {appended_part} to.', stacklevel=2)
+            warnings.warn(
+                f'There is no partsystem avaiable to append {appended_part} to.', stacklevel=2)
             return
 
         latest_index = len(self.systems) - 1

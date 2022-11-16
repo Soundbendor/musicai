@@ -2,7 +2,7 @@ import warnings
 from enum import Enum
 from typing import Union
 import numpy as np
-from musicai.structure.note import NoteType
+from structure.note import NoteType
 
 
 # -------------------
@@ -107,7 +107,7 @@ class TimeSignature:
             return TimeSignature(numerator=4, denominator=4, timesymboltype=TimeSymbolType.COMMON)
         elif time == 'C|':
             # cut time
-            return TimeSignature(numerator=2, denominator= 2, timesymboltype=TimeSymbolType.CUT)
+            return TimeSignature(numerator=2, denominator=2, timesymboltype=TimeSymbolType.CUT)
         else:
             raise ValueError(f'Cannot find TimeSignature for {time}.')
 
@@ -165,6 +165,7 @@ class Tempo:
     # -------------------
     # Constructor
     # -------------------
+
     def __init__(self,
                  tempo: Union[int, float, np.inexact, np.integer],
                  beat_unit: NoteType = NoteType.QUARTER,
