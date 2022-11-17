@@ -424,6 +424,14 @@ class Score:
 
         return ret_str
 
+    def __getitem__(self, func):
+        if isinstance(func, slice):
+            # possibly find recursive solution?
+            for system in self.systems:
+                for part in system.parts:
+                    part.measures = part.measures[func]
+                        # TODO: Add floating point functionality for measure and edit measure class
+
     # ---------
     # Methods
     # ---------
