@@ -35,7 +35,7 @@ class BarlineType(Enum):
     DASHED = 8, u'\U0001D104', 'barlineDashed'
     DOTTED = 9, u'\U0001D104', 'barlineDotted'
     LEFT_REPEAT = 10, u'\U0001D106', 'leftRepeat'
-    RIGHT_REPEAT = 11, u'\U0001D107', 'rightRepeat'
+    RIGHT_REPEAT = 11, u'\U0001D107', 'repeatRight'     #rightRepeat -> repeatRight change made to me SMuFL compliant
     INVISIBLE = 12, '', ''
 
     # -----------

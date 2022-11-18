@@ -5,6 +5,7 @@ from pyglet import shapes
 import json
 
 from fileio.mxml import MusicXML
+from visualization.view_area import MeasureArea
 
 
 class ScoreWindow(pyglet.window.Window):
@@ -68,8 +69,18 @@ class ScoreWindow(pyglet.window.Window):
         self.clear()
         self.background.blit(0, 0)
 
+        self.x = 0
+        self.y = 140 # Half of staff line drawing area
+
         for i in range(len(self.score.systems[0].parts[0].measures)):
             self.draw_measure(i * 100, 100)
+        
+        for system in self.score.systems:
+            for part in system.parts:
+                for measure in part.measures:
+                    measure_area = MeasureArea(measure, self.x, self.y)
+                    self.x += measure_area.area_width
+                    measure_area.draw()
 
         self.batch.draw()
         pyglet.gl.glFlush()
