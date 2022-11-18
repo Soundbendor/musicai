@@ -1,12 +1,13 @@
 import pyglet
 from pyglet import shapes
-
+from pyglet.window import key
 
 import json
 
 from fileio.mxml import MusicXML
 from visualization.view_area import MeasureArea
 
+_DEBUG = False
 
 class ScoreWindow(pyglet.window.Window):
     def __init__(self, score):
@@ -24,7 +25,7 @@ class ScoreWindow(pyglet.window.Window):
         self.label = pyglet.text.Label(chr(int('F472', 16)),
                                        font_name='Bravura',
                                        font_size=36,
-                                       x=self.width//2, y=self.height//2,
+                                       x=self.width // 2, y=self.height // 2,
                                        anchor_x='center', anchor_y='center')
         self.label.color = (0, 0, 0, 255)
 
@@ -70,11 +71,11 @@ class ScoreWindow(pyglet.window.Window):
         self.background.blit(0, 0)
 
         self.x = 0
-        self.y = 140 # Half of staff line drawing area
+        self.y = 140  # Half of staff line drawing area
 
         for i in range(len(self.score.systems[0].parts[0].measures)):
             self.draw_measure(i * 100, 100)
-        
+
         for system in self.score.systems:
             for part in system.parts:
                 for measure in part.measures:
@@ -89,6 +90,56 @@ class ScoreWindow(pyglet.window.Window):
 
     def display(self):
         pyglet.app.run()
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        if _DEBUG:
+            print(f"on_mouse_motion")
+
+    def on_mouse_leave(self, x, y):
+        if _DEBUG:
+            print(f"on_mouse_leave")
+            print(f"mouse has left the screen")
+
+    def on_key_press(self, symbol, modifiers):
+        if _DEBUG:
+            print(f"on_key_press")
+
+        match symbol:
+            case key.UP:
+                if _DEBUG:
+                    print(f"up key pressed: {symbol}")
+            case key.DOWN:
+                if _DEBUG:
+                    print(f"down key pressed: {symbol}")
+            case key.LEFT:
+                if _DEBUG:
+                    print(f"left key pressed: {symbol}")
+            case key.RIGHT:
+                if _DEBUG:
+                    print(f"right key pressed: {symbol}")
+            case _:
+                if _DEBUG:
+                    print(f"other key pressed")
+
+    def on_key_release(self, symbol, modifiers):
+        if _DEBUG:
+            print(f"on_key_release")
+        match symbol:
+            case key.UP:
+                if _DEBUG:
+                    print(f"up key released: {symbol}")
+            case key.DOWN:
+                if _DEBUG:
+                    print(f"down key released: {symbol}")
+            case key.LEFT:
+                if _DEBUG:
+                    print(f"left key released: {symbol}")
+            case key.RIGHT:
+                if _DEBUG:
+                    print(f"right key released: {symbol}")
+            case _:
+                if _DEBUG:
+                    print(f"other key released")
 
 
 def main():
