@@ -1101,7 +1101,7 @@ class Rest(Note):
     def glyph(self):
         # rest
         glyph_code = 'rest'
-        print('restglyph', self._notevalue_)
+        # print('restglyph', self._notevalue_)          Commented out for terminal debugging purposes
         glyph_code += self._notevalue_.notetype.abbr
         return glyph_code
 

@@ -7,6 +7,8 @@ from structure.measure import Barline, BarlineLocation, BarlineType
 from structure.note import NoteGroup, Rest, Note
 from structure.pitch import Pitch
 
+_DEBUG = 0
+
 # TODO Figure out if build_env is best practice for python and change magic numbers to what's commented
 
 class GlyphType(Enum):
@@ -74,8 +76,10 @@ class MeasureArea(ViewArea):
         self.layout()
     
     def layout(self):
-        print('========')
-        print('measure=', self.measure.measure_number, self.measure)
+        if _DEBUG:
+            print('========')
+            print('measure=', self.measure.measure_number, self.measure)
+
         x = self.area_x
         y = self.area_y
 
@@ -94,12 +98,14 @@ class MeasureArea(ViewArea):
         clef_value = self.measure.clef.value
         line_offset = 3 - self.measure.clef.line
         clef_pitch = self.measure.clef.value + line_offset * 2
-        print('clef_value=', clef_value, self.measure.clef.line, line_offset, clef_pitch)
+        if _DEBUG:
+            print('clef_value=', clef_value, self.measure.clef.line, line_offset, clef_pitch)
         return clef_pitch
 
     def layout_notes(self, note, clef_pitch, x, y):
         if isinstance(note, Rest):
-            print('rest=', note, note.glyph)
+            if _DEBUG:
+                print('rest=', note, note.glyph)
             rest_label = self.add_label(note.glyph, GlyphType.REST, x=x, y=y)
             x += rest_label.content_width + 6                                   # Replace six with env['HSPACE'] or equivalent solution
             return x, y
@@ -108,7 +114,8 @@ class MeasureArea(ViewArea):
         if isinstance(note, NoteGroup):
             # unpack notes in chord 
             # TODO attach beams in between the notes
-            print('note_group=', note.is_note_group(), note, note.pitch)
+            if _DEBUG:
+                print('note_group=', note.is_note_group(), note, note.pitch)
             notes.extend(note.notes)
         elif isinstance(note, Note):
             # single note
@@ -128,8 +135,8 @@ class MeasureArea(ViewArea):
 
     def layout_left_barline(self, x, y):
         # only if Barline is on left
-
-        print('l-barline=', self.measure.barline)
+        if _DEBUG:
+            print('l-barline=', self.measure.barline)
         if isinstance(self.measure.barline, BarlineType):
             barline_label = self.add_label(self.measure.barline.glyph, GlyphType.BARLINE, x=x, y=y - 4 *6)      # Replace 6 with env['VSPACE'] or equivalent solution
             x += barline_label.content_width + 6 * 2                                                            # Replace 6 with env['HSPACE'] or equivalent solution
