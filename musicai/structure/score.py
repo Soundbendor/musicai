@@ -430,6 +430,7 @@ class Score:
             for system in self.systems:
                 for part in system.parts:
                     part.measures = part.measures[func]
+                    return self
                         # TODO: Add floating point functionality for measure and edit measure class
 
     # ---------
