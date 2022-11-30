@@ -436,6 +436,12 @@ class Score:
     # ---------
     # Methods
     # ---------
+
+    def slice_parts(self, start, end):      # Helper function that could be further worked on
+        for system in self.systems:
+            system.parts = system.parts[start:end]
+            return self
+
     def append(self, system):
         self.systems.append(system)
 
