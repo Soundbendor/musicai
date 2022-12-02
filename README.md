@@ -5,7 +5,7 @@
  - pyglet
  - numpy
  - scipy
- - dotenv
+ - python-dotenv
 
 ## Running the Application
 
