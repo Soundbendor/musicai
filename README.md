@@ -2,10 +2,10 @@
 
 ## Project Dependencies
 
- - pyglet
- - numpy
- - scipy
- - python-dotenv
+ - `pyglet`
+ - `numpy`
+ - `scipy`
+ - `python-dotenv`
 
 ## Running the Application
 
