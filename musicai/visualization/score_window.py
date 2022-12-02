@@ -42,35 +42,57 @@ class ScoreWindow(pyglet.window.Window):
         # self.line = shapes.Line(
         #    100, 100, 50, 200, width = 19, color = (0, 0, 255), batch = self.batch)
 
+    # def draw_measure(self, x, y):
+    #     print("+++++++++++++++++", x, y)
+    #     line = shapes.Line(
+    #         x, y, x + 100, y, width=2, color=(0, 0, 0), batch=self.batch)
+    #     self.measures.append(line)
+
+    #     line2 = shapes.Line(
+    #         x, y + 20, x + 100, y + 20, width=2, color=(0, 0, 0), batch=self.batch)
+    #     self.measures.append(line2)
+
+    #     line3 = shapes.Line(
+    #         x, y + 40, x + 100, y + 40, width=2, color=(0, 0, 0), batch=self.batch)
+    #     self.measures.append(line3)
+
+    #     line4 = shapes.Line(
+    #         x, y + 60, x + 100, y + 60, width=2, color=(0, 0, 0), batch=self.batch)
+    #     self.measures.append(line4)
+
+    #     line5 = shapes.Line(
+    #         x, y + 80, x + 100, y + 80, width=2, color=(0, 0, 0), batch=self.batch)
+    #     self.measures.append(line5)
+
+    #     line6 = shapes.Line(
+    #         x, y, x, y + 80, width=2, color=(0, 0, 0), batch=self.batch)
+    #     self.measures.append(line6)
+
+    #     line7 = shapes.Line(
+    #         x + 100, y, x + 100, y + 80, width=2, color=(0, 0, 0), batch=self.batch)
+    #     self.measures.append(line7)
+
     def draw_measure(self, x, y):
-        line = shapes.Line(
-            x, y, x + 100, y, width=2, color=(0, 0, 0), batch=self.batch)
-        self.measures.append(line)
+        zoom = 3    # zoom size: integrate keyboard/mouse scrolling to edit. Also make class variable
+        
+        spacing = 20
 
-        line2 = shapes.Line(
-            x, y + 20, x + 100, y + 20, width=2, color=(0, 0, 0), batch=self.batch)
-        self.measures.append(line2)
+        staff = []
+        for i in range(5):
+            staff.append(shapes.Line(
+                x, y + i * (spacing *  zoom), (x + 100) * zoom, y + i * (spacing * zoom), width=2, color=(0, 0, 0), batch = self.batch))
+            self.measures.append(staff[i])
+        
+        # Manual barlines for example purposes
+        barline_left = shapes.Line(
+            x, y, x, y + (spacing * 4 * zoom), width=2, color=(0, 0, 0), batch=self.batch)
+        self.measures.append(barline_left)
 
-        line3 = shapes.Line(
-            x, y + 40, x + 100, y + 40, width=2, color=(0, 0, 0), batch=self.batch)
-        self.measures.append(line3)
-
-        line4 = shapes.Line(
-            x, y + 60, x + 100, y + 60, width=2, color=(0, 0, 0), batch=self.batch)
-        self.measures.append(line4)
-
-        line5 = shapes.Line(
-            x, y + 80, x + 100, y + 80, width=2, color=(0, 0, 0), batch=self.batch)
-        self.measures.append(line5)
-
-        line6 = shapes.Line(
-            x, y, x, y + 80, width=2, color=(0, 0, 0), batch=self.batch)
-        self.measures.append(line6)
-
-        line7 = shapes.Line(
-            x + 100, y, x + 100, y + 80, width=2, color=(0, 0, 0), batch=self.batch)
-        self.measures.append(line7)
-
+        barline_right = shapes.Line(
+            x + 100 * zoom, y, x + 100 * zoom, y + (spacing * 4 * zoom), width=2, color=(0, 0, 0), batch=self.batch)
+        self.measures.append(barline_right)
+    
+    
     def load_labels(self, x, y):
         for system in self.score.systems:
             for part in system.parts:
