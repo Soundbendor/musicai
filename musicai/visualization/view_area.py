@@ -158,3 +158,6 @@ class MeasureArea(ViewArea):
         label.color = (0,0,0,255)
         self.labels.append(label)
         return label
+
+    def get_labels(self):
+        return self.labels

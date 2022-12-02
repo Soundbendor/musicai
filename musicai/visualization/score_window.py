@@ -34,6 +34,11 @@ class ScoreWindow(pyglet.window.Window):
 
         self.score = score
 
+        self.labels = []
+
+
+        self.load_labels(0, 140)
+
         # self.line = shapes.Line(
         #    100, 100, 50, 200, width = 19, color = (0, 0, 255), batch = self.batch)
 
@@ -66,22 +71,25 @@ class ScoreWindow(pyglet.window.Window):
             x + 100, y, x + 100, y + 80, width=2, color=(0, 0, 0), batch=self.batch)
         self.measures.append(line7)
 
+    def load_labels(self, x, y):
+        for system in self.score.systems:
+            for part in system.parts:
+                for measure in part.measures:
+                    measure_area = MeasureArea(measure, x, y)
+                    x += measure_area.area_width
+                    measure_labels = measure_area.get_labels()
+                    for label in measure_labels:
+                        label.batch = self.batch
+                        self.labels.append(label)
+                        
+                    
+
     def on_draw(self):
         self.clear()
         self.background.blit(0, 0)
 
-        self.x = 0
-        self.y = 140  # Half of staff line drawing area
-
         for i in range(len(self.score.systems[0].parts[0].measures)):
             self.draw_measure(i * 100, 100)
-
-        for system in self.score.systems:
-            for part in system.parts:
-                for measure in part.measures:
-                    measure_area = MeasureArea(measure, self.x, self.y)
-                    self.x += measure_area.area_width
-                    measure_area.draw()
 
         self.batch.draw()
         pyglet.gl.glFlush()
