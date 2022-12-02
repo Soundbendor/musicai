@@ -73,7 +73,7 @@ class ScoreWindow(pyglet.window.Window):
     #     self.measures.append(line7)
 
     def draw_measure(self, x, y):
-        zoom = 3    # zoom size: integrate keyboard/mouse scrolling to edit. Also make class variable
+        zoom = 1    # zoom size: integrate keyboard/mouse scrolling to edit. Also make class variable
         
         spacing = 20
 
