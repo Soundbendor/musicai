@@ -9,6 +9,7 @@ from visualization.view_area import MeasureArea
 
 _DEBUG = False
 
+
 class ScoreWindow(pyglet.window.Window):
     def __init__(self, score):
         super(ScoreWindow, self).__init__()
@@ -31,80 +32,59 @@ class ScoreWindow(pyglet.window.Window):
 
         self.batch = pyglet.graphics.Batch()
         self.measures = []
+        self.barlines = []
 
         self.score = score
 
         self.labels = []
+        self.measure_height = 100
 
-
-        self.load_labels(0, 140)
+        self.load_labels(0, 100)
+        # self.load_measure_one(0, 100)
 
         # self.line = shapes.Line(
         #    100, 100, 50, 200, width = 19, color = (0, 0, 255), batch = self.batch)
 
-    # def draw_measure(self, x, y):
-    #     print("+++++++++++++++++", x, y)
-    #     line = shapes.Line(
-    #         x, y, x + 100, y, width=2, color=(0, 0, 0), batch=self.batch)
-    #     self.measures.append(line)
-
-    #     line2 = shapes.Line(
-    #         x, y + 20, x + 100, y + 20, width=2, color=(0, 0, 0), batch=self.batch)
-    #     self.measures.append(line2)
-
-    #     line3 = shapes.Line(
-    #         x, y + 40, x + 100, y + 40, width=2, color=(0, 0, 0), batch=self.batch)
-    #     self.measures.append(line3)
-
-    #     line4 = shapes.Line(
-    #         x, y + 60, x + 100, y + 60, width=2, color=(0, 0, 0), batch=self.batch)
-    #     self.measures.append(line4)
-
-    #     line5 = shapes.Line(
-    #         x, y + 80, x + 100, y + 80, width=2, color=(0, 0, 0), batch=self.batch)
-    #     self.measures.append(line5)
-
-    #     line6 = shapes.Line(
-    #         x, y, x, y + 80, width=2, color=(0, 0, 0), batch=self.batch)
-    #     self.measures.append(line6)
-
-    #     line7 = shapes.Line(
-    #         x + 100, y, x + 100, y + 80, width=2, color=(0, 0, 0), batch=self.batch)
-    #     self.measures.append(line7)
-
     def draw_measure(self, x, y):
         zoom = 1    # zoom size: integrate keyboard/mouse scrolling to edit. Also make class variable
-        
+
         spacing = 20
 
         staff = []
         for i in range(5):
             staff.append(shapes.Line(
-                x, y + i * (spacing *  zoom), (x + 100) * zoom, y + i * (spacing * zoom), width=2, color=(0, 0, 0), batch = self.batch))
+                x, y + i * (spacing * zoom), (x + 100) * zoom, y + i * (spacing * zoom), width=2, color=(0, 0, 0), batch=self.batch))
             self.measures.append(staff[i])
-        
-        # Manual barlines for example purposes
-        barline_left = shapes.Line(
-            x, y, x, y + (spacing * 4 * zoom), width=2, color=(0, 0, 0), batch=self.batch)
-        self.measures.append(barline_left)
 
-        barline_right = shapes.Line(
-            x + 100 * zoom, y, x + 100 * zoom, y + (spacing * 4 * zoom), width=2, color=(0, 0, 0), batch=self.batch)
-        self.measures.append(barline_right)
-    
-    
+        # Manual barlines for example purposes
+        # barline_left = shapes.Line(
+        #     x, y, x, y + (spacing * 4 * zoom), width=2, color=(0, 0, 0), batch=self.batch)
+        # self.measures.append(barline_left)
+
+        # barline_right = shapes.Line(
+        #     x + 100 * zoom, y, x + 100 * zoom, y + (spacing * 4 * zoom), width=2, color=(0, 0, 0), batch=self.batch)
+        # self.measures.append(barline_right)
+
+    def load_barlines(self, measure_area):
+        print('barlines')
+        barline_verts = measure_area.get_barlines()
+        line = shapes.Line(150, 150, 250, 250, width=2,
+                           color=(0, 0, 0), batch=self.batch)
+        self.measures.append(line)
+
     def load_labels(self, x, y):
         for system in self.score.systems:
             for part in system.parts:
                 for measure in part.measures:
-                    measure_area = MeasureArea(measure, x, y)
+                    measure_area = MeasureArea(
+                        measure, x, y, self.measure_height)
+                    # TODO calc and set area_width
                     x += measure_area.area_width
                     measure_labels = measure_area.get_labels()
                     for label in measure_labels:
                         label.batch = self.batch
                         self.labels.append(label)
-                        
-                    
+                    self.load_barlines(measure_area)
 
     def on_draw(self):
         self.clear()
@@ -117,6 +97,7 @@ class ScoreWindow(pyglet.window.Window):
         pyglet.gl.glFlush()
 
         self.measures.clear()
+        self.barlines.clear()
 
     def display(self):
         pyglet.app.run()
