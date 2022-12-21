@@ -70,14 +70,14 @@ class ViewArea():
 
 class MeasureArea(ViewArea):
 
-    def __init__(self, measure, x=0, y=0, height=100):
+    def __init__(self, measure, x=0, y=0, height=80):
         super().__init__(x, y)
         self.measure = measure
         self.area_x = x             # Used to store the initial value of x and y as loaded in
         self.area_y = y
         self.area_width = x         # Used to store the total width and height a measure takes up
         self.area_height = height
-        self.spacing = self.area_height // 5
+        self.spacing = self.area_height // 4
         self.batch = pyglet.graphics.Batch()
         self.barlines = []
         self.layout()
@@ -165,7 +165,7 @@ class MeasureArea(ViewArea):
             if str(n.accidental).strip() != '':
                 if n.pitch.step not in self.measure.key.altered():
                     accidental_label = self.add_label(
-                        n.accidental.glyph, GlyphType.ACCIDENTAL, x, y + 3 + line_offset * (self.spacing // 2))
+                        n.accidental.glyph, GlyphType.ACCIDENTAL, x, y + 3 + line_offset * (self.spacing // 2))  # (+ 3) to align glyph with staff
                     x += accidental_label.content_width + 6
 
             gtype = GlyphType.NOTE_UP if n.stem.UP else GlyphType.NOTE_DOWN
@@ -181,11 +181,16 @@ class MeasureArea(ViewArea):
             print('l-barline=', self.measure.barline)
         if isinstance(self.measure.barline, BarlineType):
             # Replace 6 with env['VSPACE'] or equivalent solution
-            barline_label = self.add_label(
-                self.measure.barline.glyph, GlyphType.BARLINE, x=x, y=y - 4 * 6)
-            # Replace 6 with env['HSPACE'] or equivalent solution
-            x += barline_label.content_width + 6 * 2
-            self.barlines.append([200, 200, 200, 300])
+            # barline_label = self.add_label(
+            #     self.measure.barline.glyph, GlyphType.BARLINE, x=x, y=y + 23)
+
+            barline_verts = []
+            barline_verts.append(x)
+            barline_verts.append(y)
+            barline_verts.append(x)
+            barline_verts.append(y + self.area_height)
+            self.barlines.append(barline_verts)
+            x += 14
         return x, y
 
     def draw(self):

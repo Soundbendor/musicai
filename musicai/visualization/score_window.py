@@ -37,7 +37,7 @@ class ScoreWindow(pyglet.window.Window):
         self.score = score
 
         self.labels = []
-        self.measure_height = 100
+        self.measure_height = 80
 
         self.load_labels(0, 100)
         # self.load_measure_one(0, 100)
@@ -56,21 +56,9 @@ class ScoreWindow(pyglet.window.Window):
                 x, y + i * (spacing * zoom), (x + 100) * zoom, y + i * (spacing * zoom), width=2, color=(0, 0, 0), batch=self.batch))
             self.measures.append(staff[i])
 
-        # Manual barlines for example purposes
-        # barline_left = shapes.Line(
-        #     x, y, x, y + (spacing * 4 * zoom), width=2, color=(0, 0, 0), batch=self.batch)
-        # self.measures.append(barline_left)
-
-        # barline_right = shapes.Line(
-        #     x + 100 * zoom, y, x + 100 * zoom, y + (spacing * 4 * zoom), width=2, color=(0, 0, 0), batch=self.batch)
-        # self.measures.append(barline_right)
-
     def load_barlines(self, measure_area):
-        print('barlines')
-        barline_verts = measure_area.get_barlines()
-        line = shapes.Line(150, 150, 250, 250, width=2,
-                           color=(0, 0, 0), batch=self.batch)
-        self.measures.append(line)
+        verts = measure_area.get_barlines()
+        self.barlines.append(verts)
 
     def load_labels(self, x, y):
         for system in self.score.systems:
@@ -84,7 +72,9 @@ class ScoreWindow(pyglet.window.Window):
                     for label in measure_labels:
                         label.batch = self.batch
                         self.labels.append(label)
-                    self.load_barlines(measure_area)
+                    barline_verts = measure_area.get_barlines()
+                    for vert in barline_verts:
+                        self.barlines.append(vert)
 
     def on_draw(self):
         self.clear()
@@ -93,11 +83,18 @@ class ScoreWindow(pyglet.window.Window):
         for i in range(len(self.score.systems[0].parts[0].measures)):
             self.draw_measure(i * 100, 100)
 
+        barline_shapes = []
+        for vert in self.barlines:
+            line = shapes.Line(vert[0], vert[1], vert[2], vert[3], width=2, color=(
+                0, 0, 0), batch=self.batch)
+            barline_shapes.append(line)
+
         self.batch.draw()
         pyglet.gl.glFlush()
 
         self.measures.clear()
-        self.barlines.clear()
+        # self.barlines.clear()
+        barline_shapes.clear()
 
     def display(self):
         pyglet.app.run()
