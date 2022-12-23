@@ -136,6 +136,17 @@ class MeasureArea(ViewArea):
         octave_offset = (int(octave) - 4) * 7
         offset += octave_offset
 
+        # TODO offset for different clefs (tenor clef + more uncommon)
+        clef_pitch = self.measure.clef.value
+        clef_offset = 0
+        match clef_pitch:
+            case 53:  # bass clef
+                clef_offset = 13
+            case 60:  # alto clef
+                clef_offset = 6
+
+        print('clef_pitch' + str(clef_pitch))
+        offset += clef_offset
         return offset
 
     def layout_notes(self, note, clef_pitch, x, y):
@@ -158,8 +169,9 @@ class MeasureArea(ViewArea):
         elif isinstance(note, Note):
             # single note
             notes.append(note)
-
         for n in notes:
+            # print(str(n.pitch.step.name) + str(n.pitch.octave) +
+            #       ' ' + str(n.pitch.midi))
             # (n.pitch.midi - clef_pitch)//2
             line_offset = self.note_offset(note)
             if str(n.accidental).strip() != '':
