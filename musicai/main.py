@@ -3,7 +3,6 @@ import pyglet
 #from fileio import MusicXML
 from visualization.score_window import ScoreWindow
 from fileio.mxml import MusicXML
-from visualization.window_config import WindowConfig
 
 
 def main():

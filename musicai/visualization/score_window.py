@@ -6,8 +6,9 @@ import json
 
 from fileio.mxml import MusicXML
 from visualization.view_area import MeasureArea
+from visualization.window_config import WindowConfig
 
-_DEBUG = False
+_DEBUG = True
 
 
 class ScoreWindow(pyglet.window.Window):
@@ -16,7 +17,7 @@ class ScoreWindow(pyglet.window.Window):
 
         config = pyglet.gl.Config(
             sample_buffers=1, samples=8, double_buffer=False)
-
+        self.msvcfg = WindowConfig()
         self.background = pyglet.image.SolidColorImagePattern(
             (255, 255, 255, 255)).create_image(self.width, self.height)
 
@@ -110,39 +111,43 @@ class ScoreWindow(pyglet.window.Window):
 
     def on_key_press(self, symbol, modifiers):
         if _DEBUG:
-            print(f"on_key_press")
+            print(f"on_key_press, symbol: {symbol}, modifiers: {modifiers}")
 
-        match symbol:
-            case key.UP:
+        match str(symbol):
+            case self.msvcfg.KEYBIND_UP:
                 if _DEBUG:
                     print(f"up key pressed: {symbol}")
-            case key.DOWN:
+            case self.msvcfg.KEYBIND_DOWN:
                 if _DEBUG:
                     print(f"down key pressed: {symbol}")
-            case key.LEFT:
+            case self.msvcfg.KEYBIND_LEFT:
                 if _DEBUG:
                     print(f"left key pressed: {symbol}")
-            case key.RIGHT:
+            case self.msvcfg.KEYBIND_RIGHT:
                 if _DEBUG:
                     print(f"right key pressed: {symbol}")
+            case self.msvcfg.KEYBIND_EXIT:
+                if _DEBUG:
+                    print(f"escape pressed: {symbol}")
+                self.close()
             case _:
                 if _DEBUG:
                     print(f"other key pressed")
 
     def on_key_release(self, symbol, modifiers):
         if _DEBUG:
-            print(f"on_key_release")
-        match symbol:
-            case key.UP:
+            print(f"on_key_release, symbol: {symbol}, modifiers: {modifiers}")
+        match str(symbol):
+            case self.msvcfg.KEYBIND_UP:
                 if _DEBUG:
                     print(f"up key released: {symbol}")
-            case key.DOWN:
+            case self.msvcfg.KEYBIND_DOWN:
                 if _DEBUG:
                     print(f"down key released: {symbol}")
-            case key.LEFT:
+            case self.msvcfg.KEYBIND_LEFT:
                 if _DEBUG:
                     print(f"left key released: {symbol}")
-            case key.RIGHT:
+            case self.msvcfg.KEYBIND_RIGHT:
                 if _DEBUG:
                     print(f"right key released: {symbol}")
             case _:

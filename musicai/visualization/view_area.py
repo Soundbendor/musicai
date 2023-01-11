@@ -8,7 +8,7 @@ from structure.note import NoteGroup, Rest, Note
 from structure.pitch import Pitch
 from pyglet import shapes
 
-_DEBUG = 0
+_DEBUG = False
 
 # TODO Figure out if build_env is best practice for python and change magic numbers to what's commented
 
@@ -144,8 +144,8 @@ class MeasureArea(ViewArea):
                 clef_offset = 13
             case 60:  # alto clef
                 clef_offset = 6
-
-        print('clef_pitch' + str(clef_pitch))
+        if _DEBUG:
+            print('clef_pitch' + str(clef_pitch))
         offset += clef_offset
         return offset
 
