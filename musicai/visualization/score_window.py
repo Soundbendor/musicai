@@ -64,9 +64,9 @@ class ScoreWindow(pyglet.window.Window):
     def load_labels(self, x, y):
         for system in self.score.systems:
             for part in system.parts:
-                for measure in part.measures:
+                for idx, measure in enumerate(part.measures):
                     measure_area = MeasureArea(
-                        measure, x, y, self.measure_height)
+                        measure, x, y, self.measure_height, idx)
                     # TODO calc and set area_width
                     x += measure_area.area_width
                     measure_labels = measure_area.get_labels()

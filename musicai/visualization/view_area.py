@@ -70,7 +70,7 @@ class ViewArea():
 
 class MeasureArea(ViewArea):
 
-    def __init__(self, measure, x=0, y=0, height=80):
+    def __init__(self, measure, x=0, y=0, height=80, idx=0):
         super().__init__(x, y)
         self.measure = measure
         self.area_x = x             # Used to store the initial value of x and y as loaded in
@@ -80,6 +80,7 @@ class MeasureArea(ViewArea):
         self.spacing = self.area_height // 4
         self.batch = pyglet.graphics.Batch()
         self.barlines = []
+        self.index = idx
         self.layout()
 
     def layout(self):
@@ -94,6 +95,8 @@ class MeasureArea(ViewArea):
 
         # TODO left barline should only print for first measure otherwise print right barline
         x, y = self.layout_left_barline(x, y)
+        x, y = self.layout_clef(x, y)
+        x, y = self.layout_time_signature(x, y)
         for note in self.measure.notes:
             x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
 
@@ -203,6 +206,37 @@ class MeasureArea(ViewArea):
             barline_verts.append(y + self.area_height)
             self.barlines.append(barline_verts)
             x += 14
+        return x, y
+
+    def layout_clef(self, x, y):
+        if (self.index == 0):
+            x += 6
+            clef_label = self.add_label(
+                self.measure.clef.glyph, GlyphType.CLEF, x=x, y=y + self.spacing * 2 + 5)
+            x += clef_label.content_width + 10
+        return x, y
+
+    def layout_time_signature(self, x, y):
+        if (self.index == 0):
+            time_sig = self.measure.time
+
+            time_sig_numerator = pyglet.text.Label(str(time_sig.numerator),
+                                                   font_name='Bravura',
+                                                   font_size=36,
+                                                   x=x, y=y + self.spacing * 3 + 5,
+                                                   anchor_x='center', anchor_y='center')
+            time_sig_numerator.color = (0, 0, 0, 255)
+            self.labels.append(time_sig_numerator)
+            time_sig_denominator = pyglet.text.Label(str(time_sig.denominator),
+                                                     font_name='Bravura',
+                                                     font_size=36,
+                                                     x=x, y=y + self.spacing + 5,
+                                                     anchor_x='center', anchor_y='center')
+            time_sig_denominator.color = (0, 0, 0, 255)
+            self.labels.append(time_sig_denominator)
+
+            x += time_sig_numerator.content_width + 15
+
         return x, y
 
     def draw(self):
