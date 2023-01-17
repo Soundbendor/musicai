@@ -429,8 +429,9 @@ class Score:
             # possibly find recursive solution?
             for system in self.systems:
                 for part in system.parts:
+                    print("count part")
                     part.measures = part.measures[func]
-                    return self
+            return self
                         # TODO: Add floating point functionality for measure and edit measure class
 
     # ---------
@@ -440,7 +441,7 @@ class Score:
     def slice_parts(self, start, end):      # Helper function that could be further worked on
         for system in self.systems:
             system.parts = system.parts[start:end]
-            return self
+        return self
 
     def append(self, system):
         self.systems.append(system)
