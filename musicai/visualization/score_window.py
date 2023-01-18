@@ -45,6 +45,7 @@ class ScoreWindow(pyglet.window.Window):
 
         # self.line = shapes.Line(
         #    100, 100, 50, 200, width = 19, color = (0, 0, 255), batch = self.batch)
+        self.initialize_display_elements()
 
     def draw_measure(self, x, y):
         zoom = 1    # zoom size: integrate keyboard/mouse scrolling to edit. Also make class variable
@@ -87,14 +88,10 @@ class ScoreWindow(pyglet.window.Window):
                         self.barlines.append(vert)
                 x = 0
                 y -= 200
-
-    def on_draw(self):
-        self.clear()
-        self.background.blit(0, 0)
-
+    def initialize_display_elements(self):
         for i in range(len(self.score.systems[0].parts[0].measures)):
             self.draw_measure(i * 100, 100)
-        
+
         barline_shapes = []
 
         for i in range(len(self.score.systems[0].parts[0].measures)):
@@ -104,16 +101,19 @@ class ScoreWindow(pyglet.window.Window):
 
             for vert in self.barlines:
                 if vert[0] == x:
-                   y_start = vert[1]
-            line = shapes.Line(x, y_start, x, y_end, width=2, color=(0,0,0), batch=self.batch)
+                    y_start = vert[1]
+            line = shapes.Line(x, y_start, x, y_end, width=2, color=(0, 0, 0), batch=self.batch)
             barline_shapes.append(line)
 
+    def on_draw(self):
+        self.clear()
+        self.background.blit(0, 0)
         self.batch.draw()
         pyglet.gl.glFlush()
 
-        self.measures.clear()
+        # self.measures.clear()
         # self.barlines.clear()
-        barline_shapes.clear()
+        # barline_shapes.clear()
 
     def display(self):
         pyglet.app.run()
