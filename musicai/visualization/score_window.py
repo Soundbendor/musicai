@@ -63,12 +63,21 @@ class ScoreWindow(pyglet.window.Window):
 
     def load_labels(self, x, y):
         for system in self.score.systems:
+            measure_area_width = []
+            for i in range(len(system.parts[0].measures)):
+                max_measure_area = 0
+                for part in system.parts:
+                    measure_area = MeasureArea(part.measures[i], x, y, self.measure_height, i)
+                    if (measure_area.area_width > max_measure_area):
+                        max_measure_area = measure_area.area_width
+                measure_area_width.append(int(max_measure_area))
+
             for part in system.parts:
                 for idx, measure in enumerate(part.measures):
-                    measure_area = MeasureArea(
-                        measure, x, y, self.measure_height, idx)
+                    measure_area = MeasureArea(measure, x, y, self.measure_height, idx)
                     # TODO calc and set area_width
-                    x += measure_area.area_width
+                    # x += measure_area.area_width
+                    x += measure_area_width[idx]
                     measure_labels = measure_area.get_labels()
                     for label in measure_labels:
                         label.batch = self.batch
@@ -76,6 +85,8 @@ class ScoreWindow(pyglet.window.Window):
                     barline_verts = measure_area.get_barlines()
                     for vert in barline_verts:
                         self.barlines.append(vert)
+                x = 0
+                y -= 200            
 
     def on_draw(self):
         self.clear()
@@ -83,11 +94,18 @@ class ScoreWindow(pyglet.window.Window):
 
         for i in range(len(self.score.systems[0].parts[0].measures)):
             self.draw_measure(i * 100, 100)
-
+        
         barline_shapes = []
-        for vert in self.barlines:
-            line = shapes.Line(vert[0], vert[1], vert[2], vert[3], width=2, color=(
-                0, 0, 0), batch=self.batch)
+
+        for i in range(len(self.score.systems[0].parts[0].measures)):
+            x = self.barlines[i][0]
+            y_start = self.barlines[i][1]
+            y_end = self.barlines[i][3]
+
+            for vert in self.barlines:
+                if vert[0] == x:
+                   y_start = vert[1]
+            line = shapes.Line(x, y_start, x, y_end, width=2, color=(0,0,0), batch=self.batch)
             barline_shapes.append(line)
 
         self.batch.draw()
