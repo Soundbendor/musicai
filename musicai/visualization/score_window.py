@@ -40,7 +40,7 @@ class ScoreWindow(pyglet.window.Window):
         self.labels = []
         self.measure_height = 80
 
-        self.load_labels(0, 100)
+        self.load_labels(0, self.height - int(self.msvcfg.TOP_OFFSET))
         # self.load_measure_one(0, 100)
 
         # self.line = shapes.Line(
@@ -49,6 +49,8 @@ class ScoreWindow(pyglet.window.Window):
         self.initialize_display_elements()
         self.x_movement = 0
         self.y_movement = 0
+
+        print(f"self.height: {self.height} self.width: {self.width}")
 
     def draw_measure(self, x, y):
         zoom = 1    # zoom size: integrate keyboard/mouse scrolling to edit. Also make class variable
@@ -112,10 +114,12 @@ class ScoreWindow(pyglet.window.Window):
     def on_draw(self):
         self.clear()
         self.background.blit(0, 0)
+
         self.update_x()
         self.update_y()
+
         self.batch.draw()
-        pyglet.gl.glFlush()
+        # pyglet.gl.glFlush()
 
         # self.measures.clear()
         # self.barlines.clear()
