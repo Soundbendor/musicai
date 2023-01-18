@@ -125,13 +125,10 @@ class ScoreWindow(pyglet.window.Window):
         pyglet.app.run()
 
     def on_mouse_motion(self, x, y, dx, dy):
-        if _DEBUG:
-            print(f"on_mouse_motion")
+        pass
 
     def on_mouse_leave(self, x, y):
-        if _DEBUG:
-            print(f"on_mouse_leave")
-            print(f"mouse has left the screen")
+        pass
 
     def update_x(self):
         for label, measure in zip(self.labels, self.measures):
@@ -152,55 +149,37 @@ class ScoreWindow(pyglet.window.Window):
                 if _DEBUG:
                     print(f"up key pressed: {symbol}")
                 self.y_movement = -1 * int(self.msvcfg.FAST_MOVEMENT)
-                # for label in self.labels:
-                #     label.y -= int(self.msvcfg.FAST_MOVEMENT)
 
             case self.msvcfg.KEYBIND_DOWN:
-                if _DEBUG:
-                    print(f"down key pressed: {symbol}")
                 self.y_movement = int(self.msvcfg.FAST_MOVEMENT)
 
             case self.msvcfg.KEYBIND_LEFT:
-                if _DEBUG:
-                    print(f"left key pressed: {symbol}")
                 self.x_movement = int(self.msvcfg.FAST_MOVEMENT)
 
             case self.msvcfg.KEYBIND_RIGHT:
-                if _DEBUG:
-                    print(f"right key pressed: {symbol}")
                 self.x_movement = -1 * int(self.msvcfg.FAST_MOVEMENT)
 
             case self.msvcfg.KEYBIND_EXIT:
-                if _DEBUG:
-                    print(f"escape pressed: {symbol}")
                 self.close()
             case _:
                 if _DEBUG:
                     print(f"other key pressed")
+                pass
 
     def on_key_release(self, symbol, modifiers):
         if _DEBUG:
             print(f"on_key_release, symbol: {symbol}, modifiers: {modifiers}")
         match str(symbol):
             case self.msvcfg.KEYBIND_UP:
-                if _DEBUG:
-                    print(f"up key released: {symbol}")
                 self.y_movement = 0
             case self.msvcfg.KEYBIND_DOWN:
-                if _DEBUG:
-                    print(f"down key released: {symbol}")
                 self.y_movement = 0
             case self.msvcfg.KEYBIND_LEFT:
-                if _DEBUG:
-                    print(f"left key released: {symbol}")
                 self.x_movement = 0
             case self.msvcfg.KEYBIND_RIGHT:
-                if _DEBUG:
-                    print(f"right key released: {symbol}")
                 self.x_movement = 0
             case _:
-                if _DEBUG:
-                    print(f"other key released")
+                pass
 
 
 def main():
