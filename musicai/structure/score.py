@@ -429,7 +429,6 @@ class Score:
             # possibly find recursive solution?
             for system in self.systems:
                 for part in system.parts:
-                    print("count part")
                     part.measures = part.measures[func]
             return self
                         # TODO: Add floating point functionality for measure and edit measure class
