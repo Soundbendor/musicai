@@ -134,18 +134,14 @@ class ScoreWindow(pyglet.window.Window):
             print(f"mouse has left the screen")
 
     def update_x(self):
-        if _DEBUG:
-            print(f"ScoreWindow::update_x")
-
-        for label in self.labels:
+        for label, measure in zip(self.labels, self.measures):
             label.x += self.x_movement
+            measure.x += self.x_movement
 
     def update_y(self):
-        if _DEBUG:
-            print(f"ScoreWindow::update_x")
-
-        for label in self.labels:
+        for label, measure in zip(self.labels, self.measures):
             label.y += self.y_movement
+            measure.y += self.y_movement
 
     def on_key_press(self, symbol, modifiers):
         if _DEBUG:
