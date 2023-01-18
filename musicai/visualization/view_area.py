@@ -7,6 +7,7 @@ from structure.measure import Barline, BarlineLocation, BarlineType
 from structure.note import NoteGroup, Rest, Note
 from structure.pitch import Pitch
 from pyglet import shapes
+from visualization.window_config import WindowConfig
 
 _DEBUG = False
 
@@ -52,6 +53,12 @@ class Glyph(pyglet.text.Label):
         else:
             print("Not found: " + glyph_id)
             raise ValueError('Glyph {0} not found in font.'.format(glyph_id))
+    
+    def __str__(self):
+        return f"x: {self.label_x:.3f} y: {self.label_y:.3f} glyph type: {self.gtype}"
+    
+    def __repr__(self):
+        return self.__str__()
 
 
 class ViewArea():
@@ -60,6 +67,7 @@ class ViewArea():
         self.x = x
         self.y = y
         self.labels = []
+        self.msvcfg = WindowConfig()
 
     def layout(self):
         pass
@@ -221,15 +229,15 @@ class MeasureArea(ViewArea):
             time_sig = self.measure.time
 
             time_sig_numerator = pyglet.text.Label(str(time_sig.numerator),
-                                                   font_name='Bravura',
-                                                   font_size=36,
+                                                   font_name=self.msvcfg.MUSIC_FONT_NAME,
+                                                   font_size=int(self.msvcfg.MUSIC_FONT_SIZE),
                                                    x=x, y=y + self.spacing * 3 + 5,
                                                    anchor_x='center', anchor_y='center')
             time_sig_numerator.color = (0, 0, 0, 255)
             self.labels.append(time_sig_numerator)
             time_sig_denominator = pyglet.text.Label(str(time_sig.denominator),
-                                                     font_name='Bravura',
-                                                     font_size=36,
+                                                     font_name=self.msvcfg.MUSIC_FONT_NAME,
+                                                     font_size=int(self.msvcfg.MUSIC_FONT_SIZE),
                                                      x=x, y=y + self.spacing + 5,
                                                      anchor_x='center', anchor_y='center')
             time_sig_denominator.color = (0, 0, 0, 255)
@@ -247,8 +255,8 @@ class MeasureArea(ViewArea):
         glyph_id = Glyph.code(glyph)
         label = Glyph(gtype=gtype,
                       text=glyph_id,
-                      font_name='Bravura',
-                      font_size=36,
+                      font_name=self.msvcfg.MUSIC_FONT_NAME,
+                      font_size=int(self.msvcfg.MUSIC_FONT_SIZE),
                       x=x, y=y,
                       anchor_x='center',
                       anchor_y='center')
