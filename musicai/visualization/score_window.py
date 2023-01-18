@@ -45,7 +45,10 @@ class ScoreWindow(pyglet.window.Window):
 
         # self.line = shapes.Line(
         #    100, 100, 50, 200, width = 19, color = (0, 0, 255), batch = self.batch)
+
         self.initialize_display_elements()
+        self.x_movement = 0
+        self.y_movement = 0
 
     def draw_measure(self, x, y):
         zoom = 1    # zoom size: integrate keyboard/mouse scrolling to edit. Also make class variable
@@ -88,6 +91,7 @@ class ScoreWindow(pyglet.window.Window):
                         self.barlines.append(vert)
                 x = 0
                 y -= 200
+
     def initialize_display_elements(self):
         for i in range(len(self.score.systems[0].parts[0].measures)):
             self.draw_measure(i * 100, 100)
@@ -108,6 +112,8 @@ class ScoreWindow(pyglet.window.Window):
     def on_draw(self):
         self.clear()
         self.background.blit(0, 0)
+        self.update_x()
+        self.update_y()
         self.batch.draw()
         pyglet.gl.glFlush()
 
@@ -127,6 +133,20 @@ class ScoreWindow(pyglet.window.Window):
             print(f"on_mouse_leave")
             print(f"mouse has left the screen")
 
+    def update_x(self):
+        if _DEBUG:
+            print(f"ScoreWindow::update_x")
+
+        for label in self.labels:
+            label.x += self.x_movement
+
+    def update_y(self):
+        if _DEBUG:
+            print(f"ScoreWindow::update_x")
+
+        for label in self.labels:
+            label.y += self.y_movement
+
     def on_key_press(self, symbol, modifiers):
         if _DEBUG:
             print(f"on_key_press, symbol: {symbol}, modifiers: {modifiers}")
@@ -135,27 +155,24 @@ class ScoreWindow(pyglet.window.Window):
             case self.msvcfg.KEYBIND_UP:
                 if _DEBUG:
                     print(f"up key pressed: {symbol}")
-
-                for label in self.labels:
-                    label.y -= int(self.msvcfg.FAST_MOVEMENT)
+                self.y_movement = -1 * int(self.msvcfg.FAST_MOVEMENT)
+                # for label in self.labels:
+                #     label.y -= int(self.msvcfg.FAST_MOVEMENT)
 
             case self.msvcfg.KEYBIND_DOWN:
                 if _DEBUG:
                     print(f"down key pressed: {symbol}")
-                for label in self.labels:
-                    label.y += int(self.msvcfg.FAST_MOVEMENT)
+                self.y_movement = int(self.msvcfg.FAST_MOVEMENT)
 
             case self.msvcfg.KEYBIND_LEFT:
                 if _DEBUG:
                     print(f"left key pressed: {symbol}")
-                for label in self.labels:
-                    label.x += int(self.msvcfg.FAST_MOVEMENT)
+                self.x_movement = int(self.msvcfg.FAST_MOVEMENT)
 
             case self.msvcfg.KEYBIND_RIGHT:
                 if _DEBUG:
                     print(f"right key pressed: {symbol}")
-                for label in self.labels:
-                    label.x -= int(self.msvcfg.FAST_MOVEMENT)
+                self.x_movement = -1 * int(self.msvcfg.FAST_MOVEMENT)
 
             case self.msvcfg.KEYBIND_EXIT:
                 if _DEBUG:
@@ -172,15 +189,19 @@ class ScoreWindow(pyglet.window.Window):
             case self.msvcfg.KEYBIND_UP:
                 if _DEBUG:
                     print(f"up key released: {symbol}")
+                self.y_movement = 0
             case self.msvcfg.KEYBIND_DOWN:
                 if _DEBUG:
                     print(f"down key released: {symbol}")
+                self.y_movement = 0
             case self.msvcfg.KEYBIND_LEFT:
                 if _DEBUG:
                     print(f"left key released: {symbol}")
+                self.x_movement = 0
             case self.msvcfg.KEYBIND_RIGHT:
                 if _DEBUG:
                     print(f"right key released: {symbol}")
+                self.x_movement = 0
             case _:
                 if _DEBUG:
                     print(f"other key released")
