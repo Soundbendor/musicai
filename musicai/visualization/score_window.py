@@ -86,7 +86,7 @@ class ScoreWindow(pyglet.window.Window):
                     for vert in barline_verts:
                         self.barlines.append(vert)
                 x = 0
-                y -= 200            
+                y -= 200
 
     def on_draw(self):
         self.clear()
@@ -135,15 +135,28 @@ class ScoreWindow(pyglet.window.Window):
             case self.msvcfg.KEYBIND_UP:
                 if _DEBUG:
                     print(f"up key pressed: {symbol}")
+
+                for label in self.labels:
+                    label.y -= int(self.msvcfg.FAST_MOVEMENT)
+
             case self.msvcfg.KEYBIND_DOWN:
                 if _DEBUG:
                     print(f"down key pressed: {symbol}")
+                for label in self.labels:
+                    label.y += int(self.msvcfg.FAST_MOVEMENT)
+
             case self.msvcfg.KEYBIND_LEFT:
                 if _DEBUG:
                     print(f"left key pressed: {symbol}")
+                for label in self.labels:
+                    label.x += int(self.msvcfg.FAST_MOVEMENT)
+
             case self.msvcfg.KEYBIND_RIGHT:
                 if _DEBUG:
                     print(f"right key pressed: {symbol}")
+                for label in self.labels:
+                    label.x -= int(self.msvcfg.FAST_MOVEMENT)
+
             case self.msvcfg.KEYBIND_EXIT:
                 if _DEBUG:
                     print(f"escape pressed: {symbol}")
