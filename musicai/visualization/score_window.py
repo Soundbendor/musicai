@@ -21,7 +21,7 @@ class ScoreWindow(pyglet.window.Window):
         self.background = pyglet.image.SolidColorImagePattern(
             (255, 255, 255, 255)).create_image(self.width, self.height)
 
-        pyglet.font.add_file('./visualization/assets/Bravura.otf')
+        pyglet.font.add_file(self.msvcfg.MUSIC_FONT_FILE)
         bravura = pyglet.font.load(self.msvcfg.MUSIC_FONT_NAME)
 
         self.label = pyglet.text.Label(chr(int('F472', 16)),
