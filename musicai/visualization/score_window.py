@@ -18,12 +18,10 @@ class ScoreWindow(pyglet.window.Window):
         config = pyglet.gl.Config(
             sample_buffers=1, samples=8, double_buffer=False)
         self.msvcfg = WindowConfig()
-        self.background = pyglet.image.SolidColorImagePattern(
-            (255, 255, 255, 255)).create_image(self.width, self.height)
-
         pyglet.font.add_file(self.msvcfg.MUSIC_FONT_FILE)
         bravura = pyglet.font.load(self.msvcfg.MUSIC_FONT_NAME)
 
+        # TODO: What does label do and do we need it?
         self.label = pyglet.text.Label(chr(int('F472', 16)),
                                        font_name=self.msvcfg.MUSIC_FONT_NAME,
                                        font_size=int(self.msvcfg.MUSIC_FONT_SIZE),
@@ -38,9 +36,8 @@ class ScoreWindow(pyglet.window.Window):
         self.score = score
 
         self.labels = []
-        self.measure_height = 80
+        self.measure_height = int(self.msvcfg.MEASURE_HEIGHT)
 
-        self.load_labels(0, self.height - int(self.msvcfg.TOP_OFFSET))
         # self.load_measure_one(0, 100)
 
         # self.line = shapes.Line(
@@ -95,6 +92,9 @@ class ScoreWindow(pyglet.window.Window):
                 y -= 200
 
     def initialize_display_elements(self):
+        self.background = pyglet.image.SolidColorImagePattern(
+            (255, 255, 255, 255)).create_image(self.width, self.height)
+        self.load_labels(0, self.height - int(self.msvcfg.TOP_OFFSET))
         for i in range(len(self.score.systems[0].parts[0].measures)):
             self.draw_measure(i * 100, 100)
 
