@@ -61,6 +61,11 @@ class ScoreWindow(pyglet.window.Window):
             staff.append(bar_line)
             self.measures.append(staff[i])
 
+    def draw_measures(self):
+        for num_parts in range(len(self.score.systems[0].parts)):
+            for num_measures in range(len(self.score.systems[0].parts[0].measures)):
+                self.draw_measure(num_measures * 100, self.height - self.msvcfg.TOP_OFFSET - (num_parts * 200))
+
     def load_barlines(self, measure_area):
         verts = measure_area.get_barlines()
         self.barlines.append(verts)
@@ -96,10 +101,7 @@ class ScoreWindow(pyglet.window.Window):
         self.background = pyglet.image.SolidColorImagePattern(
             (255, 255, 255, 255)).create_image(self.width, self.height)
         self.load_labels(0, self.height - int(self.msvcfg.TOP_OFFSET))
-        # currently, this loop only happens once, and draws the entire measure line only once
-        for num_parts in range(len(self.score.systems[0].parts)):
-            for num_measures in range(len(self.score.systems[0].parts[0].measures)):
-                self.draw_measure(num_measures * 100, self.height - self.msvcfg.TOP_OFFSET - (num_parts * 200))
+        self.draw_measures()
 
         barline_shapes = []
 
@@ -123,11 +125,10 @@ class ScoreWindow(pyglet.window.Window):
         self.update_y()
 
         self.batch.draw()
+        # TODO I'm not sure what this line does or if it needs to be included.
         # pyglet.gl.glFlush()
 
-        # self.measures.clear()
-        # self.barlines.clear()
-        # barline_shapes.clear()
+
 
     def display(self):
         pyglet.app.run()
