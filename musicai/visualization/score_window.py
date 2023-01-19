@@ -40,6 +40,7 @@ class ScoreWindow(pyglet.window.Window):
 
         self.labels = []
         self.measure_height = int(self.msvcfg.MEASURE_HEIGHT)
+        self.measure_area_width = []
 
         # self.load_measure_one(0, 100)
 
@@ -50,21 +51,32 @@ class ScoreWindow(pyglet.window.Window):
         self.x_movement = 0
         self.y_movement = 0
 
-    def draw_measure(self, x, y):
+    def draw_measure(self, x_start, measure_length, y):
+    # def draw_measure(self, x, y):
+
         zoom = 1    # zoom size: integrate keyboard/mouse scrolling to edit. Also make class variable
 
         spacing = 20
 
         staff = []
         for i in range(5):
-            bar_line = shapes.Line(x, y + i * (spacing * zoom), (x + 100) * zoom, y + i * (spacing * zoom), width=2, color=(0, 0, 0), batch=self.batch)
+            # bar_line = shapes.Line(0, y + i * (spacing * zoom), x * zoom, y + i * (spacing * zoom), width=2, color=(0, 0, 0), batch=self.batch)
+            bar_line = shapes.Line(x_start, y + i * (spacing * zoom), (x_start + measure_length) * zoom, y + i * (spacing * zoom), width=2, color=(0, 0, 0), batch=self.batch)
             staff.append(bar_line)
             self.measures.append(staff[i])
 
+    # TODO: Do we want each measure length to be a separate segment?
+    # The code listed here can be adapted to draw as a whole line, or as separate segments
     def draw_measures(self):
+        # total_width = sum(self.measure_area_width)
+        # print(f"total_width: {total_width}")
         for num_parts in range(len(self.score.systems[0].parts)):
+            total_width = 0
+            # self.draw_measure(total_width, self.height - self.msvcfg.TOP_OFFSET - (num_parts * 200))
             for num_measures in range(len(self.score.systems[0].parts[0].measures)):
-                self.draw_measure(num_measures * 100, self.height - self.msvcfg.TOP_OFFSET - (num_parts * 200))
+                measure_width = self.measure_area_width[num_measures]
+                self.draw_measure(total_width, measure_width ,self.height - self.msvcfg.TOP_OFFSET - (num_parts * self.msvcfg.MEASURE_OFFSET))
+                total_width += measure_width
 
     def load_barlines(self, measure_area):
         verts = measure_area.get_barlines()
@@ -95,7 +107,8 @@ class ScoreWindow(pyglet.window.Window):
                     for vert in barline_verts:
                         self.barlines.append(vert)
                 x = 0
-                y -= 200
+                y -= self.msvcfg.MEASURE_OFFSET
+        self.measure_area_width = measure_area_width
 
     def initialize_display_elements(self):
         self.background = pyglet.image.SolidColorImagePattern(
