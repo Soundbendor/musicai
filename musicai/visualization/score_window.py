@@ -13,11 +13,12 @@ _DEBUG = True
 
 class ScoreWindow(pyglet.window.Window):
     def __init__(self, score):
-        super(ScoreWindow, self).__init__()
+        self.msvcfg = WindowConfig()
+        super(ScoreWindow, self).__init__(height=int(self.msvcfg.SCREEN_HEIGHT), width=int(self.msvcfg.SCREEN_WIDTH))
 
         config = pyglet.gl.Config(
             sample_buffers=1, samples=8, double_buffer=False)
-        self.msvcfg = WindowConfig()
+
         pyglet.font.add_file(self.msvcfg.MUSIC_FONT_FILE)
         bravura = pyglet.font.load(self.msvcfg.MUSIC_FONT_NAME)
 
@@ -46,8 +47,6 @@ class ScoreWindow(pyglet.window.Window):
         self.initialize_display_elements()
         self.x_movement = 0
         self.y_movement = 0
-
-        print(f"self.height: {self.height} self.width: {self.width}")
 
     def draw_measure(self, x, y):
         zoom = 1    # zoom size: integrate keyboard/mouse scrolling to edit. Also make class variable

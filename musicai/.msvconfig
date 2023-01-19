@@ -1,5 +1,5 @@
 SCREEN_WIDTH=1200
-SCREEN_HEIGHT=675
+SCREEN_HEIGHT=900
 MUSIC_FONT_NAME="Bravura"
 MUSIC_FONT_FILE="./visualization/assets/Bravura.otf"
 FONT_GLYPH_FILE="../../assets/fonts/glyphnames.json"
