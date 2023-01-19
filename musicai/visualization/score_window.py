@@ -34,6 +34,7 @@ class ScoreWindow(pyglet.window.Window):
         self.batch = pyglet.graphics.Batch()
         self.measures = []
         self.barlines = []
+        self.barline_shapes = []
 
         self.score = score
 
@@ -56,8 +57,8 @@ class ScoreWindow(pyglet.window.Window):
 
         staff = []
         for i in range(5):
-            staff.append(shapes.Line(
-                x, y + i * (spacing * zoom), (x + 100) * zoom, y + i * (spacing * zoom), width=2, color=(0, 0, 0), batch=self.batch))
+            bar_line = shapes.Line(x, y + i * (spacing * zoom), (x + 100) * zoom, y + i * (spacing * zoom), width=2, color=(0, 0, 0), batch=self.batch)
+            staff.append(bar_line)
             self.measures.append(staff[i])
 
     def load_barlines(self, measure_area):
@@ -95,8 +96,10 @@ class ScoreWindow(pyglet.window.Window):
         self.background = pyglet.image.SolidColorImagePattern(
             (255, 255, 255, 255)).create_image(self.width, self.height)
         self.load_labels(0, self.height - int(self.msvcfg.TOP_OFFSET))
-        for i in range(len(self.score.systems[0].parts[0].measures)):
-            self.draw_measure(i * 100, 100)
+        # currently, this loop only happens once, and draws the entire measure line only once
+        for num_parts in range(len(self.score.systems[0].parts)):
+            for num_measures in range(len(self.score.systems[0].parts[0].measures)):
+                self.draw_measure(num_measures * 100, self.height - self.msvcfg.TOP_OFFSET - (num_parts * 200))
 
         barline_shapes = []
 
@@ -110,6 +113,7 @@ class ScoreWindow(pyglet.window.Window):
                     y_start = vert[1]
             line = shapes.Line(x, y_start, x, y_end, width=2, color=(0, 0, 0), batch=self.batch)
             barline_shapes.append(line)
+        self.barline_shapes = barline_shapes
 
     def on_draw(self):
         self.clear()
@@ -139,12 +143,16 @@ class ScoreWindow(pyglet.window.Window):
             label.x += self.x_movement
         for measure in self.measures:
             measure.x += self.x_movement
+        for barline_shape in self.barline_shapes:
+            barline_shape.x += self.x_movement
 
     def update_y(self):
         for label in self.labels:
             label.y += self.y_movement
         for measure in self.measures:
             measure.y += self.y_movement
+        for barline_shape in self.barline_shapes:
+            barline_shape.y += self.y_movement
 
     def on_key_press(self, symbol, modifiers):
         if _DEBUG:
