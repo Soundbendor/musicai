@@ -14,8 +14,9 @@ _DEBUG = True
 class ScoreWindow(pyglet.window.Window):
     def __init__(self, score):
         self.msvcfg = WindowConfig()
-        super(ScoreWindow, self).__init__(height=int(self.msvcfg.SCREEN_HEIGHT), width=int(self.msvcfg.SCREEN_WIDTH))
+        super(ScoreWindow, self).__init__(height=self.msvcfg.SCREEN_HEIGHT, width=self.msvcfg.SCREEN_WIDTH)
 
+        # TODO: Is this variable used at all?
         config = pyglet.gl.Config(
             sample_buffers=1, samples=8, double_buffer=False)
 
@@ -134,20 +135,22 @@ class ScoreWindow(pyglet.window.Window):
         pass
 
     def update_x(self):
-        for label, measure in zip(self.labels, self.measures):
+        for label in self.labels:
             label.x += self.x_movement
+        for measure in self.measures:
             measure.x += self.x_movement
 
     def update_y(self):
-        for label, measure in zip(self.labels, self.measures):
+        for label in self.labels:
             label.y += self.y_movement
+        for measure in self.measures:
             measure.y += self.y_movement
 
     def on_key_press(self, symbol, modifiers):
         if _DEBUG:
             print(f"on_key_press, symbol: {symbol}, modifiers: {modifiers}")
 
-        match str(symbol):
+        match symbol:
             case self.msvcfg.KEYBIND_UP:
                 if _DEBUG:
                     print(f"up key pressed: {symbol}")
@@ -172,7 +175,7 @@ class ScoreWindow(pyglet.window.Window):
     def on_key_release(self, symbol, modifiers):
         if _DEBUG:
             print(f"on_key_release, symbol: {symbol}, modifiers: {modifiers}")
-        match str(symbol):
+        match symbol:
             case self.msvcfg.KEYBIND_UP:
                 self.y_movement = 0
             case self.msvcfg.KEYBIND_DOWN:
