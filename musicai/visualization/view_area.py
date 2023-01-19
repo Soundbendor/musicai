@@ -53,10 +53,10 @@ class Glyph(pyglet.text.Label):
         else:
             print("Not found: " + glyph_id)
             raise ValueError('Glyph {0} not found in font.'.format(glyph_id))
-    
+
     def __str__(self):
         return f"x: {self.label_x:.3f} y: {self.label_y:.3f} glyph type: {self.gtype}"
-    
+
     def __repr__(self):
         return self.__str__()
 
@@ -104,6 +104,7 @@ class MeasureArea(ViewArea):
         # TODO left barline should only print for first measure otherwise print right barline
         x, y = self.layout_left_barline(x, y)
         x, y = self.layout_clef(x, y)
+        x, y = self.layout_key(x, y)
         x, y = self.layout_time_signature(x, y)
         for note in self.measure.notes:
             x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
@@ -152,7 +153,7 @@ class MeasureArea(ViewArea):
         clef_offset = 0
         match clef_pitch:
             case 53:  # bass clef
-                clef_offset = 13
+                clef_offset = 12
             case 60:  # alto clef
                 clef_offset = 6
         if _DEBUG:
@@ -165,9 +166,10 @@ class MeasureArea(ViewArea):
         if isinstance(note, Rest):
             if _DEBUG:
                 print('rest=', note, note.glyph)
-            rest_label = self.add_label(note.glyph, GlyphType.REST, x=x, y=y)
+            rest_label = self.add_label(
+                note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 5)
             # Replace six with env['HSPACE'] or equivalent solution
-            x += rest_label.content_width + 6
+            x += rest_label.content_width + int((6 * (100 * note.value)))
             return x, y
 
         notes = []
@@ -219,31 +221,45 @@ class MeasureArea(ViewArea):
     def layout_clef(self, x, y):
         if (self.index == 0):
             x += 6
+            clef_pitch = self.measure.clef.value
+            # base is treble (G) clef
+            clef_offset = self.spacing // 2 - 5
+            match clef_pitch:
+                case 53:  # bass clef
+                    clef_offset = (self.spacing // 2) * 4 + 4
+                case 60:  # alto clef
+                    clef_offset = (self.spacing // 2) * 2 + 4
             clef_label = self.add_label(
-                self.measure.clef.glyph, GlyphType.CLEF, x=x, y=y + self.spacing * 2 + 5)
+                self.measure.clef.glyph, GlyphType.CLEF, x=x, y=y + self.spacing * 2 + clef_offset)
             x += clef_label.content_width + 10
         return x, y
 
     def layout_time_signature(self, x, y):
         if (self.index == 0):
             time_sig = self.measure.time
-
             time_sig_numerator = pyglet.text.Label(str(time_sig.numerator),
                                                    font_name=self.msvcfg.MUSIC_FONT_NAME,
-                                                   font_size=int(self.msvcfg.MUSIC_FONT_SIZE),
+                                                   font_size=int(
+                                                       self.msvcfg.MUSIC_FONT_SIZE),
                                                    x=x, y=y + self.spacing * 3 + 5,
                                                    anchor_x='center', anchor_y='center')
             time_sig_numerator.color = (0, 0, 0, 255)
             self.labels.append(time_sig_numerator)
             time_sig_denominator = pyglet.text.Label(str(time_sig.denominator),
                                                      font_name=self.msvcfg.MUSIC_FONT_NAME,
-                                                     font_size=int(self.msvcfg.MUSIC_FONT_SIZE),
+                                                     font_size=int(
+                                                         self.msvcfg.MUSIC_FONT_SIZE),
                                                      x=x, y=y + self.spacing + 5,
                                                      anchor_x='center', anchor_y='center')
             time_sig_denominator.color = (0, 0, 0, 255)
             self.labels.append(time_sig_denominator)
 
             x += time_sig_numerator.content_width + 15
+
+        return x, y
+
+    def layout_key(self, x, y):
+        key = self.measure.key
 
         return x, y
 
