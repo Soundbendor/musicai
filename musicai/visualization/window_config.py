@@ -12,15 +12,19 @@ class WindowConfig:
 
         self.file_name = file_name
         self.data = dotenv_values(self.file_name)
-        self.parse_config_file()
+        self._parse_config_file()
 
-    def parse_config_file(self):
+    def _parse_config_file(self):
         if _DEBUG:
             print("WindowConfig::parse_config_file")
         for key, value in self.data.items():
             if _DEBUG:
                 print(f"{key}: {value}")
-            setattr(self, key, value)
+            try:
+                a_val = int(value)
+            except ValueError:
+                a_val = value
+            setattr(self, key, a_val)
 
 # def main():
 #     print("Hello World")
