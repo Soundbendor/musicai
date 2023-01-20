@@ -1,6 +1,8 @@
 import operator
 import unittest
 
+import sys
+sys.path.insert(0, '../musicai')
 from musicai.structure.note import NoteType, NoteValue, DotType, Ratio, TupletType
 
 
@@ -188,19 +190,48 @@ class NoteValueTest(unittest.TestCase):
                          '<NoteValue(0.00025801264772727276) nt=Four Thousand Ninety Sixth, d=4, r=11:6>')
 
     def test_lt_override(self):
-        pass
+        self.assertLess(NoteValue(NoteType.NONE, DotType.NONE, TupletType.REGULAR),
+                        NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertLess(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR),
+                        NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertLess(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR),
+                        NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR))        
 
     def test_le_override(self):
-        pass
+        self.assertLessEqual(NoteValue(NoteType.NONE, DotType.NONE, TupletType.REGULAR),
+                             NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertLessEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR),
+                             NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertLessEqual(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR),
+                             NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR))
+        self.assertLessEqual(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR),
+                             NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR))
 
     def test_gt_override(self):
-        pass
+        self.assertGreater(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR),
+                            NoteValue(NoteType.NONE, DotType.NONE, TupletType.REGULAR))
+        self.assertGreater(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR),
+                            NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertGreater(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR),
+                            NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR))
 
     def test_ge_override(self):
-        pass
+        self.assertGreaterEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR),
+                                NoteValue(NoteType.NONE, DotType.NONE, TupletType.REGULAR))
+        self.assertGreaterEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR),
+                                NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertGreaterEqual(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR),
+                                NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR))
+        self.assertGreaterEqual(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR),
+                                NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR))
 
     def test_eq_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR),
+                         NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR),
+                         NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))                 
+        self.assertEqual(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR),
+                         NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR))
 
     def test_ne_override(self):
         pass
@@ -261,3 +292,6 @@ class NoteValueTest(unittest.TestCase):
 
     def test_find(self):
         pass
+
+if __name__ == '__main__':
+    unittest.main()
