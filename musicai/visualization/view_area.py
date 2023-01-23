@@ -187,13 +187,13 @@ class MeasureArea(ViewArea):
             if str(n.accidental).strip() != '':
                 if n.pitch.step not in self.measure.key.altered():
                     accidental_label = self.add_label(
-                        n.accidental.glyph, GlyphType.ACCIDENTAL, x, y + 3 + line_offset * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                        n.accidental.glyph, GlyphType.ACCIDENTAL, x, y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
                     x += accidental_label.content_width + 6
 
             gtype = GlyphType.NOTE_UP if n.stem.UP else GlyphType.NOTE_DOWN
             # Replace 6 with env['VSPACE'] or equivalent solution
             note_label = self.add_label(
-                n.glyph, gtype, x=x, y=y + 3 + line_offset * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                n.glyph, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
             x += note_label.content_width + int((6 * (100 * n.value)))
         return x, y
 
@@ -220,12 +220,12 @@ class MeasureArea(ViewArea):
             x += 6
             clef_pitch = self.measure.clef.value
             # base is treble (G) clef
-            clef_offset = self.spacing // 2 - 5
+            clef_offset = self.spacing // 2 + 3
             match clef_pitch:
                 case 53:  # bass clef
-                    clef_offset = (self.spacing // 2) * 4 + 4
+                    clef_offset = (self.spacing // 2) * 5 + 3
                 case 60:  # alto clef
-                    clef_offset = (self.spacing // 2) * 2 + 4
+                    clef_offset = (self.spacing // 2) * 3 + 3
             clef_label = self.add_label(
                 self.measure.clef.glyph, GlyphType.CLEF, x=x, y=y + self.spacing * 2 + clef_offset)
             x += clef_label.content_width + 10
@@ -237,16 +237,16 @@ class MeasureArea(ViewArea):
             time_sig_numerator = pyglet.text.Label(str(time_sig.numerator),
                                                    font_name=self.msvcfg.MUSIC_FONT_NAME,
                                                    font_size=int(
-                                                       self.msvcfg.MUSIC_FONT_SIZE),
-                                                   x=x, y=y + self.spacing * 3 + 5,
+                                                       self.msvcfg.MUSIC_FONT_SIZE - 5),
+                                                   x=x, y=y + self.spacing * 3 + 8,
                                                    anchor_x='center', anchor_y='center')
             time_sig_numerator.color = (0, 0, 0, 255)
             self.labels.append(time_sig_numerator)
             time_sig_denominator = pyglet.text.Label(str(time_sig.denominator),
                                                      font_name=self.msvcfg.MUSIC_FONT_NAME,
                                                      font_size=int(
-                                                         self.msvcfg.MUSIC_FONT_SIZE),
-                                                     x=x, y=y + self.spacing + 5,
+                                                         self.msvcfg.MUSIC_FONT_SIZE - 5),
+                                                     x=x, y=y + self.spacing + 10,
                                                      anchor_x='center', anchor_y='center')
             time_sig_denominator.color = (0, 0, 0, 255)
             self.labels.append(time_sig_denominator)
