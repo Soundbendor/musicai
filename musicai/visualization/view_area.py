@@ -11,6 +11,43 @@ from visualization.window_config import WindowConfig
 
 _DEBUG = False
 
+# stores [[sharps], [flats]]
+#TODO: modes
+key_accidentals = {
+    # major scales
+    'C Major': [[], []],
+    'G Major': [['F'], []],
+    'D Major': [['F', 'C'], []],
+    'A Major': [['F', 'C', 'G'], []],
+    'E Major': [['F', 'C', 'G', 'D'], []],
+    'B Major': [['F', 'C', 'G', 'D', 'A'], []],
+    'Fs Major': [['F', 'C', 'G', 'D', 'A', 'E'], []],
+    'Cs Major': [['F', 'C', 'G', 'D', 'A', 'E', 'B'], []],
+    'F Major': [[], ['B']],
+    'Bb Major': [[], ['B', 'E']],
+    'Eb Major': [[], ['B', 'E', 'A']],
+    'Ab Major': [[], ['B', 'E', 'A', 'D']],
+    'Db Major': [[], ['B', 'E', 'A', 'D', 'G']],
+    'Gb Major': [[], ['B', 'E', 'A', 'D', 'G', 'C']],
+    'Cb Major': [[], ['B', 'E', 'A', 'D', 'G', 'C', 'F']],
+    # minor scales
+    'A Minor': [[], []],
+    'D Minor': [[], ['B']],
+    'G Minor': [[], ['B', 'E']],
+    'C Minor': [[], ['B', 'E', 'A']],
+    'F Minor': [[], ['B', 'E', 'A', 'D']],
+    'Bb Minor': [[], ['B', 'E', 'A', 'D', 'G']],
+    'Eb Minor': [[], ['B', 'E', 'A', 'D', 'G', 'C']],
+    'Ab Minor': [[], ['B', 'E', 'A', 'D', 'G', 'C', 'F']],
+    'E Minor': [['F'], []],
+    'B Minor': [['F', 'C'], []],
+    'Fs Minor': [['F', 'C', 'G'], []],
+    'Cs Minor': [['F', 'C', 'G', 'D'], []],
+    'Gs Minor': [['F', 'C', 'G', 'D', 'A'], []],
+    'Ds Minor': [['F', 'C', 'G', 'D', 'A', 'E'], []],
+    'As Minor': [['F', 'C', 'G', 'D', 'A', 'E', 'B'], []],
+}
+
 
 class GlyphType(Enum):
     CLEF = auto()
@@ -101,7 +138,7 @@ class MeasureArea(ViewArea):
         # TODO left barline should only print for first measure otherwise print right barline
         x, y = self.layout_left_barline(x, y)
         x, y = self.layout_clef(x, y)
-        x, y = self.layout_key(x, y)
+        x, y = self.layout_key_signature(x, y)
         x, y = self.layout_time_signature(x, y)
         for note in self.measure.notes:
             x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
@@ -255,8 +292,49 @@ class MeasureArea(ViewArea):
 
         return x, y
 
-    def layout_key(self, x, y):
-        key = self.measure.key
+    def key_sig_offset(self, note, accidental_type):
+        offset = 0
+
+        match note:
+            case 'C':
+                offset += 8
+            case 'D':
+                offset += 9
+            case 'E':
+                offset += 10
+            case 'F':
+                if (accidental_type == 'sharp'):
+                    offset += 11
+                else:
+                    offset += 3
+            case 'G':
+                if (accidental_type == 'sharp'):
+                    offset += 12
+                else:
+                    offset += 4
+            case 'A':
+                offset += 5
+            case 'B':
+                offset += 6
+
+        return offset
+
+    def layout_key_signature(self, x, y):
+        if (self.index == 0):
+            key = self.measure.key
+            accidentals = key_accidentals[key.__str__()]
+            print(key_accidentals[key.__str__()])
+            for note in accidentals[0]:
+                line_offset = self.key_sig_offset(note, 'sharp')
+                accidental_label = self.add_label(
+                    'accidentalSharp', GlyphType.ACCIDENTAL, x, y + 3 + (line_offset) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                x += accidental_label.content_width + 4
+            for note in accidentals[1]:
+                line_offset = self.key_sig_offset(note, 'flat')
+                accidental_label = self.add_label(
+                    'accidentalFlat', GlyphType.ACCIDENTAL, x, y + 3 + (line_offset) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                x += accidental_label.content_width + 4
+        x += 10
         return x, y
 
     def draw(self):
