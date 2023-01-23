@@ -11,8 +11,6 @@ from visualization.window_config import WindowConfig
 
 _DEBUG = False
 
-# TODO Figure out if build_env is best practice for python and change magic numbers to what's commented
-
 
 class GlyphType(Enum):
     CLEF = auto()
@@ -35,7 +33,6 @@ class GlyphType(Enum):
         return obj
 
 
-# normally takes arcade.text as param find out why? --- maybe do pyglet.text.Label instead(?)
 class Glyph(pyglet.text.Label):
     glyph_map = json.load(open('./visualization/assets/glyphnames.json'))
 
@@ -260,7 +257,6 @@ class MeasureArea(ViewArea):
 
     def layout_key(self, x, y):
         key = self.measure.key
-
         return x, y
 
     def draw(self):

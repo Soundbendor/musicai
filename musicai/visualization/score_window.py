@@ -69,7 +69,6 @@ class ScoreWindow(pyglet.window.Window):
 
                 total_width += measure_width
     """
-
     def _draw_measure(self, x, y):
         for i in range(5):
             y_value = y + i * (self.msvcfg.MEASURE_LINE_SPACING * self.zoom)
