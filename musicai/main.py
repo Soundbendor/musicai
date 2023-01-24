@@ -33,21 +33,6 @@ def main():
     #file = '../examples/mxml/Saltarello.musicxml'              # self.barlines issue in score_window.py 
     #file = '../examples/mxml/SchbAvMaSample.musicxml'          # Glyph noteUp not found in font in view_area.py
 
-    # ---- Non-working musicxml files ----
-    #file = '../examples/mxml/ActorPreludeSample.musicxml'      # Chord problem?
-    #file = '../examples/mxml/BeetAnGeSample.musicxml'          # Glyph noteUp not found in font in view_area.py
-    #file = '../examples/mxml/Binchois.musicxml'                # Issue with mxml parser
-    #file = '../examples/mxml/BrookeWestSample.musicxml'        # Issue with mxml parser
-    #file = '../examples/mxml/Chant.musicxml'                   # Issue with mxml parser
-    #file = '../examples/mxml/DebuMandSample.musicxml'          # Issue with mxml parser
-    #file = '../examples/mxml/Echigo-Jishi.musicxml'            # self.barlines issue in score_window.py
-    #file = '../examples/mxml/FaurReveSample.musicxml'          # Issue in mxml parser
-    #file = '../examples/mxml/HelloWorld.musicxml'              # Glyph noteWholeUp note found in font in view_area.py
-    #file = '../examples/mxml/MozartPianoSonata.musicxml'       # Issue with mxml parser
-    #file = '../examples/mxml/MozaVeilSample.musicxml'          # Glyph noteUp not found in font in view_area.py
-    #file = '../examples/mxml/Saltarello.musicxml'              # self.barlines issue in score_window.py 
-    #file = '../examples/mxml/SchbAvMaSample.musicxml'          # Glyph noteUp not found in font in view_area.py
-
     # ---- Non-working mxl files ---- (Not supported in mxml parser)
     #file = '../examples/mxml/ActorPreludeSample.mxl'      
     #file = '../examples/mxml/BeetAnGeSample.mxl'          
