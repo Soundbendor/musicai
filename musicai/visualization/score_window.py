@@ -7,6 +7,7 @@ import json
 from fileio.mxml import MusicXML
 from visualization.view_area import MeasureArea
 from visualization.window_config import WindowConfig
+from visualization.view_area import key_accidentals
 
 _DEBUG = True
 
@@ -14,7 +15,8 @@ _DEBUG = True
 class ScoreWindow(pyglet.window.Window):
     def __init__(self, score):
         self.msvcfg = WindowConfig()
-        super(ScoreWindow, self).__init__(height=self.msvcfg.SCREEN_HEIGHT, width=self.msvcfg.SCREEN_WIDTH)
+        super(ScoreWindow, self).__init__(
+            height=self.msvcfg.SCREEN_HEIGHT, width=self.msvcfg.SCREEN_WIDTH)
 
         # TODO: Is this variable used at all?
         config = pyglet.gl.Config(
@@ -26,7 +28,8 @@ class ScoreWindow(pyglet.window.Window):
         # TODO: What does label do and do we need it?
         self.label = pyglet.text.Label(chr(int('F472', 16)),
                                        font_name=self.msvcfg.MUSIC_FONT_NAME,
-                                       font_size=int(self.msvcfg.MUSIC_FONT_SIZE),
+                                       font_size=int(
+                                           self.msvcfg.MUSIC_FONT_SIZE),
                                        x=self.width // 2, y=self.height // 2,
                                        anchor_x='center', anchor_y='center')
         self.label.color = (0, 0, 0, 255)
@@ -48,12 +51,26 @@ class ScoreWindow(pyglet.window.Window):
 
     # TODO: Do we want each measure length to be a separate segment?
 
+    def max_key_sig_width(self):
+        max_accidentals = 0
+        for system in self.score.systems:
+            for part in system.parts:
+                for measure in part.measures:
+                    key = measure.key
+                    accidentals = key_accidentals[key.__str__()]
+                    if len(accidentals[0]) > max_accidentals:
+                        max_accidentals = len(accidentals[0])
+                    elif len(accidentals[1]) > max_accidentals:
+                        max_accidentals = len(accidentals[1])
+        return max_accidentals
+
     def _draw_measure(self, x_start, measure_length, y):
         for i in range(5):
             y_value = y + i * (self.msvcfg.MEASURE_LINE_SPACING * self.zoom)
             x_end = (x_start + measure_length) * self.zoom
 
-            bar_line = shapes.Line(x_start, y_value, x_end, y_value, width=2, color=(0, 0, 0), batch=self.batch)
+            bar_line = shapes.Line(
+                x_start, y_value, x_end, y_value, width=2, color=(0, 0, 0), batch=self.batch)
 
             self.measures.append(bar_line)
 
@@ -63,7 +80,8 @@ class ScoreWindow(pyglet.window.Window):
 
             for num_measures in range(len(self.score.systems[0].parts[0].measures)):
                 measure_width = self.measure_area_width[num_measures]
-                measure_length = self.height - self.msvcfg.TOP_OFFSET - (num_parts * self.msvcfg.MEASURE_OFFSET)
+                measure_length = self.height - self.msvcfg.TOP_OFFSET - \
+                    (num_parts * self.msvcfg.MEASURE_OFFSET)
 
                 self._draw_measure(total_width, measure_width, measure_length)
 
@@ -83,22 +101,26 @@ class ScoreWindow(pyglet.window.Window):
             part_height = self.height - self.msvcfg.TOP_OFFSET - (num_parts * self.msvcfg.MEASURE_OFFSET)
             self._draw_measure(total_width, part_height)
     """
+
     def load_barlines(self, measure_area):
         self.barlines.append(measure_area.get_barlines())
 
     def load_labels(self, x, y):
+        key_sig_width = self.max_key_sig_width()
         for system in self.score.systems:
             for i in range(len(system.parts[0].measures)):
                 max_measure_area = 0
                 for part in system.parts:
-                    measure_area = MeasureArea(part.measures[i], x, y, self.measure_height, i)
+                    measure_area = MeasureArea(
+                        part.measures[i], x, y, self.measure_height, key_sig_width, i)
                     if (measure_area.area_width > max_measure_area):
                         max_measure_area = measure_area.area_width
                 self.measure_area_width.append(int(max_measure_area))
 
             for part in system.parts:
                 for idx, measure in enumerate(part.measures):
-                    measure_area = MeasureArea(measure, x, y, self.measure_height, idx)
+                    measure_area = MeasureArea(
+                        measure, x, y, self.measure_height, key_sig_width, idx)
                     # TODO calc and set area_width
                     # x += measure_area.area_width
                     x += self.measure_area_width[idx]
@@ -126,7 +148,8 @@ class ScoreWindow(pyglet.window.Window):
             for vert in self.barlines:
                 if vert[0] == x:
                     y_start = vert[1]
-            line = shapes.Line(x, y_start, x, y_end, width=2, color=(0, 0, 0), batch=self.batch)
+            line = shapes.Line(x, y_start, x, y_end, width=2,
+                               color=(0, 0, 0), batch=self.batch)
             self.barline_shapes.append(line)
 
     def on_draw(self):
@@ -139,8 +162,6 @@ class ScoreWindow(pyglet.window.Window):
         # TODO I'm not sure what this line does or if it needs to be included.
         # pyglet.gl.glFlush()
 
-
-
     def display(self):
         pyglet.app.run()
 
@@ -149,7 +170,6 @@ class ScoreWindow(pyglet.window.Window):
 
     def on_mouse_leave(self, x, y):
         pass
-
 
     def _update_coordinates(self):
         self._update_x()

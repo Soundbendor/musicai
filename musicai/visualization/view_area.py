@@ -112,7 +112,7 @@ class ViewArea():
 
 class MeasureArea(ViewArea):
 
-    def __init__(self, measure, x=0, y=0, height=80, idx=0):
+    def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0):
         super().__init__(x, y)
         self.measure = measure
         self.area_x = x             # Used to store the initial value of x and y as loaded in
@@ -123,6 +123,7 @@ class MeasureArea(ViewArea):
         self.batch = pyglet.graphics.Batch()
         self.barlines = []
         self.index = idx
+        self.key_sig_width = key_sig_width
         self.layout()
 
     def layout(self):
@@ -254,7 +255,7 @@ class MeasureArea(ViewArea):
 
     def layout_clef(self, x, y):
         if (self.index == 0):
-            x += 6
+            x += 12
             clef_pitch = self.measure.clef.value
             # base is treble (G) clef
             clef_offset = self.spacing // 2 + 3
@@ -292,7 +293,7 @@ class MeasureArea(ViewArea):
 
         return x, y
 
-    def key_sig_offset(self, note, accidental_type):
+    def key_sig_accidental_offset(self, note, accidental_type):
         offset = 0
 
         match note:
@@ -323,17 +324,25 @@ class MeasureArea(ViewArea):
         if (self.index == 0):
             key = self.measure.key
             accidentals = key_accidentals[key.__str__()]
-            print(key_accidentals[key.__str__()])
-            for note in accidentals[0]:
-                line_offset = self.key_sig_offset(note, 'sharp')
+            if _DEBUG:
+                print(key_accidentals[key.__str__()])
+            if len(accidentals[0]) == 0 and len(accidentals[1]) == 0:
                 accidental_label = self.add_label(
-                    'accidentalSharp', GlyphType.ACCIDENTAL, x, y + 3 + (line_offset) * (self.spacing // 2))  # (+ 3) to align glyph with staff
-                x += accidental_label.content_width + 4
-            for note in accidentals[1]:
-                line_offset = self.key_sig_offset(note, 'flat')
-                accidental_label = self.add_label(
-                    'accidentalFlat', GlyphType.ACCIDENTAL, x, y + 3 + (line_offset) * (self.spacing // 2))  # (+ 3) to align glyph with staff
-                x += accidental_label.content_width + 4
+                    'accidentalFlat', GlyphType.ACCIDENTAL, x, y)
+                # pass
+                x += (accidental_label.content_width + 4) * self.key_sig_width
+                self.labels.pop()
+            else:
+                for note in accidentals[0]:
+                    line_offset = self.key_sig_accidental_offset(note, 'sharp')
+                    accidental_label = self.add_label(
+                        'accidentalSharp', GlyphType.ACCIDENTAL, x, y + 3 + (line_offset) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                    x += accidental_label.content_width + 4
+                for note in accidentals[1]:
+                    line_offset = self.key_sig_accidental_offset(note, 'flat')
+                    accidental_label = self.add_label(
+                        'accidentalFlat', GlyphType.ACCIDENTAL, x, y + 3 + (line_offset) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                    x += accidental_label.content_width + 4
         x += 10
         return x, y
 
