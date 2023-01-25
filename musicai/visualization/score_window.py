@@ -164,7 +164,7 @@ class ScoreWindow(pyglet.window.Window):
                 x_start = x_start + 4
                 x_end = x_end - 10
                 rectangle = shapes.Rectangle(x_start, y_start,  x_end - x_start, y_end - y_start, color=(0,0,0), batch=self.batch)
-                line = shapes.Line(x_start- 5.5, y_start, x_start-5.5, y_end, width=2, color=(0,0,0), batch=self.batch)
+                line = shapes.Line(x_start- 5, y_start, x_start-5, y_end, width=1, color=(0,0,0), batch=self.batch)
                 self.barline_shapes.append(rectangle)
                 self.barline_shapes.append(line)
             # TODO Modify the connecting barline shapes for different irregular barlines

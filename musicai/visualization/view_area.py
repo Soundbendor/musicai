@@ -140,7 +140,7 @@ class MeasureArea(ViewArea):
 
         if self.index == 0:
             x, y = self.layout_left_barline(x, y)
-        else: x += 14
+        else: x += 24
 
         # x, y = self.layout_left_barline(x,y)
         x, y = self.layout_clef(x, y)
@@ -248,7 +248,7 @@ class MeasureArea(ViewArea):
             print('l-barline=', self.measure.barline)
         if isinstance(self.measure.barline, Barline):
             barline_label = self.add_label(self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
-            x += 14 + barline_label.content_width
+            x += 18 + barline_label.content_width
         elif isinstance(self.measure.barline, BarlineType):
             barline_verts = []
             barline_verts.append(x)
@@ -256,7 +256,7 @@ class MeasureArea(ViewArea):
             barline_verts.append(x)
             barline_verts.append(y + self.area_height)
             self.barlines.append(barline_verts)
-            x += 14
+            x += 18
         return x, y
 
     def layout_right_barline(self,x,y):
@@ -269,7 +269,7 @@ class MeasureArea(ViewArea):
             barline_verts.append(y + self.area_height)
             self.irr_barlines.append(barline_verts)
             self.irr_barlines_idx.append(self.index)
-            x += 14 + barline_label.content_width
+            x += 18 + barline_label.content_width
         elif isinstance(self.measure.barline, BarlineType):
             barline_verts = []
             barline_verts.append(x)
@@ -277,7 +277,7 @@ class MeasureArea(ViewArea):
             barline_verts.append(x)
             barline_verts.append(y + self.area_height)
             self.barlines.append(barline_verts)
-            x += 14
+            x += 18
         return x, y
 
     def layout_clef(self, x, y):
