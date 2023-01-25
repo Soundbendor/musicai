@@ -112,16 +112,18 @@ class ViewArea():
 
 class MeasureArea(ViewArea):
 
-    def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0):
+    def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0, width=0):
         super().__init__(x, y)
         self.measure = measure
         self.area_x = x             # Used to store the initial value of x and y as loaded in
         self.area_y = y
-        self.area_width = x         # Used to store the total width and height a measure takes up
+        self.area_width = width         # Used to store the total width and height a measure takes up
         self.area_height = height
         self.spacing = self.area_height // 4
         self.batch = pyglet.graphics.Batch()
         self.barlines = []
+        self.irr_barlines = []
+        self.irr_barlines_idx= []
         self.index = idx
         self.key_sig_width = key_sig_width
         self.layout()
@@ -136,15 +138,20 @@ class MeasureArea(ViewArea):
 
         clef_pitch = self._clef_line_pitch()
 
-        # TODO left barline should only print for first measure otherwise print right barline
-        x, y = self.layout_left_barline(x, y)
+        if self.index == 0:
+            x, y = self.layout_left_barline(x, y)
+        else: x += 14
+
+        # x, y = self.layout_left_barline(x,y)
         x, y = self.layout_clef(x, y)
         x, y = self.layout_key_signature(x, y)
         x, y = self.layout_time_signature(x, y)
         for note in self.measure.notes:
             x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
 
-        # Currently not setting right barline and instead just setting left one
+        if (self.area_width != 0):
+            x = self.area_width + self.area_x
+        x, y = self.layout_right_barline(x, y)
 
         self.area_width = x - self.area_x
         self.area_height = y + 36
@@ -239,11 +246,31 @@ class MeasureArea(ViewArea):
         # only if Barline is on left
         if _DEBUG:
             print('l-barline=', self.measure.barline)
-        if isinstance(self.measure.barline, BarlineType):
-            # Replace 6 with env['VSPACE'] or equivalent solution
-            # barline_label = self.add_label(
-            #     self.measure.barline.glyph, GlyphType.BARLINE, x=x, y=y + 23)
+        if isinstance(self.measure.barline, Barline):
+            barline_label = self.add_label(self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
+            x += 14 + barline_label.content_width
+        elif isinstance(self.measure.barline, BarlineType):
+            barline_verts = []
+            barline_verts.append(x)
+            barline_verts.append(y)
+            barline_verts.append(x)
+            barline_verts.append(y + self.area_height)
+            self.barlines.append(barline_verts)
+            x += 14
+        return x, y
 
+    def layout_right_barline(self,x,y):
+        if isinstance(self.measure.barline, Barline):
+            barline_label = self.add_label(self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
+            barline_verts = []
+            barline_verts.append(x)
+            barline_verts.append(y)
+            barline_verts.append(x + barline_label.content_width)
+            barline_verts.append(y + self.area_height)
+            self.irr_barlines.append(barline_verts)
+            self.irr_barlines_idx.append(self.index)
+            x += 14 + barline_label.content_width
+        elif isinstance(self.measure.barline, BarlineType):
             barline_verts = []
             barline_verts.append(x)
             barline_verts.append(y)
@@ -368,3 +395,9 @@ class MeasureArea(ViewArea):
 
     def get_barlines(self):
         return self.barlines
+    
+    def get_irr_barlines(self):
+        return self.irr_barlines
+
+    def get_irr_barlines_idx(self):
+        return self.irr_barlines_idx
