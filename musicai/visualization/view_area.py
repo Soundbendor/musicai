@@ -217,21 +217,24 @@ class MeasureArea(ViewArea):
         elif isinstance(note, Note):
             # single note
             notes.append(note)
+
         for n in notes:
             # print(str(n.pitch.step.name) + str(n.pitch.octave) +
             #       ' ' + str(n.pitch.midi))
             # (n.pitch.midi - clef_pitch)//2
             line_offset = self.note_offset(note)
+            # accidentals
             if str(n.accidental).strip() != '':
                 if n.pitch.step not in self.measure.key.altered():
                     accidental_label = self.add_label(
                         n.accidental.glyph, GlyphType.ACCIDENTAL, x, y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
                     x += accidental_label.content_width + 6
-
+            # notes
             gtype = GlyphType.NOTE_UP if n.stem.UP else GlyphType.NOTE_DOWN
             # Replace 6 with env['VSPACE'] or equivalent solution
             note_label = self.add_label(
                 n.glyph, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+            # x offset for notes
             x += note_label.content_width + int((6 * (100 * n.value)))
         return x, y
 
