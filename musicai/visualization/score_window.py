@@ -37,6 +37,8 @@ class ScoreWindow(pyglet.window.Window):
         self.batch = pyglet.graphics.Batch()
         self.measures = list()
         self.barlines = list()
+        self.irr_barlines = list()
+        self.irr_barlines_idx = list()
         self.barline_shapes = list()
 
         self.score = score
@@ -105,6 +107,7 @@ class ScoreWindow(pyglet.window.Window):
     def load_barlines(self, measure_area):
         self.barlines.append(measure_area.get_barlines())
 
+
     def load_labels(self, x, y):
         key_sig_width = self.max_key_sig_width()
         for system in self.score.systems:
@@ -120,7 +123,7 @@ class ScoreWindow(pyglet.window.Window):
             for part in system.parts:
                 for idx, measure in enumerate(part.measures):
                     measure_area = MeasureArea(
-                        measure, x, y, self.measure_height, key_sig_width, idx)
+                        measure, x, y, self.measure_height, key_sig_width, idx, self.measure_area_width[idx])
                     # TODO calc and set area_width
                     # x += measure_area.area_width
                     x += self.measure_area_width[idx]
@@ -131,6 +134,14 @@ class ScoreWindow(pyglet.window.Window):
                     barline_verts = measure_area.get_barlines()
                     for vert in barline_verts:
                         self.barlines.append(vert)
+                    if (measure.has_irregular_rs_barline()):
+                        barline_irr_verts = measure_area.get_irr_barlines()
+                        barline_idx = measure_area.get_irr_barlines_idx()
+                        for vert in barline_irr_verts:
+                            self.irr_barlines.append(vert)
+                        for idx in barline_idx:
+                            if idx not in self.irr_barlines_idx:
+                                self.irr_barlines_idx.append(idx)
                 x = 0
                 y -= self.msvcfg.MEASURE_OFFSET
 
@@ -139,6 +150,24 @@ class ScoreWindow(pyglet.window.Window):
             (255, 255, 255, 255)).create_image(self.width, self.height)
         self.load_labels(0, self.height - int(self.msvcfg.TOP_OFFSET))
         self._draw_measures()
+
+
+        for i in range(len(self.irr_barlines_idx)):
+            x_start = self.irr_barlines[i][0]
+            y_start = self.irr_barlines[i][1]
+            x_end = self.irr_barlines[i][2]
+            y_end = self.irr_barlines[i][3]
+            for vert in self.irr_barlines:
+                if vert[0] == x_start:
+                    y_start = vert[1]
+            if (self.score.systems[0].parts[0].measures[self.irr_barlines_idx[i]].barline.barlinetype.glyph == 'repeatRight'):
+                x_start = x_start + 4
+                x_end = x_end - 10
+                rectangle = shapes.Rectangle(x_start, y_start,  x_end - x_start, y_end - y_start, color=(0,0,0), batch=self.batch)
+                line = shapes.Line(x_start- 5, y_start, x_start-5, y_end, width=1, color=(0,0,0), batch=self.batch)
+                self.barline_shapes.append(rectangle)
+                self.barline_shapes.append(line)
+            # TODO Modify the connecting barline shapes for different irregular barlines
 
         for i in range(len(self.score.systems[0].parts[0].measures)):
             x = self.barlines[i][0]
