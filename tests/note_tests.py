@@ -234,16 +234,26 @@ class NoteValueTest(unittest.TestCase):
                          NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR))
 
     def test_ne_override(self):
-        pass
+        self.assertNotEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR),
+                            NoteValue(NoteType.NONE, DotType.NONE, TupletType.REGULAR))
+        self.assertNotEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR),
+                            NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertNotEqual(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR),
+                            NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR))
 
     def test_add_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)+NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR)+NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR)+NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR)+NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR))
+        
 
     def test_radd_override(self):
         pass
 
     def test_sub_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR)- NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        #does not work
 
     def test_rsub_override(self):
         pass
