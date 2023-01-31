@@ -40,6 +40,8 @@ class ScoreWindow(pyglet.window.Window):
         self.irr_barlines = list()
         self.irr_barlines_idx = list()
         self.barline_shapes = list()
+        self.ledger_line_verts = list()
+        self.ledger_lines = list()
 
         self.score = score
 
@@ -104,9 +106,15 @@ class ScoreWindow(pyglet.window.Window):
             self._draw_measure(total_width, part_height)
     """
 
+    def _draw_ledger_lines(self):
+        print('ledgers')
+        for line in self.ledger_line_verts:
+            ledger_line = shapes.Line(
+                line[0], line[1], line[2], line[3], width=2, color=(0, 0, 0), batch=self.batch)
+            self.ledger_lines.append(ledger_line)
+
     def load_barlines(self, measure_area):
         self.barlines.append(measure_area.get_barlines())
-
 
     def load_labels(self, x, y):
         key_sig_width = self.max_key_sig_width()
@@ -134,6 +142,10 @@ class ScoreWindow(pyglet.window.Window):
                     barline_verts = measure_area.get_barlines()
                     for vert in barline_verts:
                         self.barlines.append(vert)
+                    ledger_line_verts = measure_area.get_ledger_lines()
+                    for vert in ledger_line_verts:
+                        if (len(vert) != 0):
+                            self.ledger_line_verts.append(vert)
                     if (measure.has_irregular_rs_barline()):
                         barline_irr_verts = measure_area.get_irr_barlines()
                         barline_idx = measure_area.get_irr_barlines_idx()
@@ -150,7 +162,7 @@ class ScoreWindow(pyglet.window.Window):
             (255, 255, 255, 255)).create_image(self.width, self.height)
         self.load_labels(0, self.height - int(self.msvcfg.TOP_OFFSET))
         self._draw_measures()
-
+        self._draw_ledger_lines()
 
         for i in range(len(self.irr_barlines_idx)):
             x_start = self.irr_barlines[i][0]
@@ -163,8 +175,10 @@ class ScoreWindow(pyglet.window.Window):
             if (self.score.systems[0].parts[0].measures[self.irr_barlines_idx[i]].barline.barlinetype.glyph == 'repeatRight'):
                 x_start = x_start + 4
                 x_end = x_end - 10
-                rectangle = shapes.Rectangle(x_start, y_start,  x_end - x_start, y_end - y_start, color=(0,0,0), batch=self.batch)
-                line = shapes.Line(x_start- 5, y_start, x_start-5, y_end, width=1, color=(0,0,0), batch=self.batch)
+                rectangle = shapes.Rectangle(
+                    x_start, y_start,  x_end - x_start, y_end - y_start, color=(0, 0, 0), batch=self.batch)
+                line = shapes.Line(x_start - 5, y_start, x_start-5,
+                                   y_end, width=1, color=(0, 0, 0), batch=self.batch)
                 self.barline_shapes.append(rectangle)
                 self.barline_shapes.append(line)
             # TODO Modify the connecting barline shapes for different irregular barlines
@@ -211,6 +225,8 @@ class ScoreWindow(pyglet.window.Window):
             measure.x += self.x_movement
         for barline_shape in self.barline_shapes:
             barline_shape.x += self.x_movement
+        for ledger_line in self.ledger_lines:
+            ledger_line.x += self.x_movement
 
     def _update_y(self):
         for label in self.labels:
@@ -219,6 +235,8 @@ class ScoreWindow(pyglet.window.Window):
             measure.y += self.y_movement
         for barline_shape in self.barline_shapes:
             barline_shape.y += self.y_movement
+        for ledger_line in self.ledger_lines:
+            ledger_line.y += self.y_movement
 
     def on_key_press(self, symbol, modifiers):
         match symbol:

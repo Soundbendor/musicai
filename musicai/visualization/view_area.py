@@ -12,7 +12,7 @@ from visualization.window_config import WindowConfig
 _DEBUG = False
 
 # stores [[sharps], [flats]]
-#TODO: modes
+# TODO: modes
 key_accidentals = {
     # major scales
     'C Major': [[], []],
@@ -117,13 +117,15 @@ class MeasureArea(ViewArea):
         self.measure = measure
         self.area_x = x             # Used to store the initial value of x and y as loaded in
         self.area_y = y
-        self.area_width = width         # Used to store the total width and height a measure takes up
+        # Used to store the total width and height a measure takes up
+        self.area_width = width
         self.area_height = height
         self.spacing = self.area_height // 4
         self.batch = pyglet.graphics.Batch()
         self.barlines = []
         self.irr_barlines = []
-        self.irr_barlines_idx= []
+        self.irr_barlines_idx = []
+        self.ledger_lines = []
         self.index = idx
         self.key_sig_width = key_sig_width
         self.layout()
@@ -140,7 +142,8 @@ class MeasureArea(ViewArea):
 
         if self.index == 0:
             x, y = self.layout_left_barline(x, y)
-        else: x += 24
+        else:
+            x += 24
 
         # x, y = self.layout_left_barline(x,y)
         x, y = self.layout_clef(x, y)
@@ -241,6 +244,11 @@ class MeasureArea(ViewArea):
             # Replace 6 with env['VSPACE'] or equivalent solution
             note_label = self.add_label(
                 n.glyph, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+
+            # ledger lines
+            self.layout_ledger_lines(
+                x, y, line_offset)
+
             # x offset for notes
             x += note_label.content_width + int((6 * (100 * n.value)))
         return x, y
@@ -250,7 +258,8 @@ class MeasureArea(ViewArea):
         if _DEBUG:
             print('l-barline=', self.measure.barline)
         if isinstance(self.measure.barline, Barline):
-            barline_label = self.add_label(self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
+            barline_label = self.add_label(
+                self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
             x += 18 + barline_label.content_width
         elif isinstance(self.measure.barline, BarlineType):
             barline_verts = []
@@ -262,9 +271,10 @@ class MeasureArea(ViewArea):
             x += 18
         return x, y
 
-    def layout_right_barline(self,x,y):
+    def layout_right_barline(self, x, y):
         if isinstance(self.measure.barline, Barline):
-            barline_label = self.add_label(self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
+            barline_label = self.add_label(
+                self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
             barline_verts = []
             barline_verts.append(x)
             barline_verts.append(y)
@@ -376,6 +386,31 @@ class MeasureArea(ViewArea):
         x += 10
         return x, y
 
+    def layout_ledger_lines(self, x, y, line_offset):
+        if (line_offset < 3):
+            for num in range(line_offset - 1, 3):
+                if num % 2 != 0:
+                    ledger_line_verts = []
+                    ledger_line_verts.append(x - (self.spacing) - 4)
+                    ledger_line_verts.append(
+                        y + (num - 1) * (self.spacing // 2))
+                    ledger_line_verts.append(x + (self.spacing) - 4)
+                    ledger_line_verts.append(
+                        y + (num - 1) * (self.spacing // 2))
+                    self.ledger_lines.append(ledger_line_verts)
+
+        elif (line_offset > 11):
+            for num in range(11, line_offset):
+                if num % 2 != 0:
+                    ledger_line_verts = []
+                    ledger_line_verts.append(x - (self.spacing) + 2)
+                    ledger_line_verts.append(
+                        y + (num - 1) * (self.spacing // 2))
+                    ledger_line_verts.append(x + (self.spacing) + 2)
+                    ledger_line_verts.append(
+                        y + (num - 1) * (self.spacing // 2))
+                    self.ledger_lines.append(ledger_line_verts)
+
     def draw(self):
         for label in self.labels:
             label.draw()
@@ -398,9 +433,12 @@ class MeasureArea(ViewArea):
 
     def get_barlines(self):
         return self.barlines
-    
+
     def get_irr_barlines(self):
         return self.irr_barlines
 
     def get_irr_barlines_idx(self):
         return self.irr_barlines_idx
+
+    def get_ledger_lines(self):
+        return self.ledger_lines
