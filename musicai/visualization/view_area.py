@@ -4,6 +4,7 @@ import pyglet
 import json
 
 from structure.measure import Barline, BarlineLocation, BarlineType
+from structure.measure_mark import DynamicMark, DynamicType
 from structure.note import NoteGroup, Rest, Note
 from structure.pitch import Pitch
 from pyglet import shapes
@@ -133,7 +134,13 @@ class MeasureArea(ViewArea):
         x, y = self.layout_clef(x, y)
         x, y = self.layout_key_signature(x, y)
         x, y = self.layout_time_signature(x, y)
+
+        note_idx = 0
         for note in self.measure.notes:
+            if not isinstance(note, Rest) or note_idx == 1:
+                note_idx += 1
+            if note_idx == 1:
+                self.layout_dynamic_markings(x,y-30)
             x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
 
         if (self.area_width != 0):
@@ -434,6 +441,23 @@ class MeasureArea(ViewArea):
                     ledger_line_verts.append(
                         y + (num - 1) * (self.spacing // 2))
                     self.ledger_lines.append(ledger_line_verts)
+
+    def layout_dynamic_markings(self, x, y):
+        #TODO: Find a more consistent form of placing dynamic marks at proper X and Y coordinate
+        #Currently attempts to space with X based on mark.start_point value
+        #Currently places all dynamic marks below the measure with a hardcoded offset
+        glyph = ""
+        for mark in self.measure.measure_marks:
+            if isinstance(mark, DynamicMark):
+                if mark.dynamic_type == DynamicType.PIANO or mark.dynamic_type == DynamicType.FORTE:
+                    glyph = "dynamic" + str(mark.dynamic_type)[12:].title()
+                else:
+                    glyph = "dynamic" + mark.dynamic_type.abbr.upper()
+                gtype = "GlyphType." + str(mark.dynamic_type)[7:]
+                dynamic_mark_label = self.add_label(glyph, gtype, x + mark.start_point, y)
+            else:
+                #TODO: Implement DynamicChangeMarks placement
+                pass
 
     def draw(self):
         for label in self.labels:
