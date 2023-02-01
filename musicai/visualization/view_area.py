@@ -11,41 +11,25 @@ from visualization.window_config import WindowConfig
 
 _DEBUG = False
 
-# stores [[sharps], [flats]]
+# stores [[sharps], [flats], [double sharp], [double flat]]
 # TODO: modes
 key_accidentals = {
     # major scales
-    'C Major': [[], []],
-    'G Major': [['F'], []],
-    'D Major': [['F', 'C'], []],
-    'A Major': [['F', 'C', 'G'], []],
-    'E Major': [['F', 'C', 'G', 'D'], []],
-    'B Major': [['F', 'C', 'G', 'D', 'A'], []],
-    'Fs Major': [['F', 'C', 'G', 'D', 'A', 'E'], []],
-    'Cs Major': [['F', 'C', 'G', 'D', 'A', 'E', 'B'], []],
-    'F Major': [[], ['B']],
-    'Bb Major': [[], ['B', 'E']],
-    'Eb Major': [[], ['B', 'E', 'A']],
-    'Ab Major': [[], ['B', 'E', 'A', 'D']],
-    'Db Major': [[], ['B', 'E', 'A', 'D', 'G']],
-    'Gb Major': [[], ['B', 'E', 'A', 'D', 'G', 'C']],
-    'Cb Major': [[], ['B', 'E', 'A', 'D', 'G', 'C', 'F']],
-    # minor scales
-    'A Minor': [[], []],
-    'D Minor': [[], ['B']],
-    'G Minor': [[], ['B', 'E']],
-    'C Minor': [[], ['B', 'E', 'A']],
-    'F Minor': [[], ['B', 'E', 'A', 'D']],
-    'Bb Minor': [[], ['B', 'E', 'A', 'D', 'G']],
-    'Eb Minor': [[], ['B', 'E', 'A', 'D', 'G', 'C']],
-    'Ab Minor': [[], ['B', 'E', 'A', 'D', 'G', 'C', 'F']],
-    'E Minor': [['F'], []],
-    'B Minor': [['F', 'C'], []],
-    'Fs Minor': [['F', 'C', 'G'], []],
-    'Cs Minor': [['F', 'C', 'G', 'D'], []],
-    'Gs Minor': [['F', 'C', 'G', 'D', 'A'], []],
-    'Ds Minor': [['F', 'C', 'G', 'D', 'A', 'E'], []],
-    'As Minor': [['F', 'C', 'G', 'D', 'A', 'E', 'B'], []],
+    1: [[], []],
+    2: [['F'], []],
+    3: [['F', 'C'], []],
+    4: [['F', 'C', 'G'], []],
+    5: [['F', 'C', 'G', 'D'], []],
+    6: [['F', 'C', 'G', 'D', 'A'], []],
+    7: [['F', 'C', 'G', 'D', 'A', 'E'], []],
+    8: [['F', 'C', 'G', 'D', 'A', 'E', 'B'], []],
+    9: [[], ['B']],
+    10: [[], ['B', 'E']],
+    11: [[], ['B', 'E', 'A']],
+    12: [[], ['B', 'E', 'A', 'D']],
+    13: [[], ['B', 'E', 'A', 'D', 'G']],
+    14: [[], ['B', 'E', 'A', 'D', 'G', 'C']],
+    15: [[], ['B', 'E', 'A', 'D', 'G', 'C', 'F']]
 }
 
 
@@ -360,10 +344,45 @@ class MeasureArea(ViewArea):
 
         return offset
 
+    def lookup_key_accidentals(self, key):
+        accidentals = [[], []]
+        match key:
+            case 'C Major' | 'A Minor':
+                accidentals = key_accidentals[1]
+            case 'G Major' | 'E Minor':
+                accidentals = key_accidentals[2]
+            case 'D Major' | 'B Minor':
+                accidentals = key_accidentals[3]
+            case 'A Major' | 'Fs Minor':
+                accidentals = key_accidentals[4]
+            case 'E Major' | 'Cs Minor':
+                accidentals = key_accidentals[5]
+            case 'B Major' | 'Gs Minor':
+                accidentals = key_accidentals[6]
+            case 'Fs Major' | 'Ds Minor':
+                accidentals = key_accidentals[7]
+            case 'Cs Major' | 'As Minor':
+                accidentals = key_accidentals[8]
+            case 'F Major' | 'D Minor':
+                accidentals = key_accidentals[9]
+            case 'Bb Major' | 'G Minor':
+                accidentals = key_accidentals[10]
+            case 'Eb Major' | 'C Minor':
+                accidentals = key_accidentals[11]
+            case 'Ab Major' | 'F Minor':
+                accidentals = key_accidentals[12]
+            case 'Db Major' | 'Bb Minor':
+                accidentals = key_accidentals[13]
+            case 'Gb Major' | 'Eb Minor':
+                accidentals = key_accidentals[14]
+            case 'Cb Major' | 'Ab Minor':
+                accidentals = key_accidentals[15]
+        return accidentals
+
     def layout_key_signature(self, x, y):
         if (self.index == 0):
             key = self.measure.key
-            accidentals = key_accidentals[key.__str__()]
+            accidentals = self.lookup_key_accidentals(key.__str__())
             if _DEBUG:
                 print(key_accidentals[key.__str__()])
             if len(accidentals[0]) == 0 and len(accidentals[1]) == 0:
