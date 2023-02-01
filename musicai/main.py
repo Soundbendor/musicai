@@ -24,6 +24,7 @@ def main():
     #file = '../examples/mxml/Telemann.musicxml'
 
     # ---- Viewable (Buggy) ./mxml2 files ----
+    #file = '../examples/mxml2/Dance_of_the_Sugar_Plum_Fairy.musicxml'  # Second part has no staff
     
     
     # ---- Non-working ./mxml files ----
@@ -51,6 +52,10 @@ def main():
     #file = '../examples/mxml2/Rigadoon.musicxml'                           # Time and Key should already be set in mxml parser
     #file = '../examples/mxml2/Spring-Four_seasons_vivaldi.musicxml'        # Glyph wholeNoteUp not found in view_area.py
     #file = '../examples/mxml2/Tarantella_in_D_Minor.musicxml'              # Dynamic Type fp not supported in mxml parser
+    #file = '../examples/mxml2/Mozart_Symphony_No._40_in_G_Minor_K._550_I._Molto_Allegro.musicxml'  # Dynamic Type sf not supported in mxml parser
+    #file = '../examples/mxml2/Symphony_No._5_1st_Movement.musicxml'        # Dynamic Type other-dynamics not supported in mxml parser
+    #file = '../examples/mxml2/Canon_in_D_-_Violin_Cello.musicxml'          # Glyph noteWholeUp not found in view_area.py
+    #file = '../examples/mxml2/Mozart_-_Symphony_No.40_in_G_minor_K.550_Movement_1.musicxml'   # Glyph noteWholeUp not found in view_area.py
 
     score = MusicXML.load(file)
 
