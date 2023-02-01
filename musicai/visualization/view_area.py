@@ -221,7 +221,7 @@ class MeasureArea(ViewArea):
             if str(n.accidental).strip() != '':
                 if n.pitch.step not in self.measure.key.altered():
                     accidental_label = self.add_label(
-                        n.accidental.glyph, GlyphType.ACCIDENTAL, x, y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                        n.accidental.glyph, GlyphType.ACCIDENTAL, x, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
                     x += accidental_label.content_width + 6
             # notes
             if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
