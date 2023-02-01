@@ -198,7 +198,7 @@ class MeasureArea(ViewArea):
             rest_label = self.add_label(
                 note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 5)
             # Replace six with env['HSPACE'] or equivalent solution
-            x += rest_label.content_width + int((6 * (100 * note.value)))
+            x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
             return x, y
 
         notes = []
@@ -234,7 +234,7 @@ class MeasureArea(ViewArea):
                 x, y, line_offset)
 
             # x offset for notes
-            x += note_label.content_width + int((6 * (100 * n.value)))
+            x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
         return x, y
 
     def layout_left_barline(self, x, y):
@@ -282,12 +282,12 @@ class MeasureArea(ViewArea):
             x += 12
             clef_pitch = self.measure.clef.value
             # base is treble (G) clef
-            clef_offset = self.spacing // 2 + 3
+            clef_offset = self.spacing // 2 + 10
             match clef_pitch:
                 case 53:  # bass clef
-                    clef_offset = (self.spacing // 2) * 5 + 3
+                    clef_offset = (self.spacing // 2) * 5 + 10
                 case 60:  # alto clef
-                    clef_offset = (self.spacing // 2) * 3 + 3
+                    clef_offset = (self.spacing // 2) * 3 + 10
             clef_label = self.add_label(
                 self.measure.clef.glyph, GlyphType.CLEF, x=x, y=y + self.spacing * 2 + clef_offset)
             x += clef_label.content_width + 10
@@ -440,10 +440,15 @@ class MeasureArea(ViewArea):
 
     def add_label(self, glyph, gtype, x=0, y=0):
         glyph_id = Glyph.code(glyph)
+        font_size = self.msvcfg.MUSIC_FONT_SIZE
+
+        if str(gtype) == 'GlyphType.CLEF': # Possibly move the font size to the add_label func
+            font_size = self.msvcfg.MUSIC_CLEF_FONT_SIZE
+        
         label = Glyph(gtype=gtype,
                       text=glyph_id,
                       font_name=self.msvcfg.MUSIC_FONT_NAME,
-                      font_size=int(self.msvcfg.MUSIC_FONT_SIZE),
+                      font_size=int(font_size),
                       x=x, y=y,
                       anchor_x='center',
                       anchor_y='center')
