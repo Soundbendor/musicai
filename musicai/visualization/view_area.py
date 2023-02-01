@@ -196,7 +196,7 @@ class MeasureArea(ViewArea):
             if _DEBUG:
                 print('rest=', note, note.glyph)
             rest_label = self.add_label(
-                note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 5)
+                note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)
             # Replace six with env['HSPACE'] or equivalent solution
             x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
             return x, y
@@ -224,7 +224,10 @@ class MeasureArea(ViewArea):
                         n.accidental.glyph, GlyphType.ACCIDENTAL, x, y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
                     x += accidental_label.content_width + 6
             # notes
-            gtype = GlyphType.NOTE_UP if n.stem.UP else GlyphType.NOTE_DOWN
+            if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
+                gtype = GlyphType.NOTE_UP
+            else: 
+                gtype = GlyphType.NOTE_DOWN
             # Replace 6 with env['VSPACE'] or equivalent solution
             note_label = self.add_label(
                 n.glyph, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
@@ -441,15 +444,19 @@ class MeasureArea(ViewArea):
     def add_label(self, glyph, gtype, x=0, y=0):
         glyph_id = Glyph.code(glyph)
         font_size = self.msvcfg.MUSIC_FONT_SIZE
+        note_off = 0
 
-        if str(gtype) == 'GlyphType.CLEF': # Possibly move the font size to the add_label func
+        # if gtype == GlyphType.NOTE_UP:  # Possibly move this elsewear (parameter)
+        #     note_off = 20
+
+        if gtype == GlyphType.CLEF: # Possibly make font size a parameter
             font_size = self.msvcfg.MUSIC_CLEF_FONT_SIZE
         
         label = Glyph(gtype=gtype,
                       text=glyph_id,
                       font_name=self.msvcfg.MUSIC_FONT_NAME,
                       font_size=int(font_size),
-                      x=x, y=y,
+                      x=x + note_off, y=y,
                       anchor_x='center',
                       anchor_y='center')
         label.color = (0, 0, 0, 255)
