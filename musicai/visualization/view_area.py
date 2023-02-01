@@ -296,21 +296,25 @@ class MeasureArea(ViewArea):
     def layout_time_signature(self, x, y):
         if (self.index == 0):
             time_sig = self.measure.time
-            time_sig_numerator = pyglet.text.Label(str(time_sig.numerator),
-                                                   font_name=self.msvcfg.MUSIC_FONT_NAME,
-                                                   font_size=int(
-                                                       self.msvcfg.MUSIC_FONT_SIZE - 5),
-                                                   x=x, y=y + self.spacing * 3 + 8,
-                                                   anchor_x='center', anchor_y='center')
-            time_sig_numerator.color = (0, 0, 0, 255)
+            # time_sig_numerator = pyglet.text.Label(str(time_sig.numerator),
+            #                                        font_name=self.msvcfg.MUSIC_FONT_NAME,
+            #                                        font_size=int(
+            #                                            self.msvcfg.MUSIC_FONT_SIZE - 5),
+            #                                        x=x, y=y + self.spacing * 3 + 8,
+            #                                        anchor_x='center', anchor_y='center')
+            numerator_glyph = 'timeSig' + str(time_sig.numerator)
+            time_sig_numerator = self.add_label(
+                numerator_glyph, GlyphType.TIME, x, y=y + self.spacing * 4.5)
             self.labels.append(time_sig_numerator)
-            time_sig_denominator = pyglet.text.Label(str(time_sig.denominator),
-                                                     font_name=self.msvcfg.MUSIC_FONT_NAME,
-                                                     font_size=int(
-                                                         self.msvcfg.MUSIC_FONT_SIZE - 5),
-                                                     x=x, y=y + self.spacing + 10,
-                                                     anchor_x='center', anchor_y='center')
-            time_sig_denominator.color = (0, 0, 0, 255)
+            denominator_glyph = 'timeSig' + str(time_sig.denominator)
+            # time_sig_denominator = pyglet.text.Label(str(time_sig.denominator),
+            #                                          font_name=self.msvcfg.MUSIC_FONT_NAME,
+            #                                          font_size=int(
+            #                                              self.msvcfg.MUSIC_FONT_SIZE - 5),
+            #                                          x=x, y=y + self.spacing + 10,
+            #                                          anchor_x='center', anchor_y='center')
+            time_sig_denominator = self.add_label(
+                denominator_glyph, GlyphType.TIME, x, y=y + self.spacing * 2.5)
             self.labels.append(time_sig_denominator)
 
             x += time_sig_numerator.content_width + 15

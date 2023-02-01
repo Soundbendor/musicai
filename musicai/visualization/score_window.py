@@ -142,7 +142,6 @@ class ScoreWindow(pyglet.window.Window):
     """
 
     def _draw_ledger_lines(self):
-        print('ledgers')
         for line in self.ledger_line_verts:
             ledger_line = shapes.Line(
                 line[0], line[1], line[2], line[3], width=2, color=(0, 0, 0), batch=self.batch)
