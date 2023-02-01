@@ -5,6 +5,7 @@ MUSIC_FONT_FILE="./visualization/assets/Bravura.otf"
 FONT_GLYPH_FILE="../../assets/fonts/glyphnames.json"
 MUSIC_FONT_SIZE=50 # Font Size 50 seems to fit perfectly within staff lines
 MUSIC_CLEF_FONT_SIZE=60
+MUSIC_TIME_SIG_FONT_SIZE=60
 BACKGROUND_COLOR="WHITE"
 MUSIC_FONT_COLOR="BLACK"
 TEXT_FONT_COLOR="BLACK"
