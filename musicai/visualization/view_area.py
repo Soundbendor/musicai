@@ -400,14 +400,14 @@ class MeasureArea(ViewArea):
                 for note in accidentals[0]:
                     line_offset = self.key_sig_accidental_offset(note, 'sharp')
                     accidental_label = self.add_label(
-                        'accidentalSharp', GlyphType.ACCIDENTAL, x, y + 3 + (line_offset) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                        'accidentalSharp', GlyphType.ACCIDENTAL, x, y + 10 + (line_offset) * (self.spacing // 2))  # (+ 10) to align glyph with staff
                     x += accidental_label.content_width + 4
                 for note in accidentals[1]:
                     line_offset = self.key_sig_accidental_offset(note, 'flat')
                     accidental_label = self.add_label(
-                        'accidentalFlat', GlyphType.ACCIDENTAL, x, y + 3 + (line_offset) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                        'accidentalFlat', GlyphType.ACCIDENTAL, x, y + 10 + (line_offset) * (self.spacing // 2))  # (+ 10) to align glyph with staff
                     x += accidental_label.content_width + 4
-        x += 10
+        x += 20
         return x, y
 
     def layout_ledger_lines(self, x, y, line_offset):
@@ -452,6 +452,8 @@ class MeasureArea(ViewArea):
                 font_size = self.msvcfg.MUSIC_CLEF_FONT_SIZE
             case GlyphType.TIME:
                 font_size = self.msvcfg.MUSIC_TIME_SIG_FONT_SIZE
+            case GlyphType.ACCIDENTAL:
+                font_size = self.msvcfg.MUSIC_ACC_FONT_SIZE
 
         label = Glyph(gtype=gtype,
                       text=glyph_id,
