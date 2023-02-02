@@ -277,7 +277,7 @@ class MeasureArea(ViewArea):
             barline_verts.append(x)
             barline_verts.append(y + self.area_height)
             self.barlines.append(barline_verts)
-            x += 18
+            x += -18
         return x, y
 
     def layout_clef(self, x, y):
@@ -394,7 +394,7 @@ class MeasureArea(ViewArea):
                 accidental_label = self.add_label(
                     'accidentalFlat', GlyphType.ACCIDENTAL, x, y)
                 # pass
-                x += (accidental_label.content_width + 4) * self.key_sig_width
+                x += (accidental_label.content_width + 6) * self.key_sig_width
                 self.labels.pop()
             else:
                 for note in accidentals[0]:
