@@ -2,11 +2,13 @@ from enum import Enum
 import numpy as np
 from scipy import stats, linalg
 
-from musicai.structure.pitch import Chromatic, Step, Accidental, Pitch, Octave
+from structure.pitch import Chromatic, Step, Accidental, Pitch, Octave
 
 # -------------
 # ModeType enum
 # -------------
+
+
 class ModeType(Enum):
     """
     ModeType defines the mode of a scale
@@ -150,7 +152,8 @@ class KeyType(Enum):
         elif mode == ModeType.MINOR:
             return root_map[pitch_class]
         else:
-            raise NotImplementedError('Key-finding for the ' + str(mode) + ' mode is not supported.')
+            raise NotImplementedError(
+                'Key-finding for the ' + str(mode) + ' mode is not supported.')
 
 
 # ------------
@@ -196,7 +199,7 @@ class Scale:
         KeyType.Abb: [
             # Abb Major (theoretical)
             [
-                Chromatic.Dbb, None,Chromatic.Ebb, None, Chromatic.Fb, None,
+                Chromatic.Dbb, None, Chromatic.Ebb, None, Chromatic.Fb, None,
                 Chromatic.Gb, Chromatic.Abb, None, Chromatic.Bb, None, Chromatic.Cb
             ],
             # Abb Natural Minor (theoretical)
@@ -399,7 +402,7 @@ class Scale:
                 Chromatic.Fs, Chromatic.G, None, Chromatic.A, None, Chromatic.B
             ]
         ],
-        #KeyType.Fs: [
+        # KeyType.Fs: [
         #     # Fs Major
         #     [
         #         None, Chromatic.Cs, None, Chromatic.Ds, None, Chromatic.Es,
@@ -410,7 +413,7 @@ class Scale:
         #         None, Chromatic.Cs, Chromatic.D, None, Chromatic.E, None, Chromatic.Fs, None, Chromatic.Gs,
         #         Chromatic.A, None, Chromatic.B
         #     ]
-        #],
+        # ],
         KeyType.Cs: [
             # Cs Major
             [
@@ -595,13 +598,15 @@ class Key:
         step = self.scale.find(pitch_class)
 
         if step is not None:
-            pitch = Pitch((step, Octave.find(pitch_height)), alter=Accidental.NONE)
+            pitch = Pitch((step, Octave.find(pitch_height)),
+                          alter=Accidental.NONE)
         else:
             if Step.has_value(pitch_class):
                 # add natural sign
                 step = Step(pitch_class)
                 accidental = Accidental.NATURAL
-                pitch = Pitch((step, Octave.find(pitch_height)), alter=Accidental.NATURAL)
+                pitch = Pitch((step, Octave.find(pitch_height)),
+                              alter=Accidental.NATURAL)
             else:
                 alter = 0
                 accidental = Accidental.NONE
@@ -620,7 +625,8 @@ class Key:
                     pitch = chromatic.pitch
                     return pitch
                 else:
-                    raise ValueError(f'Error: could not match midi note {midi} in key {self}')
+                    raise ValueError(
+                        f'Error: could not match midi note {midi} in key {self}')
         return pitch
 
     def is_minor(self) -> bool:
@@ -655,7 +661,6 @@ class Key:
     def find(cls, key) -> 'Key':
         pass
 
-
     @classmethod
     def find_key(cls, pitch_histogram):
         """ Krumhansl-Schmuckler key-finding algorithm
@@ -666,10 +671,12 @@ class Key:
 
         # Coefficients from Kumhansl and Schmuckler
         # as reported here: http://rnhart.net/articles/key-finding/
-        major = np.asarray([6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
+        major = np.asarray([6.35, 2.23, 3.48, 2.33, 4.38,
+                            4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
         major = stats.zscore(major)
 
-        minor = np.asarray([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
+        minor = np.asarray([6.33, 2.68, 3.52, 5.38, 2.60,
+                            3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
         minor = stats.zscore(minor)
 
         major = linalg.circulant(major)

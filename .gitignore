@@ -12,3 +12,4 @@ musicai/__pycache__/__init__.cpython-310.pyc
 *.xml
 *.iml
 .idea/misc.xml
+**/__pycache__/**
