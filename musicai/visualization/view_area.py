@@ -198,7 +198,8 @@ class MeasureArea(ViewArea):
             rest_label = self.add_label(
                 note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)
             # Replace six with env['HSPACE'] or equivalent solution
-            x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
+            #x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
+            x += self.msvcfg.NOTE_WIDTH * float(note.value) * 30
             return x, y
 
         notes = []
@@ -221,8 +222,8 @@ class MeasureArea(ViewArea):
             if str(n.accidental).strip() != '':
                 if n.pitch.step not in self.measure.key.altered():
                     accidental_label = self.add_label(
-                        n.accidental.glyph, GlyphType.ACCIDENTAL, x, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
-                    x += accidental_label.content_width + 6
+                        n.accidental.glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                    #x += accidental_label.content_width + 6
             # notes
             if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
                 gtype = GlyphType.NOTE_UP
@@ -237,7 +238,8 @@ class MeasureArea(ViewArea):
                 x, y, line_offset)
 
             # x offset for notes
-            x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
+            #x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
+            x += self.msvcfg.NOTE_WIDTH * float(note.value) * 30
         return x, y
 
     def layout_left_barline(self, x, y):
@@ -318,7 +320,7 @@ class MeasureArea(ViewArea):
             time_sig_denominator = self.add_label(
                 denominator_glyph, GlyphType.TIME, x, y=y + self.spacing * 3)
 
-            x += time_sig_numerator.content_width + 15
+            x += time_sig_numerator.content_width + 30
 
         return x, y
 
