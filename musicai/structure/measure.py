@@ -4,14 +4,14 @@ from enum import Enum
 import numpy as np
 from typing import Union
 
-from musicai.structure.note_mark import StemType
-from musicai.structure.measure_mark import MeasureMark
-from musicai.structure import measure_mark
-from musicai.structure.clef import Clef
-from musicai.structure.key import Key
-from musicai.structure.time import TimeSignature, Tempo
-from musicai.structure.note import Note, Rest
-from musicai.structure.pitch import Accidental
+from structure.note_mark import StemType
+from structure.measure_mark import MeasureMark
+from structure import measure_mark
+from structure.clef import Clef
+from structure.key import Key
+from structure.time import TimeSignature, Tempo
+from structure.note import Note, Rest
+from structure.pitch import Accidental
 
 
 # ----------------
@@ -35,7 +35,7 @@ class BarlineType(Enum):
     DASHED = 8, u'\U0001D104', 'barlineDashed'
     DOTTED = 9, u'\U0001D104', 'barlineDotted'
     LEFT_REPEAT = 10, u'\U0001D106', 'leftRepeat'
-    RIGHT_REPEAT = 11, u'\U0001D107', 'rightRepeat'
+    RIGHT_REPEAT = 11, u'\U0001D107', 'repeatRight'     #rightRepeat -> repeatRight change made to me SMuFL compliant
     INVISIBLE = 12, '', ''
 
     # -----------
@@ -141,7 +141,8 @@ class Barline:
     def from_abc(cls, abc_barline):
         abc_barline = abc_barline.strip()
         if not re.match('^[\|\[\]\:\.]+$', abc_barline):
-            raise ValueError(f'Cannot match abc string \'{abc_barline}\' to a Barline')
+            raise ValueError(
+                f'Cannot match abc string \'{abc_barline}\' to a Barline')
         else:
             if abc_barline == '|':
                 barlinetype = BarlineType.REGULAR
@@ -179,6 +180,7 @@ class Transposition:
     # -----------
     # Constructor
     # -----------
+
     def __init__(self,
                  diatonic: int | np.integer = 0,
                  chromatic: int | np.integer = 0,
@@ -221,6 +223,7 @@ class Measure:
     # -----------
     # Constructor
     # -----------
+
     def __init__(self,
                  measure_number: Union[int, np.integer] = -1,
                  time: TimeSignature = TimeSignature(),
@@ -239,7 +242,8 @@ class Measure:
         self.transposition: Transposition | None = Transposition()
         self.divisions: int | np.integer = 256
 
-        self.barline: Barline | BarlineType | list[Barline, BarlineType] = barline
+        self.barline: Barline | BarlineType | list[Barline,
+                                                   BarlineType] = barline
 
         # TODO: Implement...
         self.is_full: bool = False
@@ -305,7 +309,6 @@ class Measure:
         else:
             raise TypeError(f'Cannot add type {type(notes)} to Measure')
         self.pack()
-
 
         # NOW, ADJUST THE NOTE'S LOCATION
 
@@ -397,13 +400,12 @@ class Measure:
         for note in self.notes:
             note.start_point = time
             time += note.value
-        #if time > 1:
+        # if time > 1:
         #    raise NotImplementedError
-        #elif time == 1.0:
+        # elif time == 1.0:
         #    self.is_full = True
-        #else:
+        # else:
         #    self.remaining = 1.0 - time
-
 
         # if self.is_full:
         #     raise NotImplementedError
@@ -427,8 +429,10 @@ class Measure:
         pass
 
     def insert_dynamic_change(self,
-                              start_point: Union[int, np.integer, np.inexact, float] = 0,
-                              end_point: Union[int, np.integer, np.inexact, float] = 0,
+                              start_point: Union[int, np.integer,
+                                                 np.inexact, float] = 0,
+                              end_point: Union[int, np.integer,
+                                               np.inexact, float] = 0,
                               dynamic_change_type: str = 'crescendo',
                               intensity: str = 'standard',
                               hairpin: bool = True,
@@ -504,7 +508,8 @@ class Measure:
             return self.barline != BarlineType.REGULAR
 
         else:
-            raise TypeError(f'Measure {self} has a barline of invalid type {type(self.barline)}.')
+            raise TypeError(
+                f'Measure {self} has a barline of invalid type {type(self.barline)}.')
 
     # -------------
     # Class Methods

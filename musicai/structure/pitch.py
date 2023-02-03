@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Union
 import numpy as np
 
-from musicai.structure.clef import Clef
+from structure.clef import Clef
 
 
 # ---------
@@ -52,7 +52,8 @@ class Step(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value + other
         else:
-            raise TypeError(f'Cannot add Step and {other} of type {type(other)}.')
+            raise TypeError(
+                f'Cannot add Step and {other} of type {type(other)}.')
 
     def __sub__(self, other: Union['Step', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Step):
@@ -60,14 +61,16 @@ class Step(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value - other
         else:
-            raise TypeError(f'Cannot subtract Step and {other} of type {type(other)}.')
+            raise TypeError(
+                f'Cannot subtract Step and {other} of type {type(other)}.')
 
     def __mod__(self, other: Union['Step', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Step):
             return self.value % other.value
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.value % other
-        raise TypeError(f'Cannot modulate Step and {other} of type {type(other)}.')
+        raise TypeError(
+            f'Cannot modulate Step and {other} of type {type(other)}.')
 
     # ---------
     # Methods
@@ -107,7 +110,8 @@ class Step(Enum):
 
             return count
         else:
-            raise TypeError(f'Cannot find difference between Step and type {type(other)}.')
+            raise TypeError(
+                f'Cannot find difference between Step and type {type(other)}.')
 
     # -------------
     # Class Methods
@@ -138,13 +142,16 @@ class Step(Enum):
             # Solfège: do (doh), re, mi, fa, so(l), la, and ti (si)
             # German: H = B-natural
             value = value.lower()
-            value = value.replace('ut', 'C').replace('do', 'C').replace('doh', 'C').replace('pa', 'C')
+            value = value.replace('ut', 'C').replace(
+                'do', 'C').replace('doh', 'C').replace('pa', 'C')
             value = value.replace('re', 'D').replace('vu', 'D')
             value = value.replace('me', 'E').replace('ga', 'E')
             value = value.replace('fa', 'F').replace('di', 'F')
-            value = value.replace('so', 'G').replace('sol', 'G').replace('ke', 'G')
+            value = value.replace('so', 'G').replace(
+                'sol', 'G').replace('ke', 'G')
             value = value.replace('la', 'A').replace('zo', 'A')
-            value = value.replace('si', 'B').replace('ti', 'B').replace('h', 'B').replace('ni', 'B')
+            value = value.replace('si', 'B').replace(
+                'ti', 'B').replace('h', 'B').replace('ni', 'B')
 
             if Step.has_name(value):
                 return Step[value]
@@ -306,13 +313,15 @@ class Accidental(Enum):
     FLAT_FLAT = (-2.0, 'bb', '♭♭', 'accidentalDoubleFlat')
     FLAT = (-1.0, 'b', '♭', 'accidentalFlat')
     NATURAL_FLAT = (-1.0, 'nb', '♮♭', 'accidentalNaturalFlat')
-    THREE_QUARTERS_FLAT = (-0.75, '3qb', '𝄳♭', 'accidentalThreeQuarterTonesFlatArrowDown   ')
+    THREE_QUARTERS_FLAT = (-0.75, '3qb', '𝄳♭',
+                           'accidentalThreeQuarterTonesFlatArrowDown   ')
     QUARTER_FLAT = (-0.25, 'qb', '𝄳', 'accidentalQuarterToneFlatArrowUp')
     NONE = (0.0, '', '', '')
     NATURAL = (0.0, 'n', '♮', 'accidentalNatural')
     # NATURAL_NATURAL = (0.0, 'nn', '♮♮', 'accidentalNatural')  # incorrect glyph
     QUARTER_SHARP = (0.25, 'qs', '𝄲', 'accidentalQuarterToneSharpArrowDown')
-    THREE_QUARTERS_SHARP = (0.75, '3qs', '𝄲♯', 'accidentalThreeQuarterTonesSharpArrowUp')
+    THREE_QUARTERS_SHARP = (
+        0.75, '3qs', '𝄲♯', 'accidentalThreeQuarterTonesSharpArrowUp')
     SHARP = (1.0, 's', '♯', 'accidentalSharp')
     NATURAL_SHARP = (1.0, 'ns', '♮♯', 'accidentalNaturalSharp')
     DOUBLE_SHARP = (2.0, 'ds', '𝄪', 'accidentalDoubleSharp')
@@ -374,7 +383,8 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.alter - other
         else:
-            raise TypeError(f'Cannot subtract Accidental and type {type(other)}.')
+            raise TypeError(
+                f'Cannot subtract Accidental and type {type(other)}.')
 
     def __rsub__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -382,7 +392,8 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other - self.alter
         else:
-            raise TypeError(f'Cannot subtract type {type(other)} and Accidental.')
+            raise TypeError(
+                f'Cannot subtract type {type(other)} and Accidental.')
 
     def __mul__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -390,7 +401,8 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.alter * other
         else:
-            raise TypeError(f'Cannot multiply Accidental and type {type(other)}.')
+            raise TypeError(
+                f'Cannot multiply Accidental and type {type(other)}.')
 
     def __rmul__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -398,7 +410,8 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other * self.alter
         else:
-            raise TypeError(f'Cannot multiply type {type(other)} and Accidental.')
+            raise TypeError(
+                f'Cannot multiply type {type(other)} and Accidental.')
 
     def __truediv__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -406,7 +419,8 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return self.alter / other
         else:
-            raise TypeError(f'Cannot divide Accidental and type {type(other)}.')
+            raise TypeError(
+                f'Cannot divide Accidental and type {type(other)}.')
 
     def __rtruediv__(self, other: Union['Accidental', float, int, np.inexact, np.integer]) -> Union[float, int]:
         if isinstance(other, Accidental):
@@ -414,7 +428,8 @@ class Accidental(Enum):
         elif isinstance(other, (float, np.inexact, int, np.integer)):
             return other / self.alter
         else:
-            raise TypeError(f'Cannot divide type {type(other)} and Accidental.')
+            raise TypeError(
+                f'Cannot divide type {type(other)} and Accidental.')
 
     # ---------
     # Methods
@@ -442,7 +457,8 @@ class Accidental(Enum):
         if mxml_accidental.upper().replace('-', '_') in [a.name for a in Accidental]:
             return Accidental[mxml_accidental.upper().replace('-', '_')]
         else:
-            warnings.warn(f'No implementation for accidental "{mxml_accidental}" yet--returning Accidental.NONE')
+            warnings.warn(
+                f'No implementation for accidental "{mxml_accidental}" yet--returning Accidental.NONE')
             return Accidental.NONE
 
     @classmethod
@@ -470,7 +486,8 @@ class Accidental(Enum):
             case '___':
                 return Accidental.TRIPLE_FLAT
             case _:
-                raise ValueError(f'Error: abc accidental {abc_accidental} not found.')
+                raise ValueError(
+                    f'Error: abc accidental {abc_accidental} not found.')
 
 
 # -----------
@@ -498,7 +515,8 @@ class Pitch:
         # elif isinstance(step, str):
         #    self.step = Step.from_str(step)
         else:
-            raise TypeError(f'Error: Pitch cannot be made from a step of type {type(step)}.')
+            raise TypeError(
+                f'Error: Pitch cannot be made from a step of type {type(step)}.')
 
         self.octave: Octave = octave
         self.alter: Accidental = alter
@@ -574,7 +592,8 @@ class Pitch:
 
     @midi.setter
     def midi(self, value):
-        warnings.warn(f'Setting midi not implemented yet for Pitch in {str(self)}')
+        warnings.warn(
+            f'Setting midi not implemented yet for Pitch in {str(self)}')
 
     @property
     def unaltered(self) -> int:
@@ -657,7 +676,8 @@ class Pitch:
             return self
 
         else:
-            raise TypeError(f'Addition for pitch and type {type(other)} has not been implemented yet.')
+            raise TypeError(
+                f'Addition for pitch and type {type(other)} has not been implemented yet.')
 
     def __sub__(self, other: Union['Pitch', float, np.inexact, int, np.integer, 'Clef']) -> Union[int, float]:
         if isinstance(other, Pitch):
@@ -692,7 +712,8 @@ class Pitch:
             print('diff', octave_diff, step_diff, octave_diff + step_diff)
             return octave_diff + step_diff
         else:
-            raise TypeError(f'Cannot find difference between Pitch and type {type(other)}.')
+            raise TypeError(
+                f'Cannot find difference between Pitch and type {type(other)}.')
 
     def step_up(self) -> None:
         """
@@ -701,7 +722,8 @@ class Pitch:
         :return:
         """
         if self.alter == Accidental.TRIPLE_SHARP:
-            raise ValueError(f'Method step_up() does not work yet for {self} due to its Accidental {self.alter}.')
+            raise ValueError(
+                f'Method step_up() does not work yet for {self} due to its Accidental {self.alter}.')
 
         old_acci = self.alter
         while self.alter.alter - old_acci.alter < 1:
@@ -780,48 +802,63 @@ class Chromatic(Enum):
     Enum to represent chromatic steps
     """
 
-    Cbb = ('C double-flat', 'C𝄫', 'Ceses', Pitch(Step.C, alter=Accidental.DOUBLE_FLAT))
+    Cbb = ('C double-flat', 'C𝄫', 'Ceses',
+           Pitch(Step.C, alter=Accidental.DOUBLE_FLAT))
     Cb = ('C flat', 'C♭', 'Ces', Pitch(Step.C, alter=Accidental.FLAT))
     C = ('C', 'C', 'C', Pitch(Step.C, alter=Accidental.NONE))
     Cs = ('C sharp', 'C♯', 'Cis', Pitch(Step.C, alter=Accidental.SHARP))
-    Css = ('C double-sharp', 'C𝄪', 'Cisis', Pitch(Step.C, alter=Accidental.DOUBLE_SHARP))
+    Css = ('C double-sharp', 'C𝄪', 'Cisis',
+           Pitch(Step.C, alter=Accidental.DOUBLE_SHARP))
 
-    Dbb = ('D double-flat', 'D𝄫', 'Deses', Pitch(Step.D, alter=Accidental.DOUBLE_FLAT))
+    Dbb = ('D double-flat', 'D𝄫', 'Deses',
+           Pitch(Step.D, alter=Accidental.DOUBLE_FLAT))
     Db = ('D flat', 'D♭', 'Des', Pitch(Step.D, alter=Accidental.FLAT))
     D = ('D', 'D', 'D', Pitch(Step.D, alter=Accidental.NONE))
     Ds = ('D sharp', 'D♯', 'Dis', Pitch(Step.D, alter=Accidental.SHARP))
-    Dss = ('D double-sharp', 'D𝄪', 'Disis', Pitch(Step.D, alter=Accidental.DOUBLE_SHARP))
+    Dss = ('D double-sharp', 'D𝄪', 'Disis',
+           Pitch(Step.D, alter=Accidental.DOUBLE_SHARP))
 
-    Ebb = ('E double-flat', 'E𝄫', 'Eeses', Pitch(Step.E, alter=Accidental.DOUBLE_FLAT))
+    Ebb = ('E double-flat', 'E𝄫', 'Eeses',
+           Pitch(Step.E, alter=Accidental.DOUBLE_FLAT))
     Eb = ('E flat', 'E♭', 'Es', Pitch(Step.E, alter=Accidental.FLAT))
     E = ('E', 'E', 'E', Pitch(Step.E, alter=Accidental.NONE))
     Es = ('E sharp', 'E♯', 'Eis', Pitch(Step.E, alter=Accidental.SHARP))
-    Ess = ('E double-sharp', 'E𝄪', 'Eisis', Pitch(Step.E, alter=Accidental.DOUBLE_SHARP))
+    Ess = ('E double-sharp', 'E𝄪', 'Eisis',
+           Pitch(Step.E, alter=Accidental.DOUBLE_SHARP))
 
-    Fbb = ('F double-flat', 'F𝄫', 'Feses', Pitch(Step.F, alter=Accidental.DOUBLE_FLAT))
+    Fbb = ('F double-flat', 'F𝄫', 'Feses',
+           Pitch(Step.F, alter=Accidental.DOUBLE_FLAT))
     Fb = ('F flat', 'F♭', 'Fes', Pitch(Step.F, alter=Accidental.FLAT))
     F = ('F', 'F', 'F', Pitch(Step.F, alter=Accidental.NONE))
     Fs = ('F sharp', 'F♯', 'Fis', Pitch(Step.F, alter=Accidental.SHARP))
-    Fss = ('F double-sharp', 'F𝄪', 'Fisis', Pitch(Step.F, alter=Accidental.DOUBLE_SHARP))
+    Fss = ('F double-sharp', 'F𝄪', 'Fisis',
+           Pitch(Step.F, alter=Accidental.DOUBLE_SHARP))
 
-    Gbb = ('G double-flat', 'G𝄫', 'Geses', Pitch(Step.G, alter=Accidental.DOUBLE_FLAT))
+    Gbb = ('G double-flat', 'G𝄫', 'Geses',
+           Pitch(Step.G, alter=Accidental.DOUBLE_FLAT))
     Gb = ('G flat', 'G♭', 'Ges', Pitch(Step.G, alter=Accidental.FLAT))
     G = ('G', 'G', 'G', Pitch(Step.G, alter=Accidental.NONE))
     Gs = ('G sharp', 'G♯', 'Gis', Pitch(Step.G, alter=Accidental.SHARP))
-    Gss = ('G double-sharp', 'G𝄪', 'Gisis', Pitch(Step.G, alter=Accidental.DOUBLE_SHARP))
+    Gss = ('G double-sharp', 'G𝄪', 'Gisis',
+           Pitch(Step.G, alter=Accidental.DOUBLE_SHARP))
 
-    Abb = ('A double-flat', 'A𝄫', 'Asas', Pitch(Step.A, alter=Accidental.DOUBLE_FLAT))
+    Abb = ('A double-flat', 'A𝄫', 'Asas',
+           Pitch(Step.A, alter=Accidental.DOUBLE_FLAT))
     Ab = ('A flat', 'A♭', 'As', Pitch(Step.A, alter=Accidental.FLAT))
     A = ('A', 'A', 'A', Pitch(Step.A, alter=Accidental.NONE))
     As = ('A sharp', 'A♯', 'Ais', Pitch(Step.A, alter=Accidental.SHARP))
-    Ass = ('A double-sharp', 'A𝄪', 'Aisis', Pitch(Step.A, alter=Accidental.DOUBLE_SHARP))
+    Ass = ('A double-sharp', 'A𝄪', 'Aisis',
+           Pitch(Step.A, alter=Accidental.DOUBLE_SHARP))
 
-    Bbbb = ('B double-flat', 'B♭𝄫', 'Heseses', Pitch(Step.B, alter=Accidental.TRIPLE_FLAT))
-    Bbb = ('B double-flat', 'B𝄫', 'Heses', Pitch(Step.B, alter=Accidental.DOUBLE_FLAT))
+    Bbbb = ('B double-flat', 'B♭𝄫', 'Heseses',
+            Pitch(Step.B, alter=Accidental.TRIPLE_FLAT))
+    Bbb = ('B double-flat', 'B𝄫', 'Heses',
+           Pitch(Step.B, alter=Accidental.DOUBLE_FLAT))
     Bb = ('B flat', 'B♭', 'Bb', Pitch(Step.B, alter=Accidental.FLAT))
     B = ('B', 'B', 'H', Pitch(Step.B, alter=Accidental.NONE))
     Bs = ('B sharp', 'B♯', 'His', Pitch(Step.B, alter=Accidental.SHARP))
-    Bss = ('B double-sharp', 'B𝄪', 'Hisis', Pitch(Step.B, alter=Accidental.DOUBLE_SHARP))
+    Bss = ('B double-sharp', 'B𝄪', 'Hisis',
+           Pitch(Step.B, alter=Accidental.DOUBLE_SHARP))
 
     # -----------
     # Constructor

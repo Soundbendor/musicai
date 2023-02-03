@@ -5,17 +5,17 @@ import xml.etree.ElementTree as ET
 import numpy as np
 from typing import Union
 
-from musicai.structure.note_mark import StemType, Beam, BeamType, TieType, ArticulationType, OrnamentType, SlurType, \
+from structure.note_mark import StemType, Beam, BeamType, TieType, ArticulationType, OrnamentType, SlurType, \
     NoteheadType, Notehead
-from musicai.structure.clef import Clef, ClefOctave, ClefType
-from musicai.structure.key import ModeType, KeyType, Key
-from musicai.structure.lyric import Lyric, SyllabicType
-from musicai.structure.measure import Measure, Barline, BarlineType, BarlineLocation, Transposition
-from musicai.structure.measure_mark import MeasureMark, InstantaneousMeasureMark, DynamicMark, DynamicType
-from musicai.structure.note import NoteType, Ratio, NoteValue, Rest, Note, NoteGroup
-from musicai.structure.pitch import Accidental, Pitch, Octave, Step
-from musicai.structure.score import Score, PartSystem, Part, GroupingSymbol
-from musicai.structure.time import TimeSignature, TimeSymbolType, Tempo
+from structure.clef import Clef, ClefOctave, ClefType
+from structure.key import ModeType, KeyType, Key
+from structure.lyric import Lyric, SyllabicType
+from structure.measure import Measure, Barline, BarlineType, BarlineLocation, Transposition
+from structure.measure_mark import MeasureMark, InstantaneousMeasureMark, DynamicMark, DynamicType
+from structure.note import NoteType, Ratio, NoteValue, Rest, Note, NoteGroup
+from structure.pitch import Accidental, Pitch, Octave, Step
+from structure.score import Score, PartSystem, Part, GroupingSymbol
+from structure.time import TimeSignature, TimeSymbolType, Tempo
 
 
 class MXMLConversion:
@@ -23,10 +23,10 @@ class MXMLConversion:
     Class to contain static conversions from MusicAI elements to MusicXML elements or vice versa.
     """
 
-    from musicai.structure.measure_mark import HairpinType
-    from musicai.structure.note_mark import Articulation, ArticulationType, Notehead, NoteheadType
-    from musicai.structure.measure import BarlineType, Barline, BarlineLocation
-    from musicai.structure.score import GroupingSymbol
+    from structure.measure_mark import HairpinType
+    from structure.note_mark import Articulation, ArticulationType, Notehead, NoteheadType
+    from structure.measure import BarlineType, Barline, BarlineLocation
+    from structure.score import GroupingSymbol
 
     # -----------
     # Class Methods
@@ -41,7 +41,8 @@ class MXMLConversion:
         """
 
         if isinstance(value, list):
-            warnings.warn(f'Does not support multiple measures yet.', stacklevel=2)
+            warnings.warn(
+                f'Does not support multiple measures yet.', stacklevel=2)
             return ''
 
         elif isinstance(value, Barline):
@@ -80,7 +81,8 @@ class MXMLConversion:
                     return 'none'
 
         else:
-            raise TypeError(f'Cannot generate an mxml barline from type {type(value)}.')
+            raise TypeError(
+                f'Cannot generate an mxml barline from type {type(value)}.')
 
     @classmethod
     def barline_to_elem(cls, value: Union[Barline, BarlineType]) -> ET.Element:
@@ -93,9 +95,10 @@ class MXMLConversion:
         :param value:
         :return:
         """
-        
+
         if not isinstance(value, Union[Barline, BarlineType]):
-            raise TypeError(f'Cannot make a mxml barline element from type {type(value)}')
+            raise TypeError(
+                f'Cannot make a mxml barline element from type {type(value)}')
 
         bl_elem = ET.Element('barline')
 
@@ -137,7 +140,8 @@ class MXMLConversion:
 
         # This is a non-repeat barline: Deal with accordingly
         ET.SubElement(bl_elem, 'bar-style')
-        bl_elem.find('bar-style').text = MXMLConversion.barline_to_barstyle(value)
+        bl_elem.find(
+            'bar-style').text = MXMLConversion.barline_to_barstyle(value)
         return bl_elem
 
     @classmethod
@@ -215,7 +219,8 @@ class MXMLConversion:
 
         # Barline location
         if 'location' in bl_elem.attrib.keys():
-            new_bl.barlinelocation = MXMLConversion.barlinelocation_from_str(bl_elem.get('location'))
+            new_bl.barlinelocation = MXMLConversion.barlinelocation_from_str(
+                bl_elem.get('location'))
 
         # Barline type
         if bl_elem.find('repeat') is not None:
@@ -227,7 +232,8 @@ class MXMLConversion:
 
         elif bl_elem.find('bar-style') is not None:
             # Non-repeating barline
-            new_bl.barlinetype = MXMLConversion.barlinetype_from_str(bl_elem.find('bar-style').text)
+            new_bl.barlinetype = MXMLConversion.barlinetype_from_str(
+                bl_elem.find('bar-style').text)
 
         # For now, only single barline type is supported
         return new_bl
@@ -242,7 +248,8 @@ class MXMLConversion:
         """
 
         if not isinstance(time_elem, ET.Element):
-            raise TypeError(f'Cannot find a time symbol type from {time_elem} of type {type(time_elem)}.')
+            raise TypeError(
+                f'Cannot find a time symbol type from {time_elem} of type {type(time_elem)}.')
 
         match time_elem.get('symbol'):
             case 'normal':
@@ -270,7 +277,8 @@ class MXMLConversion:
         """
 
         if not isinstance(time, TimeSignature):
-            raise TypeError(f'Cannot construct a time symbol type string from {time} of type {type(time)}.')
+            raise TypeError(
+                f'Cannot construct a time symbol type string from {time} of type {type(time)}.')
 
         if time.timesymboltype == TimeSymbolType.SINGLE:
             return 'single-number'
@@ -288,7 +296,8 @@ class MXMLConversion:
         """
 
         if not isinstance(clef, Clef):
-            raise TypeError(f'Cannot make a mxml clef element from {clef} of type {type(clef)}.')
+            raise TypeError(
+                f'Cannot make a mxml clef element from {clef} of type {type(clef)}.')
 
         clef_elem = ET.Element('clef', {'number': f'{clef_number}'})
 
@@ -319,7 +328,8 @@ class MXMLConversion:
         # OCTAVE CHANGE
         if int(clef.octave_change) != 0:
             ET.SubElement(clef_elem, 'clef-octave-change')
-            clef_elem.find('clef-octave-change').text = str(int(clef.octave_change))
+            clef_elem.find(
+                'clef-octave-change').text = str(int(clef.octave_change))
 
         return clef_elem
 
@@ -382,7 +392,8 @@ class MXMLConversion:
                     return ''
 
         else:
-            raise TypeError(f'Cannot make xmxl note-type-value from type {type(value)}.')
+            raise TypeError(
+                f'Cannot make xmxl note-type-value from type {type(value)}.')
 
     @classmethod
     def in_prev_notegroup(cls, note: ET.Element) -> bool:
@@ -394,7 +405,8 @@ class MXMLConversion:
         """
 
         if not isinstance(note, ET.Element):
-            raise TypeError(f'Cannot check if type {type(note)} is in the previous notegroup.')
+            raise TypeError(
+                f'Cannot check if type {type(note)} is in the previous notegroup.')
 
         if note.find('chord') is not None:
             return True
@@ -412,7 +424,8 @@ class MXMLConversion:
         """
 
         if not isinstance(saved_note, Note):
-            raise TypeError(f'Cannot make a <time-modification> element from type {type(saved_note)}.')
+            raise TypeError(
+                f'Cannot make a <time-modification> element from type {type(saved_note)}.')
 
         tm_elem = ET.Element('time-modification')
 
@@ -442,7 +455,8 @@ class MXMLConversion:
             # print(f'-!-!-Made Stemtype{StemType[stem_elem.text.upper()].name} from text {stem_elem.text}!')
             return StemType[stem_elem.text.upper()]
         else:
-            raise ValueError(f'Cannot make a stem from stemtype {stem_elem.text}.')
+            raise ValueError(
+                f'Cannot make a stem from stemtype {stem_elem.text}.')
 
     @classmethod
     def stemtype_to_elem(cls, value: StemType) -> ET.Element:
@@ -510,7 +524,8 @@ class MXMLConversion:
         """
 
         if not isinstance(nh_elem, ET.Element):
-            raise TypeError(f'Cannot make a notehead from {nh_elem} of type {type(nh_elem)}.')
+            raise TypeError(
+                f'Cannot make a notehead from {nh_elem} of type {type(nh_elem)}.')
 
         notehead_name = nh_elem.text.upper().replace(' ', '_').replace('-', '_')
 
@@ -521,7 +536,8 @@ class MXMLConversion:
             return Notehead(notehead_type=NoteheadType[notehead_name])
 
         else:
-            raise ValueError(f'Cannot make a notehead type from mxml element with text {nh_elem.text}.')
+            raise ValueError(
+                f'Cannot make a notehead type from mxml element with text {nh_elem.text}.')
 
     @classmethod
     def notehead_to_elem(cls, nh: Notehead) -> ET.Element:
@@ -537,7 +553,8 @@ class MXMLConversion:
             nh_elem.text = 'x'
 
         else:
-            nh_elem.text = nh.notehead_type.name.lower().replace('circle_x', 'circle-x').replace('_', ' ')
+            nh_elem.text = nh.notehead_type.name.lower().replace(
+                'circle_x', 'circle-x').replace('_', ' ')
 
         return nh_elem
 
@@ -553,7 +570,8 @@ class MXMLConversion:
         """
 
         if not isinstance(lyric_elem, ET.Element):
-            raise TypeError(f'Cannot make a Lyric out of {lyric_elem} of type {type(lyric_elem)}.')
+            raise TypeError(
+                f'Cannot make a Lyric out of {lyric_elem} of type {type(lyric_elem)}.')
 
         lyr = Lyric()
 
@@ -618,7 +636,7 @@ class MXMLConversion:
         :return:
         """
 
-        from musicai.structure.measure_mark import HairpinType
+        from structure.measure_mark import HairpinType
         if isinstance(value, str):
             if not value.isnumeric():
                 warnings.warn(f'Cannot make a HairpinType from xml attribute of string {value}. Defaulting to '
@@ -695,7 +713,7 @@ class MXMLConversion:
         :return:
         """
 
-        from musicai.structure.measure_mark import DynamicChangeMark
+        from structure.measure_mark import DynamicChangeMark
 
         if isinstance(mm, DynamicChangeMark):
             return mm.dynamic_change_type.name.lower()
@@ -810,7 +828,8 @@ class MXMLConversion:
         """
 
         if not isinstance(dynamic_elem, ET.Element):
-            raise TypeError(f'Cannot make a DynamicMark from {dynamic_elem} of type {type(dynamic_elem)}.')
+            raise TypeError(
+                f'Cannot make a DynamicMark from {dynamic_elem} of type {type(dynamic_elem)}.')
 
         dynamic_list: list[DynamicMark] = []
 
@@ -839,7 +858,8 @@ class MXMLConversion:
                 case 'ffff':
                     new_d.dynamic_type = DynamicType.FORTISSISSISSIMO
                 case _:
-                    raise ValueError(f'Dynamic Type {dynamic.tag} is not yet supported.')
+                    raise ValueError(
+                        f'Dynamic Type {dynamic.tag} is not yet supported.')
 
             dynamic_list.append(new_d)
 
@@ -875,7 +895,8 @@ class MusicXML:
         for direction in loaded_root.find('part').find('measure').findall('direction'):
             if (metronome := direction.find('direction-type').find('metronome')) is not None:
                 per_minute = int(metronome.find('per-minute').text)
-                beat_unit = NoteType.from_mxml(metronome.find('beat-unit').text)
+                beat_unit = NoteType.from_mxml(
+                    metronome.find('beat-unit').text)
                 new_score.tempo = Tempo(per_minute, beat_unit)
 
         # Used when new parts should be added to the same part system
@@ -901,30 +922,39 @@ class MusicXML:
                                         new_score.metadata.composer = ident_element.text
                                         # TODO: If there's no 'composer' type, then the main composer is never set
                                     else:
-                                        creator_tuple = (ident_element.get('type'), ident_element.text)
-                                        new_score.metadata.creators.append(creator_tuple)
+                                        creator_tuple = (ident_element.get(
+                                            'type'), ident_element.text)
+                                        new_score.metadata.creators.append(
+                                            creator_tuple)
 
                                 else:  # the dictionary doesn't properly exist
-                                    creator_tuple = ('Creator', ident_element.text)
-                                    new_score.metadata.creators.append(creator_tuple)
+                                    creator_tuple = (
+                                        'Creator', ident_element.text)
+                                    new_score.metadata.creators.append(
+                                        creator_tuple)
 
                             case 'rights':
                                 if 'type' in ident_element.attrib.keys():  # if the type is defined
-                                    new_score.metadata.append_right(ident_element.text, ident_element.get('type'))
+                                    new_score.metadata.append_right(
+                                        ident_element.text, ident_element.get('type'))
                                 else:
-                                    new_score.metadata.append_right(ident_element.text, '')
+                                    new_score.metadata.append_right(
+                                        ident_element.text, '')
 
                             case 'encoding':  # people who did digital encoding for the file
-                                print('Encoding registered, ', ident_element.text)  # TODO
+                                print('Encoding registered, ',
+                                      ident_element.text)  # TODO
 
                             case 'source':  # source of the encoded music
                                 new_score.metadata.source = ident_element.text
 
                             case 'relation':  # related resource to the encoded music
-                                print('relation registered, ', ident_element.text)  # TODO
+                                print('relation registered, ',
+                                      ident_element.text)  # TODO
 
                             case 'miscellaneous':  # custom metadata
-                                print('Misc info registered, ', ident_element.text)  # TODO
+                                print('Misc info registered, ',
+                                      ident_element.text)  # TODO
 
                             case _:
                                 NotImplementedError(f'Unknown element \"{ident_element.tag}\" under the '
@@ -938,16 +968,19 @@ class MusicXML:
                             case 'work-title':
                                 new_score.metadata.work_title = work_element.text
                             case 'opus':
-                                print('opus registered, ', work_element.text)  # TODO
+                                print('opus registered, ',
+                                      work_element.text)  # TODO
                             case _:
                                 warnings.warn(f'Unknown element \"{work_element.tag}\" under the work '
                                               f'element.', stacklevel=2)
 
                 case 'defaults':  # score-wide scaling defaults
-                    print(f'{partwise_item.tag}, {partwise_item.attrib}, unused')  # TODO
+                    # TODO
+                    print(f'{partwise_item.tag}, {partwise_item.attrib}, unused')
 
                 case 'credit':  # appearence of information on the front pages
-                    print(f'{partwise_item.tag}, {partwise_item.attrib}, unused')  # TODO
+                    # TODO
+                    print(f'{partwise_item.tag}, {partwise_item.attrib}, unused')
 
                 case 'part-list':  # Sets information for the partsystem
 
@@ -967,9 +1000,11 @@ class MusicXML:
 
                                 # Records what this grouping symbol is
                                 if (pg_child := part_list_elem.find('group-symbol')) is not None:
-                                    nested_grouping_symbols.append(MXMLConversion.grouping_symbol_from_elem(pg_child))
+                                    nested_grouping_symbols.append(
+                                        MXMLConversion.grouping_symbol_from_elem(pg_child))
                                 else:
-                                    nested_grouping_symbols.append(GroupingSymbol.NONE)
+                                    nested_grouping_symbols.append(
+                                        GroupingSymbol.NONE)
 
                                 new_score.append(new_part_system)
 
@@ -979,7 +1014,8 @@ class MusicXML:
 
                                 # If the latest partsystem has only 1 part, apply the symbol to the part
                                 if len(new_part_system.parts) == 1:
-                                    new_score.systems[-1].parts[0].grouping_symbol = nested_grouping_symbols.pop()
+                                    new_score.systems[-1].parts[0].grouping_symbol = nested_grouping_symbols.pop(
+                                    )
 
                                 # Otherwise, there are more than 1 parts and the symbol should apply to the whole system
                                 else:
@@ -1013,12 +1049,14 @@ class MusicXML:
                     pass
 
                 case _:
-                    raise NotImplementedError(f'Unknown element \"{partwise_item.tag}\" in musicxml file.')
+                    raise NotImplementedError(
+                        f'Unknown element \"{partwise_item.tag}\" in musicxml file.')
 
         # For every part element, parse its information
         for part_elem in loaded_root.findall('part'):
             # Finds the part's index
-            part_index = int(''.join(c for c in part_elem.get('id') if c != 'P'))
+            part_index = int(
+                ''.join(c for c in part_elem.get('id') if c != 'P'))
 
             print(f'============================================')
             print(f'ATTEMPING TO LOAD PART INDEX {part_index}')
@@ -1028,7 +1066,8 @@ class MusicXML:
             to_load = new_score.get_part_by_mxml_index(part_index)
 
             # Loads the part's information
-            new_score.set_part_by_mxml_index(MusicXML._load_part(part_elem, to_load), part_index)
+            new_score.set_part_by_mxml_index(
+                MusicXML._load_part(part_elem, to_load), part_index)
 
         return new_score
 
@@ -1085,7 +1124,8 @@ class MusicXML:
         print(f'\nStaff Count: {staff_count}\n')
 
         # Used to a running count for time, key, divs, and measure marks for every staff in the part
-        prev_measure: list[Measure | None] = [Measure.empty_measure() for x in range(0, staff_count)]
+        prev_measure: list[Measure | None] = [
+            Measure.empty_measure() for x in range(0, staff_count)]
 
         if 'id' in part_item.attrib.keys():
             loaded_part.id = part_item.get('id')
@@ -1096,14 +1136,16 @@ class MusicXML:
         for staff in range(staff_count):
             if part_item.find('measure').find('attributes').find('divisions') is not None:
                 prev_measure[staff].divisions = \
-                    int(part_item.find('measure').find('attributes').find('divisions').text)
+                    int(part_item.find('measure').find(
+                        'attributes').find('divisions').text)
             else:
                 raise ImportError('No initial divisions value found')
 
         current_measure = 0
         for measure_elem in part_item:
             if measure_elem.tag != 'measure':
-                raise NotImplementedError(f'The non-measure element {measure_elem.tag} is under the Parts element')
+                raise NotImplementedError(
+                    f'The non-measure element {measure_elem.tag} is under the Parts element')
 
             # For every staff
             # Staff must be incremented sometimes because mxml begins staff index at 1, not 0
@@ -1127,7 +1169,8 @@ class MusicXML:
                 # Updates the divisions amount if applicable
                 for attribute_element in measure_elem.findall('attributes'):
                     if attribute_element.find('divisions') is not None:
-                        prev_measure[staff].divisions = int(attribute_element.find('divisions').text)
+                        prev_measure[staff].divisions = int(
+                            attribute_element.find('divisions').text)
 
                 # UPDATE THE RUNNING TIME SIGNATURE OR THE NEW MEASURE
                 if loaded_measure[0].time is not None:
@@ -1172,7 +1215,8 @@ class MusicXML:
                                 f'{mm.measure_index}!')
 
                             # Append the MeasureMark to the part's measure
-                            loaded_part.measures[mm.measure_index].measure_marks.append(mm)
+                            loaded_part.measures[mm.measure_index].measure_marks.append(
+                                mm)
                             # Remove this MeasureMark from the running-total list of measure marks
                             prev_measure[staff].measure_marks.remove(mm)
 
@@ -1182,7 +1226,8 @@ class MusicXML:
                         print(f'incrementing measure span for {mm}')
                         mm.measure_span += 1
 
-                print(f'\nCurrent persisting MeasureMarks: {prev_measure[staff].measure_marks}\n')
+                print(
+                    f'\nCurrent persisting MeasureMarks: {prev_measure[staff].measure_marks}\n')
 
             current_measure += 1
 
@@ -1210,7 +1255,8 @@ class MusicXML:
         """
 
         if not isinstance(elem, ET.Element):
-            raise TypeError(f'Cannot use {elem} of type {type(elem)} as an element.')
+            raise TypeError(
+                f'Cannot use {elem} of type {type(elem)} as an element.')
 
         match elem.tag:
 
@@ -1239,7 +1285,8 @@ class MusicXML:
                     return int(elem.find('staff').text) == staff
 
             case _:
-                raise ValueError(f'Cannot determine whether {elem} of tag {elem.tag} exists for a specific staff.')
+                raise ValueError(
+                    f'Cannot determine whether {elem} of tag {elem.tag} exists for a specific staff.')
 
     @classmethod
     def _load_notegroup(cls, first_note: Note | NoteGroup, added_elem: ET.Element, divisions: int) \
@@ -1290,7 +1337,8 @@ class MusicXML:
         n = 1
         for item in measure_element:
 
-            print(f'--{n}: Reading {item.tag} at location {current_musical_location}')
+            print(
+                f'--{n}: Reading {item.tag} at location {current_musical_location}')
             n += 1
 
             match item.tag:
@@ -1320,9 +1368,11 @@ class MusicXML:
                                     elif clef_item.tag == 'clef-octave-change':
                                         clef_octave = int(clef_item.text)
                                     else:
-                                        warnings.warn(f'Clef element {clef_item.tag.title()} not implemented.')
+                                        warnings.warn(
+                                            f'Clef element {clef_item.tag.title()} not implemented.')
 
-                                measure.clef = Clef(clef_sign, clef_octave, clef_line)
+                                measure.clef = Clef(
+                                    clef_sign, clef_octave, clef_line)
 
                             case 'divisions':
                                 divisions = int(child.text)
@@ -1336,11 +1386,14 @@ class MusicXML:
 
                                 for key_item in child:
                                     if key_item.tag == 'fifths':
-                                        new_key.keytype = KeyType.find(int(key_item.text))
+                                        new_key.keytype = KeyType.find(
+                                            int(key_item.text))
                                     elif key_item.tag == 'mode':
-                                        new_key.modetype = ModeType[key_item.text.upper()]
+                                        new_key.modetype = ModeType[key_item.text.upper(
+                                        )]
                                     else:
-                                        raise NotImplementedError(f'key for {key_item.tag}')
+                                        raise NotImplementedError(
+                                            f'key for {key_item.tag}')
 
                                 measure.key = new_key
 
@@ -1357,14 +1410,18 @@ class MusicXML:
                                 # Beats and beat type
                                 for time_item in child:
                                     if time_item.tag == 'beats':
-                                        new_time_signature.numerator = int(time_item.text)
+                                        new_time_signature.numerator = int(
+                                            time_item.text)
                                     elif time_item.tag == 'beat-type':
-                                        new_time_signature.denominator = int(time_item.text)
+                                        new_time_signature.denominator = int(
+                                            time_item.text)
                                     else:
-                                        print(f'{time_item.tag} is not supported yet')
+                                        print(
+                                            f'{time_item.tag} is not supported yet')
 
                                 # Time symbol type
-                                new_time_signature.timesymboltype = MXMLConversion.time_symbol_type_from_elem(child)
+                                new_time_signature.timesymboltype = MXMLConversion.time_symbol_type_from_elem(
+                                    child)
 
                                 measure.time = new_time_signature
 
@@ -1377,13 +1434,16 @@ class MusicXML:
                                 for tr_child in child:
 
                                     if tr_child.tag == 'diatonic':
-                                        measure.transposition.diatonic = int(tr_child.text)
+                                        measure.transposition.diatonic = int(
+                                            tr_child.text)
 
                                     elif tr_child.tag == 'chromatic':
-                                        measure.transposition.chromatic = int(tr_child.text)
+                                        measure.transposition.chromatic = int(
+                                            tr_child.text)
 
                                     elif tr_child.tag == 'octave-change':
-                                        measure.transposition.octave_change = int(tr_child.text)
+                                        measure.transposition.octave_change = int(
+                                            tr_child.text)
 
                                     elif tr_child.tag == 'double':
                                         measure.transposition.doubled = True
@@ -1392,7 +1452,8 @@ class MusicXML:
                                 print(f'Measure Style not supported yet')
 
                             case _:
-                                print(f'{child.tag.title()} under "Measure" is not supported yet')
+                                print(
+                                    f'{child.tag.title()} under "Measure" is not supported yet')
 
                 case 'note':
 
@@ -1400,13 +1461,15 @@ class MusicXML:
                     if not MusicXML._element_is_in_staff(item, staff):
                         continue
                     if measure.time is None or measure.key is None:
-                        raise ValueError(f'Time and key should already be set--logically need to set them up.')
+                        raise ValueError(
+                            f'Time and key should already be set--logically need to set them up.')
 
                     # IS IN PREVIOUS CHORD
                     if item.find('chord') is not None:
 
                         # Make a new note group using the latest note
-                        new_note_group = MusicXML._load_notegroup(measure.notes[-1], item, divisions)
+                        new_note_group = MusicXML._load_notegroup(
+                            measure.notes[-1], item, divisions)
 
                         measure.notes[-1] = new_note_group[0]  # New note group
                         # current_musical_location += new_note_group[1]  -- There should be no change in musical loc
@@ -1416,7 +1479,8 @@ class MusicXML:
                         loaded_note = MusicXML._load_note(item, divisions)
 
                         measure.append(loaded_note[0])  # New note
-                        current_musical_location += loaded_note[1]  # Change in location
+                        # Change in location
+                        current_musical_location += loaded_note[1]
 
                 case 'backup':
                     pass
@@ -1447,14 +1511,17 @@ class MusicXML:
                                         for dynamic_mark in \
                                                 MXMLConversion.dynamic_marks_from_elem(dir_type,
                                                                                        current_musical_location):
-                                            measure.measure_marks.append(dynamic_mark)
+                                            measure.measure_marks.append(
+                                                dynamic_mark)
 
                                     # TODO: Move this to a _load_measure_mark() func that keeps a running total
                                     case 'wedge':
-                                        from musicai.structure.measure_mark import DynamicChangeMark
+                                        from structure.measure_mark import DynamicChangeMark
 
-                                        wedge_type = dir_type.get('type').lower()
-                                        print('Wedge type acquired: ', wedge_type)
+                                        wedge_type = dir_type.get(
+                                            'type').lower()
+                                        print('Wedge type acquired: ',
+                                              wedge_type)
 
                                         # Wedge creation starts
                                         if wedge_type == 'crescendo' or wedge_type == 'diminuendo':
@@ -1487,10 +1554,12 @@ class MusicXML:
                                                                   f'{mm.measure_span}')
 
                                                             # Adds the mark to the measure
-                                                            measure.measure_marks.append(mm)
+                                                            measure.measure_marks.append(
+                                                                mm)
 
                                                             # Removes it from the list
-                                                            measure_marks.remove(mm)
+                                                            measure_marks.remove(
+                                                                mm)
 
                                                         else:
                                                             print(f'Read wedge with st:{mm.start_point}, end:'
@@ -1500,7 +1569,8 @@ class MusicXML:
                                                             # In the _load_part() method
                                                             pass
 
-                                                        break  # (No way for checking if the loop failed yet)
+                                                        # (No way for checking if the loop failed yet)
+                                                        break
 
                                             # Else this is not a numbered wedge mark
                                             # There is likely only one dynamic mark in the list of marks
@@ -1516,8 +1586,10 @@ class MusicXML:
                                                             print(f'Read wedge with st:{mm.start_point}, end:'
                                                                   f'{mm.end_point}, and measure_span:'
                                                                   f'{mm.measure_span}')
-                                                            measure.measure_marks.append(mm)
-                                                            measure_marks.remove(mm)
+                                                            measure.measure_marks.append(
+                                                                mm)
+                                                            measure_marks.remove(
+                                                                mm)
 
                                                         else:
                                                             print(f'Read wedge with st:{mm.start_point}, end:'
@@ -1603,8 +1675,10 @@ class MusicXML:
                     note.value.ratio.normal = int(time_mod_item.text)
 
                 elif time_mod_item.tag == 'normal-type':
-                    print(f'Setting abnormal notetype to {NoteType.from_mxml(time_mod_item.text)}')
-                    note.value.notetype = NoteType.from_mxml(time_mod_item.text)
+                    print(
+                        f'Setting abnormal notetype to {NoteType.from_mxml(time_mod_item.text)}')
+                    note.value.notetype = NoteType.from_mxml(
+                        time_mod_item.text)
 
                 elif time_mod_item.tag == 'normal-dot':
                     pass  # Accounted for in the next if-statement
@@ -1626,19 +1700,22 @@ class MusicXML:
         for note_child in note_item:
             match note_child.tag:
                 case 'grace':
-                    print(f'"{note_child.tag.title()}" note element has not been implemented yet.')
+                    print(
+                        f'"{note_child.tag.title()}" note element has not been implemented yet.')
 
                 case 'chord':
-                    print(f'"{note_child.tag.title()}" note element has not been implemented yet.')
+                    print(
+                        f'"{note_child.tag.title()}" note element has not been implemented yet.')
 
                 case 'pitch':
                     for pitch_item in note_child:
 
                         if pitch_item.tag == 'alter':
-                            from musicai.structure.pitch import Accidental
+                            from structure.pitch import Accidental
                             if note.pitch.alter == Accidental.NONE:
                                 # TODO: unknown if find() works
-                                note.pitch.alter = Accidental.find(int(pitch_item.text))
+                                note.pitch.alter = Accidental.find(
+                                    int(pitch_item.text))
 
                             elif note.pitch.alter != Accidental.find(int(pitch_item.text)):
                                 # alter has already been set by <accidental> element, so checks if they're equal
@@ -1646,11 +1723,13 @@ class MusicXML:
                                               stacklevel=2)
 
                         elif pitch_item.tag == 'octave':
-                            note.pitch.octave = Octave.from_int(int(pitch_item.text))
+                            note.pitch.octave = Octave.from_int(
+                                int(pitch_item.text))
                         elif pitch_item.tag == 'step':
                             note.pitch.step = Step[pitch_item.text]
                         else:
-                            raise NotImplementedError(f'Pitch for {pitch_item.tag}')
+                            raise NotImplementedError(
+                                f'Pitch for {pitch_item.tag}')
 
                 case 'unpitched':
                     for pitch_item in note_child:
@@ -1658,13 +1737,15 @@ class MusicXML:
                         note.is_pitched = False
 
                         if pitch_item.tag == 'display-octave':
-                            note.pitch.octave = Octave.from_int(int(pitch_item.text))
+                            note.pitch.octave = Octave.from_int(
+                                int(pitch_item.text))
 
                         elif pitch_item.tag == 'display-step':
                             note.pitch.step = Step[pitch_item.text]
 
                         else:
-                            raise NotImplementedError(f'Pitch for {pitch_item.tag}')
+                            raise NotImplementedError(
+                                f'Pitch for {pitch_item.tag}')
 
                 case 'rest':
                     note = Rest.to_rest(note)
@@ -1675,13 +1756,14 @@ class MusicXML:
                     pass
 
                 case 'cue':
-                    print(f'"{note_child.tag.title()}" note element has not been implemented yet.')
+                    print(
+                        f'"{note_child.tag.title()}" note element has not been implemented yet.')
 
                 case 'duration':
                     # The duration already takes into account dots and ratio, so those need to be divided out
                     # i.e.: duration == (NoteType * divisions * 4) * dots * self.ratio.normal / self.ratio.actual
                     new_notetype_value = int(note_child.text) / note.value.dots / divisions / 4 \
-                                         / note.value.ratio.normal * note.value.ratio.actual
+                        / note.value.ratio.normal * note.value.ratio.actual
                     duration += int(note_child.text)
 
                     note.value.notetype = new_notetype_value
@@ -1691,7 +1773,8 @@ class MusicXML:
                     # print(f'"{note_child.tag.title()}" note element has not been implemented yet.')
 
                 case 'footnote':
-                    print(f'"{note_child.tag.title()}" note element has not been implemented yet.')
+                    print(
+                        f'"{note_child.tag.title()}" note element has not been implemented yet.')
 
                 case 'type':
                     # TODO: implement double checking w/ the type element
@@ -1699,9 +1782,10 @@ class MusicXML:
                     pass
 
                 case 'accidental':
-                    from musicai.structure.pitch import Accidental
+                    from structure.pitch import Accidental
                     if note.pitch.alter == Accidental.NONE:
-                        note.pitch.alter = Accidental.from_mxml(note_child.text)
+                        note.pitch.alter = Accidental.from_mxml(
+                            note_child.text)
 
                     elif note.pitch.alter != Accidental.from_mxml(note_child.text):
                         # alter has already been set by <alter> element, so checks if they're equal
@@ -1712,7 +1796,8 @@ class MusicXML:
                     note.stem = MXMLConversion.stemtype_from_elem(note_child)
 
                 case 'notehead':
-                    note.notehead = MXMLConversion.notehead_from_elem(note_child)
+                    note.notehead = MXMLConversion.notehead_from_elem(
+                        note_child)
 
                 case 'notehead-text':
                     pass
@@ -1729,15 +1814,18 @@ class MusicXML:
                     for notation in note_child:
 
                         if notation.tag == 'tied' or notation.tag == 'slur':
-                            note.add_notemark(MXMLConversion.note_mark_from_elem(notation))
+                            note.add_notemark(
+                                MXMLConversion.note_mark_from_elem(notation))
 
                         elif notation.tag == 'articulations':
                             for articulation in notation:
-                                note.add_notemark(MXMLConversion.note_mark_from_elem(articulation))
+                                note.add_notemark(
+                                    MXMLConversion.note_mark_from_elem(articulation))
 
                         elif notation.tag == 'ornaments':
                             for ornament in notation:
-                                note.add_notemark(MXMLConversion.note_mark_from_elem(ornament))
+                                note.add_notemark(
+                                    MXMLConversion.note_mark_from_elem(ornament))
 
                         else:
                             pass
@@ -1835,7 +1923,8 @@ class MusicXML:
             attributes_elem = ET.Element('attributes')
 
             ET.SubElement(attributes_elem, 'divisions')
-            attributes_elem.find('divisions').text = str(int(part.measures[m_index].divisions))
+            attributes_elem.find('divisions').text = str(
+                int(part.measures[m_index].divisions))
 
         # NEW KEY (Traditional Style)
         if m_index == 0 or not part.measures[m_index].key.is_equivilant(part.measures[m_index - 1].key):
@@ -1846,9 +1935,11 @@ class MusicXML:
 
             key_elem = ET.SubElement(attributes_elem, 'key')
             ET.SubElement(key_elem, 'fifths')
-            key_elem.find('fifths').text = str(part.measures[m_index].key.fifths())
+            key_elem.find('fifths').text = str(
+                part.measures[m_index].key.fifths())
             ET.SubElement(key_elem, 'mode')
-            key_elem.find('mode').text = part.measures[m_index].key.modetype_to_str()
+            key_elem.find(
+                'mode').text = part.measures[m_index].key.modetype_to_str()
 
         # NEW TIME SIGNATURE
         if m_index == 0 or not part.measures[m_index].time.is_equivilant(part.measures[m_index - 1].time):
@@ -1859,13 +1950,16 @@ class MusicXML:
             time_elem = ET.SubElement(attributes_elem, 'time')
 
             # Symbol
-            time_elem.attrib['symbol'] = MXMLConversion.time_symbol_type_to_str(part.measures[m_index].time)
+            time_elem.attrib['symbol'] = MXMLConversion.time_symbol_type_to_str(
+                part.measures[m_index].time)
 
             # Beats and beat type
             ET.SubElement(time_elem, 'beats')
-            time_elem.find('beats').text = str(part.measures[m_index].time.numerator)
+            time_elem.find('beats').text = str(
+                part.measures[m_index].time.numerator)
             ET.SubElement(time_elem, 'beat-type')
-            time_elem.find('beat-type').text = str(part.measures[m_index].time.denominator)
+            time_elem.find(
+                'beat-type').text = str(part.measures[m_index].time.denominator)
 
         # STAVES
         if m_index == 0:
@@ -1881,7 +1975,8 @@ class MusicXML:
             if attributes_elem is None:
                 attributes_elem = ET.Element('attributes')
 
-            attributes_elem.append(MXMLConversion.clef_to_elem(part.measures[m_index].clef, clef_number=1))
+            attributes_elem.append(MXMLConversion.clef_to_elem(
+                part.measures[m_index].clef, clef_number=1))
 
         # NEW SECONDARY-STAFF CLEFS
         for staff in range(part.staff_count() - 1):
@@ -1889,7 +1984,8 @@ class MusicXML:
             # Gets the new and old clef for comparing
             old_st_clef = None
             if m_index != 0:
-                old_st_clef = copy.deepcopy(part.multi_staves[staff][m_index - 1].clef)
+                old_st_clef = copy.deepcopy(
+                    part.multi_staves[staff][m_index - 1].clef)
             new_st_clef = copy.deepcopy(part.multi_staves[staff][m_index]).clef
 
             # If new clef is unequal to previous:
@@ -1898,10 +1994,12 @@ class MusicXML:
                 if attributes_elem is None:
                     attributes_elem = ET.Element('attributes')
 
-                attributes_elem.append(MXMLConversion.clef_to_elem(new_st_clef, clef_number=staff + 2))
+                attributes_elem.append(MXMLConversion.clef_to_elem(
+                    new_st_clef, clef_number=staff + 2))
 
         # NEW PRIMARY_STAFF TRANSPOSE
-        first_irregular_trans = m_index == 0 and not part.measures[m_index].transposition.is_equivilant(Transposition())
+        first_irregular_trans = m_index == 0 and not part.measures[m_index].transposition.is_equivilant(
+            Transposition())
         if first_irregular_trans or \
                 (m_index != 0 and
                  not part.measures[m_index].transposition.is_equivilant(part.measures[m_index - 1].transposition)):
@@ -1909,14 +2007,18 @@ class MusicXML:
             if attributes_elem is None:
                 attributes_elem = ET.Element('attributes')
 
-            trans_elem = ET.SubElement(attributes_elem, 'transpose', {'number': '1'})
+            trans_elem = ET.SubElement(
+                attributes_elem, 'transpose', {'number': '1'})
 
             ET.SubElement(trans_elem, 'diatonic')
-            trans_elem.find('diatonic').text = str(part.measures[m_index].transposition.diatonic)
+            trans_elem.find('diatonic').text = str(
+                part.measures[m_index].transposition.diatonic)
             ET.SubElement(trans_elem, 'chromatic')
-            trans_elem.find('chromatic').text = str(part.measures[m_index].transposition.chromatic)
+            trans_elem.find('chromatic').text = str(
+                part.measures[m_index].transposition.chromatic)
             ET.SubElement(trans_elem, 'octave-change')
-            trans_elem.find('octave-change').text = str(part.measures[m_index].transposition.octave_change)
+            trans_elem.find(
+                'octave-change').text = str(part.measures[m_index].transposition.octave_change)
 
             if part.measures[m_index].transposition.doubled:
                 ET.SubElement(trans_elem, 'double')
@@ -1927,24 +2029,29 @@ class MusicXML:
             # Gets the new and old tranposition for comparing
             old_transpose = Transposition()
             if m_index != 0:
-                old_transpose = copy.deepcopy(part.multi_staves[staff][m_index - 1].transposition)
-            new_tranpose = copy.deepcopy(part.multi_staves[staff][m_index]).transposition
+                old_transpose = copy.deepcopy(
+                    part.multi_staves[staff][m_index - 1].transposition)
+            new_tranpose = copy.deepcopy(
+                part.multi_staves[staff][m_index]).transposition
 
             # If new tranposition is unequal to previous:
-            first_irregular_trans = m_index == 0 and not new_tranpose.is_equivilant(Transposition())
+            first_irregular_trans = m_index == 0 and not new_tranpose.is_equivilant(
+                Transposition())
             if first_irregular_trans or (m_index != 0 and not new_tranpose.is_equivilant(old_transpose)):
 
                 if attributes_elem is None:
                     attributes_elem = ET.Element('attributes')
 
-                trans_elem = ET.SubElement(attributes_elem, 'transpose', {'number': f'{staff + 2}'})
+                trans_elem = ET.SubElement(attributes_elem, 'transpose', {
+                                           'number': f'{staff + 2}'})
 
                 ET.SubElement(trans_elem, 'diatonic')
                 trans_elem.find('diatonic').text = str(new_tranpose.diatonic)
                 ET.SubElement(trans_elem, 'chromatic')
                 trans_elem.find('chromatic').text = str(new_tranpose.chromatic)
                 ET.SubElement(trans_elem, 'octave-change')
-                trans_elem.find('octave-change').text = str(new_tranpose.octave_change)
+                trans_elem.find(
+                    'octave-change').text = str(new_tranpose.octave_change)
 
                 if new_tranpose.doubled:
                     ET.SubElement(trans_elem, 'double')
@@ -1961,7 +2068,8 @@ class MusicXML:
         """
 
         # Makes a sorted list of <notation>'s children
-        new_notat_order = sorted([child for child in notat_elem], key=MXMLConversion.notations_order_key)
+        new_notat_order = sorted(
+            [child for child in notat_elem], key=MXMLConversion.notations_order_key)
 
         # Replaces each child with the sorted one
         for i in range(len([child for child in notat_elem])):
@@ -1992,9 +2100,11 @@ class MusicXML:
 
                 match nm:
                     case ArticulationType.ACCENT:
-                        ET.SubElement(notat_elem.find('articulations'), 'accent')
+                        ET.SubElement(notat_elem.find(
+                            'articulations'), 'accent')
                     case ArticulationType.STACCATO:
-                        ET.SubElement(notat_elem.find('articulations'), 'staccato')
+                        ET.SubElement(notat_elem.find(
+                            'articulations'), 'staccato')
                     case _:
                         pass
 
@@ -2044,7 +2154,7 @@ class MusicXML:
             ET.SubElement(pitch_elem, 'step')
             pitch_elem.find('step').text = str(saved_note.pitch.step)
 
-            from musicai.structure.pitch import Accidental
+            from structure.pitch import Accidental
             if saved_note.pitch.alter != Accidental.NONE:
                 # TODO: Implement accidental.to_mxml() (not high priority)
                 ET.SubElement(pitch_elem, 'alter')
@@ -2062,17 +2172,20 @@ class MusicXML:
             unpitched_elem = ET.SubElement(note_elem, 'unpitched')
 
             ET.SubElement(unpitched_elem, 'display-step')
-            unpitched_elem.find('display-step').text = str(saved_note.pitch.step)
+            unpitched_elem.find(
+                'display-step').text = str(saved_note.pitch.step)
 
             ET.SubElement(unpitched_elem, 'display-octave')
-            unpitched_elem.find('display-octave').text = str(int(saved_note.pitch.octave))
+            unpitched_elem.find(
+                'display-octave').text = str(int(saved_note.pitch.octave))
 
         # DURATION
         ET.SubElement(note_elem, 'duration')
 
         # Calculates it and converts to int form if possible
         # TODO: Sort out value given by saved_note.value.value
-        duration_value = round((saved_note.value.value * 4) * saved_note.division)  # * \
+        duration_value = round((saved_note.value.value * 4)
+                               * saved_note.division)  # * \
         # saved_note.value.ratio.normal / saved_note.value.ratio.actual  # saved_note.value.dots * \
 
         # if duration_value.is_integer():
@@ -2111,7 +2224,8 @@ class MusicXML:
 
         # NOTEHEAD
         if not saved_note.has_normal_notehead():
-            note_elem.append(MXMLConversion.notehead_to_elem(saved_note.notehead))
+            note_elem.append(
+                MXMLConversion.notehead_to_elem(saved_note.notehead))
 
         # STAFF
         ET.SubElement(note_elem, 'staff')
@@ -2161,7 +2275,8 @@ class MusicXML:
 
             # The <chord> element is only preceeded by <cue> and <grace> elements
             ch_index: int = 0
-            ch_index += len(note_elems[i].findall('cue')) + len(note_elems[i].findall('grace'))
+            ch_index += len(note_elems[i].findall('cue')) + \
+                len(note_elems[i].findall('grace'))
 
             note_elems[i].insert(ch_index, ET.Element('chord'))
 
@@ -2182,7 +2297,8 @@ class MusicXML:
         """
 
         # Running total of measure marks, for all staves
-        s_measure_marks_to_end: list[list[MeasureMark]] = [[] for x in range(0, saved_part.staff_count())]
+        s_measure_marks_to_end: list[list[MeasureMark]] = [
+            [] for x in range(0, saved_part.staff_count())]
 
         # FOR EVERY MEASURE
         measure_index = 0
@@ -2193,16 +2309,19 @@ class MusicXML:
                                          f' ==============')
             part_elem.append(measure_divider)
 
-            new_measure_elem = ET.SubElement(part_elem, 'measure', {'number': f'{measure_index + 1}'})
+            new_measure_elem = ET.SubElement(
+                part_elem, 'measure', {'number': f'{measure_index + 1}'})
 
             # Updates the attributes element
-            attribute_elem = MusicXML._save_measure_attributes(saved_part, measure_index)
+            attribute_elem = MusicXML._save_measure_attributes(
+                saved_part, measure_index)
             if attribute_elem is not None:
                 new_measure_elem.append(attribute_elem)
 
             # LEFT-SIDED BARLINE
             if measure.has_ls_barline():
-                warnings.warn(f'Measure {measure} has a left-sided barline that HAS NOT been represented!')
+                warnings.warn(
+                    f'Measure {measure} has a left-sided barline that HAS NOT been represented!')
 
             # NOTES and MEASURE MARKS, for EVERY STAFF
             for staff in range(saved_part.staff_count()):
@@ -2212,12 +2331,14 @@ class MusicXML:
 
                 # Add backup element if this is a secondary-staff
                 if staff > 0:
-                    backup_count = (measure.divisions * 4) * measure.time.numerator / measure.time.denominator
+                    backup_count = (measure.divisions * 4) * \
+                        measure.time.numerator / measure.time.denominator
                     if backup_count.is_integer():
                         backup_count = int(backup_count)
                     ET.SubElement(new_measure_elem, 'backup')
                     ET.SubElement(new_measure_elem.find('backup'), 'duration')
-                    new_measure_elem.find('backup').find('duration').text = str(backup_count)
+                    new_measure_elem.find('backup').find(
+                        'duration').text = str(backup_count)
 
                 current_musical_pos = 0
                 measure_marks_to_save = staved_measure.measure_marks.copy()
@@ -2229,15 +2350,17 @@ class MusicXML:
                     for mm in measure_marks_to_save:
                         if mm.start_point <= current_musical_pos:
                             # Print the mark and remove it from the list
-                            direction_elem = ET.SubElement(new_measure_elem, 'direction')
+                            direction_elem = ET.SubElement(
+                                new_measure_elem, 'direction')
 
                             # TODO: Add MeasureMark.to_mxml() so multiple <direction>'s don't get made in a row
 
                             # INSTANTANEOUS MEASURE MARKS
-                            from musicai.structure.measure_mark import DynamicMark, DynamicChangeMark
+                            from structure.measure_mark import DynamicMark, DynamicChangeMark
                             if isinstance(mm, DynamicMark):
                                 ET.SubElement(direction_elem, 'direction-type')
-                                dyn = ET.SubElement(direction_elem.find('direction-type'), 'dynamics')
+                                dyn = ET.SubElement(direction_elem.find(
+                                    'direction-type'), 'dynamics')
                                 ET.SubElement(dyn, f'{mm.dynamic_type.abbr}')
 
                             # NON-INSTANTANEOUS MEASURE MARKS
@@ -2261,10 +2384,11 @@ class MusicXML:
 
                         # If the measure mark is in this measure and its end point has been reached
                         if mm.measure_span < 1 and mm.end_point <= current_musical_pos:
-                            direction_elem = ET.SubElement(new_measure_elem, 'direction')
+                            direction_elem = ET.SubElement(
+                                new_measure_elem, 'direction')
 
                             # TODO: Add a function to add 'STOP' tags depending on the mark-type
-                            from musicai.structure.measure_mark import DynamicChangeMark
+                            from structure.measure_mark import DynamicChangeMark
                             if isinstance(mm, DynamicChangeMark):
                                 ET.SubElement(direction_elem, 'direction-type')
                                 ET.SubElement(direction_elem.find('direction-type'), 'wedge',
@@ -2273,7 +2397,8 @@ class MusicXML:
                                 ET.SubElement(direction_elem, 'voice')
                                 direction_elem.find('voice').text = f'{1}'
                                 ET.SubElement(direction_elem, 'staff')
-                                direction_elem.find('staff').text = f'{staff + 1}'
+                                direction_elem.find(
+                                    'staff').text = f'{staff + 1}'
 
                             # The mark is discarded as now it's been implemented
                             s_measure_marks_to_end[staff].remove(mm)
@@ -2285,12 +2410,14 @@ class MusicXML:
 
                     # NOTE
                     else:
-                        new_measure_elem.append(MusicXML._save_note(s_note, staff=staff + 1))
+                        new_measure_elem.append(
+                            MusicXML._save_note(s_note, staff=staff + 1))
 
                     # UPDATE CURRENT_MUSICAL_POSITION AND RUNNING LIST OF MEASURE MARKS
                     for mm in s_measure_marks_to_end[staff]:
                         mm.measure_span -= 1
-                    current_musical_pos += (s_note.value.value * 4) * s_note.division
+                    current_musical_pos += (s_note.value.value *
+                                            4) * s_note.division
 
             # IRREGULAR RS BARLINE
             if measure.has_irregular_rs_barline():
@@ -2300,7 +2427,8 @@ class MusicXML:
 
             # REGULAR RS BARLINE
             else:
-                right_barline = ET.SubElement(new_measure_elem, 'barline', {'location': 'right'})
+                right_barline = ET.SubElement(
+                    new_measure_elem, 'barline', {'location': 'right'})
                 ET.SubElement(right_barline, 'bar-style')
                 right_barline.find('bar-style').text = 'regular'
 
@@ -2321,7 +2449,7 @@ class MusicXML:
                 direction_elem = ET.SubElement(final_measure_elem, 'direction')
 
                 # Add in a stop wedge at the end for the measure mark
-                from musicai.structure.measure_mark import DynamicChangeMark
+                from structure.measure_mark import DynamicChangeMark
                 for mm in s_measure_marks_to_end[staff]:
                     # TODO: Implement MeasureMark_to_mxml with ability for 'STOP' tags
 
@@ -2370,37 +2498,43 @@ class MusicXML:
 
             # MULTI-PART GROUPING START
             if len(part_system.parts) > 1:
-                part_group_elem = ET.SubElement(partlist, 'part-group', {'type': 'start'})
+                part_group_elem = ET.SubElement(
+                    partlist, 'part-group', {'type': 'start'})
 
                 # Grouping symbol for partsystem
                 if str(part_system.grouping_symbol) != '':
                     ET.SubElement(part_group_elem, 'group-symbol')
                     part_group_elem.find('group-symbol').text = \
-                        MXMLConversion.grouping_symbol_to_str(part_system.grouping_symbol)
+                        MXMLConversion.grouping_symbol_to_str(
+                            part_system.grouping_symbol)
 
             # ADD MEASURE INFO
             for part in part_system.parts:
 
                 # MULTI-STAFF GROUPING START
                 if part.has_multiple_staves():
-                    partgroup = ET.SubElement(partlist, 'part-group', {'type': 'start'})
+                    partgroup = ET.SubElement(
+                        partlist, 'part-group', {'type': 'start'})
 
                     # Grouping symbol for part
                     if str(part.grouping_symbol) != '':
                         ET.SubElement(partgroup, 'group-symbol')
                         partgroup.find('group-symbol').text = \
-                            MXMLConversion.grouping_symbol_to_str(part.grouping_symbol)
+                            MXMLConversion.grouping_symbol_to_str(
+                                part.grouping_symbol)
 
                 # SAVE PARTLIST METADATA
                 score_part_elem = ET.SubElement(partlist, 'score-part')
-                score_part_elem = MusicXML._save_part_metadata(score_part_elem, part, part_id_num)
+                score_part_elem = MusicXML._save_part_metadata(
+                    score_part_elem, part, part_id_num)
 
                 # MULTI-STAFF GROUPING STOP
                 if part.has_multiple_staves():
                     ET.SubElement(partlist, 'part-group', {'type': 'stop'})
 
                 # SAVE EVERY MEASURE
-                part_elem = ET.SubElement(root, 'part', {'id': f'P{part_id_num}'})
+                part_elem = ET.SubElement(
+                    root, 'part', {'id': f'P{part_id_num}'})
                 part_elem = MusicXML._save_part(part_elem, part, part_id_num)
 
                 # Part ID number is incremented
@@ -2414,13 +2548,15 @@ class MusicXML:
         # TODO: Construct vertical beatmap and remove this code
         if score.tempo is not None:
             first_measure = root.find('part').find('measure')
-            index = [child for child in first_measure].index(first_measure.find('attributes')) + 1
+            index = [child for child in first_measure].index(
+                first_measure.find('attributes')) + 1
 
             dir_elem = ET.Element('direction')
             dirtype_elem = ET.SubElement(dir_elem, 'direction-type')
             metronome = ET.SubElement(dirtype_elem, 'metronome')
             ET.SubElement(metronome, 'beat-unit')
-            metronome.find('beat-unit').text = MXMLConversion.notetype_to_str(score.tempo.beat_unit)
+            metronome.find(
+                'beat-unit').text = MXMLConversion.notetype_to_str(score.tempo.beat_unit)
             ET.SubElement(metronome, 'per-minute')
             metronome.find('per-minute').text = str(score.tempo.tempo)
 
