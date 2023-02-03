@@ -242,33 +242,53 @@ class NoteValueTest(unittest.TestCase):
                             NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR))
 
     def test_add_override(self):
-        self.assertEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)+NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)+ NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
         self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR)+NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
         self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR)+NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
         self.assertEqual(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR)+NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR))
         
 
     def test_radd_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR).__radd__(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR).__radd__(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR).__radd__(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR).__radd__(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR))
 
     def test_sub_override(self):
         self.assertEqual(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR)- NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
-        #does not work
+        self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR)- NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)- NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR)- NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR))
 
     def test_rsub_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR).__rsub__(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR).__rsub__(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR).__rsub__(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR).__rsub__(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR))
 
     def test_mul_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR) * NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR) * NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.SIXTEENTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR) * NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR) * NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
 
     def test_rmul_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR) * NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR) * NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.SIXTEENTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR) * NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR) * NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
 
     def test_truediv_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR) / NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.SIXTEENTH, DotType.NONE, TupletType.REGULAR) / NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR) / NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR) / NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
 
     def test_rtruediv_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR).__rtruediv__(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR).__rtruediv__(NoteValue(NoteType.SIXTEENTH, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR).__rtruediv__(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR).__rtruediv__(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
 
     def test_floordiv_override(self):
         pass

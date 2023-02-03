@@ -574,7 +574,7 @@ class NoteValue:
             raise TypeError(f'Cannot add type {type(other)} and NoteValue.')
 
     def __sub__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
-        if isinstance(other, Union['NoteValue', int, float, np.inexact, np.integer]):
+        if isinstance(other, Union[int, float, np.inexact, np.integer]):
             return NoteValue.find(self.value - other)
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(self.value - other.value)
