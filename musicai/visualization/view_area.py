@@ -194,11 +194,12 @@ class MeasureArea(ViewArea):
         # TODO replace constant 10 with (staff) spacing // 2
         if isinstance(note, Rest):
             if _DEBUG:
-                print('rest=', note, note.glyph)
+                print('rest=', note, note.glyph, note.value)
             rest_label = self.add_label(
                 note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)
             # Replace six with env['HSPACE'] or equivalent solution
-            x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
+            x += rest_label.content_width + \
+                int((6 * (100 * note.value))) * float(note.value) * 15
             return x, y
 
         notes = []
@@ -213,9 +214,6 @@ class MeasureArea(ViewArea):
             notes.append(note)
 
         for n in notes:
-            # print(str(n.pitch.step.name) + str(n.pitch.octave) +
-            #       ' ' + str(n.pitch.midi))
-            # (n.pitch.midi - clef_pitch)//2
             line_offset = self.note_offset(note)
             # accidentals
             if str(n.accidental).strip() != '':
@@ -226,18 +224,18 @@ class MeasureArea(ViewArea):
             # notes
             if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
                 gtype = GlyphType.NOTE_UP
-            else: 
+            else:
                 gtype = GlyphType.NOTE_DOWN
-            # Replace 6 with env['VSPACE'] or equivalent solution
             note_label = self.add_label(
                 n.glyph, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
 
             # ledger lines
             self.layout_ledger_lines(
-                x, y, line_offset)
+                x, y, note, line_offset)
 
             # x offset for notes
-            x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
+            x += note_label.content_width + \
+                int((6 * (100 * n.value))) * float(n.value) * 15
         return x, y
 
     def layout_left_barline(self, x, y):
@@ -299,27 +297,23 @@ class MeasureArea(ViewArea):
     def layout_time_signature(self, x, y):
         if (self.index == 0):
             time_sig = self.measure.time
-            # time_sig_numerator = pyglet.text.Label(str(time_sig.numerator),
-            #                                        font_name=self.msvcfg.MUSIC_FONT_NAME,
-            #                                        font_size=int(
-            #                                            self.msvcfg.MUSIC_FONT_SIZE - 5),
-            #                                        x=x, y=y + self.spacing * 3 + 8,
-            #                                        anchor_x='center', anchor_y='center')
-            numerator_glyph = 'timeSig' + str(time_sig.numerator)
-            time_sig_numerator = self.add_label(
-                numerator_glyph, GlyphType.TIME, x, y=y + self.spacing * 5)
-            denominator_glyph = 'timeSig' + str(time_sig.denominator)
-            # time_sig_denominator = pyglet.text.Label(str(time_sig.denominator),
-            #                                          font_name=self.msvcfg.MUSIC_FONT_NAME,
-            #                                          font_size=int(
-            #                                              self.msvcfg.MUSIC_FONT_SIZE - 5),
-            #                                          x=x, y=y + self.spacing + 10,
-            #                                          anchor_x='center', anchor_y='center')
-            time_sig_denominator = self.add_label(
-                denominator_glyph, GlyphType.TIME, x, y=y + self.spacing * 3)
+            if time_sig.timesymboltype.__str__() == 'common':
+                time_sig = self.add_label(
+                    'timeSigCommon', GlyphType.TIME, x, y=y + self.spacing * 4)
+                x += time_sig.content_width + 15
+            elif time_sig.timesymboltype.__str__() == 'cut':
+                time_sig = self.add_label(
+                    'timeSigCutCommon', GlyphType.TIME, x, y=y + self.spacing * 4)
+                x += time_sig.content_width + 15
+            else:
+                numerator_glyph = 'timeSig' + str(time_sig.numerator)
+                time_sig_numerator = self.add_label(
+                    numerator_glyph, GlyphType.TIME, x, y=y + self.spacing * 5)
+                denominator_glyph = 'timeSig' + str(time_sig.denominator)
+                time_sig_denominator = self.add_label(
+                    denominator_glyph, GlyphType.TIME, x, y=y + self.spacing * 3)
 
-            x += time_sig_numerator.content_width + 15
-
+                x += time_sig_numerator.content_width + 15
         return x, y
 
     def key_sig_accidental_offset(self, note, accidental_type):
@@ -410,15 +404,21 @@ class MeasureArea(ViewArea):
         x += 20
         return x, y
 
-    def layout_ledger_lines(self, x, y, line_offset):
+    def layout_ledger_lines(self, x, y, note, line_offset):
         if (line_offset < 3):
             for num in range(line_offset - 1, 3):
                 if num % 2 != 0:
                     ledger_line_verts = []
-                    ledger_line_verts.append(x - (self.spacing) - 4)
+                    if (note.value == 0.125):
+                        ledger_line_verts.append(x - (self.spacing) - 8)
+                    else:
+                        ledger_line_verts.append(x - (self.spacing) + 2)
                     ledger_line_verts.append(
                         y + (num - 1) * (self.spacing // 2))
-                    ledger_line_verts.append(x + (self.spacing) - 4)
+                    if (note.value == 0.125):
+                        ledger_line_verts.append(x + (self.spacing) - 8)
+                    else:
+                        ledger_line_verts.append(x + (self.spacing) + 2)
                     ledger_line_verts.append(
                         y + (num - 1) * (self.spacing // 2))
                     self.ledger_lines.append(ledger_line_verts)
@@ -447,7 +447,7 @@ class MeasureArea(ViewArea):
         # if gtype == GlyphType.NOTE_UP:  # Possibly move this elsewear (parameter)
         #     note_off = 20
 
-        match gtype:            #Possibly make these parameters
+        match gtype:  # Possibly make these parameters
             case GlyphType.CLEF:
                 font_size = self.msvcfg.MUSIC_CLEF_FONT_SIZE
             case GlyphType.TIME:
@@ -465,6 +465,9 @@ class MeasureArea(ViewArea):
         label.color = (0, 0, 0, 255)
         self.labels.append(label)
         return label
+
+    def group_notes_for_beaming(self):
+        pass
 
     def get_labels(self):
         return self.labels
