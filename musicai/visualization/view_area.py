@@ -134,6 +134,7 @@ class MeasureArea(ViewArea):
         x, y = self.layout_key_signature(x, y)
         x, y = self.layout_time_signature(x, y)
         for note in self.measure.notes:
+            #self.layout_right_barline(x, y)
             x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
 
         if (self.area_width != 0):
@@ -194,6 +195,13 @@ class MeasureArea(ViewArea):
         # TODO replace constant 10 with (staff) spacing // 2
         if isinstance(note, Rest):
             if _DEBUG:
+                barline_verts = []
+                barline_verts.append(x)
+                barline_verts.append(y)
+                barline_verts.append(x)
+                barline_verts.append(y + self.area_height)
+                self.barlines.append(barline_verts)
+            if _DEBUG:
                 print('rest=', note, note.glyph)
             rest_label = self.add_label(
                 note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)
@@ -214,6 +222,13 @@ class MeasureArea(ViewArea):
             notes.append(note)
 
         for n in notes:
+            if _DEBUG:
+                barline_verts = []
+                barline_verts.append(x)
+                barline_verts.append(y)
+                barline_verts.append(x)
+                barline_verts.append(y + self.area_height)
+                self.barlines.append(barline_verts)
             # print(str(n.pitch.step.name) + str(n.pitch.octave) +
             #       ' ' + str(n.pitch.midi))
             # (n.pitch.midi - clef_pitch)//2

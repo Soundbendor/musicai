@@ -217,17 +217,27 @@ class ScoreWindow(pyglet.window.Window):
                 self.barline_shapes.append(line)
             # TODO Modify the connecting barline shapes for different irregular barlines
 
-        for i in range(len(self.score.systems[0].parts[0].measures)):
+        for i in range(len(self.barlines)):
             x = self.barlines[i][0]
             y_start = self.barlines[i][1]
             y_end = self.barlines[i][3]
-
-            for vert in self.barlines:
+            for vert in self.barlines[i:]:
                 if vert[0] == x:
                     y_start = vert[1]
-            line = shapes.Line(x, y_start, x, y_end, width=2,
-                               color=(0, 0, 0), batch=self.batch)
+            line = shapes.Line(x, y_start, x, y_end, width=2, color=(0,0,0), batch=self.batch)
             self.barline_shapes.append(line)
+
+        # for i in range(len(self.score.systems[0].parts[0].measures)):
+        #     x = self.barlines[i][0]
+        #     y_start = self.barlines[i][1]
+        #     y_end = self.barlines[i][3]
+
+        #     for vert in self.barlines:
+        #         if vert[0] == x:
+        #             y_start = vert[1]
+        #     line = shapes.Line(x, y_start, x, y_end, width=2,
+        #                        color=(0, 0, 0), batch=self.batch)
+        #     self.barline_shapes.append(line)
 
     def on_draw(self):
         self.clear()
