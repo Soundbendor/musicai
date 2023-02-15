@@ -469,8 +469,6 @@ class MeasureArea(ViewArea):
         glyph = ""
         for mark in self.measure.measure_marks:
             if isinstance(mark, DynamicMark):
-
-                print(mark.dynamic_type)
                 if mark.dynamic_type == DynamicType.PIANO or mark.dynamic_type == DynamicType.FORTE:
                     glyph = "dynamic" + str(mark.dynamic_type)[12:].title()
                 else:
@@ -480,7 +478,6 @@ class MeasureArea(ViewArea):
             else:
                 x_spacing_start = self.msvcfg.NOTE_WIDTH * float(mark.start_point/100) * 30
                 x_spacing_end = self.msvcfg.NOTE_WIDTH * float(mark.end_point/100) * 30
-                print(mark.dynamic_change_type)
                 if mark.dynamic_change_type == DynamicChangeType.CRESCENDO:
                     self.hairpin_start.append((x + x_spacing_start, y))
                     self.hairpin_end.append((x + x_spacing_end, y))
