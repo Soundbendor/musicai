@@ -15,12 +15,9 @@ _DEBUG = True
 class ScoreWindow(pyglet.window.Window):
     def __init__(self, score):
         self.msvcfg = WindowConfig()
+        config = pyglet.gl.Config(sample_buffers=1, samples=8)
         super(ScoreWindow, self).__init__(
-            height=self.msvcfg.SCREEN_HEIGHT, width=self.msvcfg.SCREEN_WIDTH)
-
-        # TODO: Is this variable used at all?
-        config = pyglet.gl.Config(
-            sample_buffers=1, samples=8, double_buffer=False)
+            height=self.msvcfg.SCREEN_HEIGHT, width=self.msvcfg.SCREEN_WIDTH, config=config)
 
         pyglet.font.add_file(self.msvcfg.MUSIC_FONT_FILE)
         bravura = pyglet.font.load(self.msvcfg.MUSIC_FONT_NAME)
