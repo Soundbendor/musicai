@@ -4,6 +4,7 @@ import pyglet
 import json
 
 from structure.measure import Barline, BarlineLocation, BarlineType
+from structure.measure_mark import DynamicMark, DynamicType, DynamicChangeType
 from structure.note import NoteGroup, Rest, Note
 from structure.pitch import Pitch
 from pyglet import shapes
@@ -110,6 +111,8 @@ class MeasureArea(ViewArea):
         self.irr_barlines = []
         self.irr_barlines_idx = []
         self.ledger_lines = []
+        self.hairpin_start = []
+        self.hairpin_end = []
         self.index = idx
         self.key_sig_width = key_sig_width
         self.layout()
@@ -133,8 +136,14 @@ class MeasureArea(ViewArea):
         x, y = self.layout_clef(x, y)
         x, y = self.layout_key_signature(x, y)
         x, y = self.layout_time_signature(x, y)
+        
+        note_idx = 0
         for note in self.measure.notes:
             #self.layout_right_barline(x, y)
+            if not isinstance(note, Rest) or note_idx == 1:
+                note_idx += 1
+            if note_idx == 1:
+                self.layout_dynamic_markings(x,y-30)
             x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
 
         if (self.area_width != 0):
@@ -452,6 +461,34 @@ class MeasureArea(ViewArea):
                         y + (num - 1) * (self.spacing // 2))
                     self.ledger_lines.append(ledger_line_verts)
 
+    def layout_dynamic_markings(self, x, y):
+        #TODO: Fine tune X and Y placement and find a way to make hairpins look cleaner (less line aliasing?)
+        #Currently places all dynamic marks below the measure with a hardcoded offset
+        #Implement a way to offset vertically based on other elements at location
+
+        glyph = ""
+        for mark in self.measure.measure_marks:
+            if isinstance(mark, DynamicMark):
+
+                print(mark.dynamic_type)
+                if mark.dynamic_type == DynamicType.PIANO or mark.dynamic_type == DynamicType.FORTE:
+                    glyph = "dynamic" + str(mark.dynamic_type)[12:].title()
+                else:
+                    glyph = "dynamic" + mark.dynamic_type.abbr.upper()
+                gtype = "GlyphType." + str(mark.dynamic_type)[7:]
+                dynamic_mark_label = self.add_label(glyph, gtype, x + (float(mark.start_point/100) * 30 * self.msvcfg.NOTE_WIDTH), y)
+            else:
+                x_spacing_start = self.msvcfg.NOTE_WIDTH * float(mark.start_point/100) * 30
+                x_spacing_end = self.msvcfg.NOTE_WIDTH * float(mark.end_point/100) * 30
+                print(mark.dynamic_change_type)
+                if mark.dynamic_change_type == DynamicChangeType.CRESCENDO:
+                    self.hairpin_start.append((x + x_spacing_start, y))
+                    self.hairpin_end.append((x + x_spacing_end, y))
+                else:
+                    self.hairpin_start.append((x + x_spacing_end, y))
+                    self.hairpin_end.append((x + x_spacing_start, y))
+                pass
+
     def draw(self):
         for label in self.labels:
             label.draw()
@@ -497,3 +534,10 @@ class MeasureArea(ViewArea):
 
     def get_ledger_lines(self):
         return self.ledger_lines
+
+    def get_hairpin_start(self):
+        return self.hairpin_start
+    
+    def get_hairpin_end(self):
+        return self.hairpin_end
+
