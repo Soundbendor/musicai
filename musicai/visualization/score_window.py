@@ -1,5 +1,5 @@
 import pyglet
-from pyglet import shapes
+from pyglet import shapes, gl
 from pyglet.window import key
 
 import json
@@ -15,9 +15,8 @@ _DEBUG = True
 class ScoreWindow(pyglet.window.Window):
     def __init__(self, score):
         self.msvcfg = WindowConfig()
-        config = pyglet.gl.Config(sample_buffers=1, samples=8)
         super(ScoreWindow, self).__init__(
-            height=self.msvcfg.SCREEN_HEIGHT, width=self.msvcfg.SCREEN_WIDTH, config=config)
+            height=self.msvcfg.SCREEN_HEIGHT, width=self.msvcfg.SCREEN_WIDTH)
 
         pyglet.font.add_file(self.msvcfg.MUSIC_FONT_FILE)
         bravura = pyglet.font.load(self.msvcfg.MUSIC_FONT_NAME)
