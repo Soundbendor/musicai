@@ -1,6 +1,6 @@
 import operator
 import unittest
-
+from numpy import std
 import sys
 sys.path.insert(0, '../musicai')
 from musicai.structure.note import NoteType, NoteValue, DotType, Ratio, TupletType
@@ -291,37 +291,74 @@ class NoteValueTest(unittest.TestCase):
         self.assertEqual(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR).__rtruediv__(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
 
     def test_floordiv_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR) // 2, 0)
+        self.assertEqual(NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR) // 2, NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR) // 2, NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR) // 2, NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR))
 
     def test_rfloordiv_override(self):
-        pass
+        self.assertEqual(2 // NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR), 0)
+        self.assertEqual(2 // NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(2 // NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(2 // NoteValue(NoteType.LARGE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR))
 
     def test_mod_override(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR) % 2, NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR) % 2, NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR) % 2, 0)
+        self.assertEqual(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR) % 2, 0)
 
     def test_rmod_override(self):
-        pass
+        self.assertEqual(2 % NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(2 % NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(2 % NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR), 0)
+        self.assertEqual(2 % NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR), 0)
 
     def test_max(self):
-        pass
+        self.assertEqual(max(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(max(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(max(NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(max(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR))
 
     def test_min(self):
-        pass
+        self.assertEqual(min(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(min(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(min(NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(min(NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR))
 
     def test_sum(self):
-        pass
+        self.assertEqual(sum(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(sum(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(sum(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(sum(NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.LONG, DotType.NONE, TupletType.REGULAR))
 
     def test_mean(self):
-        pass
+        self.assertEqual(mean(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(mean(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(mean(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(mean(NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR))
 
     def test_std(self):
-        pass
+        self.assertEqual(std(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(std(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(std(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(std(NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR)), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR))
 
     def test_exists(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR).exists(), True)
+        self.assertEqual(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR).exists(), True)
+        self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR).exists(), True)
+        self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR).exists(), True)
+        self.assertEqual(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR).exists(), True)
+        self.assertEqual(NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR).exists(), True)
 
     def test_find(self):
-        pass
+        self.assertEqual(NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR).find(), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR).find(), NoteValue(NoteType.TWO_THOUSAND_FORTY_EIGHTH, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR).find(), NoteValue(NoteType.HALF, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR).find(), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR).find(), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
+        self.assertEqual(NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR).find(), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR))
 
 if __name__ == '__main__':
     unittest.main()
