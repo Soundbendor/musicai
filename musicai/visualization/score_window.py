@@ -1,5 +1,5 @@
 import pyglet
-from pyglet import shapes
+from pyglet import shapes, gl
 from pyglet.window import key
 
 import json
@@ -17,10 +17,6 @@ class ScoreWindow(pyglet.window.Window):
         self.msvcfg = WindowConfig()
         super(ScoreWindow, self).__init__(
             height=self.msvcfg.SCREEN_HEIGHT, width=self.msvcfg.SCREEN_WIDTH)
-
-        # TODO: Is this variable used at all?
-        config = pyglet.gl.Config(
-            sample_buffers=1, samples=8, double_buffer=False)
 
         pyglet.font.add_file(self.msvcfg.MUSIC_FONT_FILE)
         bravura = pyglet.font.load(self.msvcfg.MUSIC_FONT_NAME)
@@ -42,6 +38,9 @@ class ScoreWindow(pyglet.window.Window):
         self.barline_shapes = list()
         self.ledger_line_verts = list()
         self.ledger_lines = list()
+        self.hairpin_start_verts = list()
+        self.hairpin_end_verts = list()
+        self.hairpin_lines = list()
 
         self.score = score
 
@@ -140,6 +139,15 @@ class ScoreWindow(pyglet.window.Window):
             part_height = self.height - self.msvcfg.TOP_OFFSET - (num_parts * self.msvcfg.MEASURE_OFFSET)
             self._draw_measure(total_width, part_height)
     """
+    def draw_hairpins(self):
+        for i in range(len(self.hairpin_start_verts)):
+            y = self.hairpin_start_verts[i][1]
+            x_start = self.hairpin_start_verts[i][0]
+            x_end = self.hairpin_end_verts[i][0]
+            hairpin_line_top = shapes.Line(x_start, y, x_end, y + 15, width=2, color=(0,0,0), batch=self.batch)
+            hairpin_line_bottom = shapes.Line(x_start, y, x_end, y - 15, width=2, color=(0,0,0), batch=self.batch)
+            self.hairpin_lines.append(hairpin_line_top)
+            self.hairpin_lines.append(hairpin_line_bottom)
 
     def _draw_ledger_lines(self):
         for line in self.ledger_line_verts:
@@ -180,6 +188,12 @@ class ScoreWindow(pyglet.window.Window):
                     for vert in ledger_line_verts:
                         if (len(vert) != 0):
                             self.ledger_line_verts.append(vert)
+                    hairpin_start_verts = measure_area.get_hairpin_start()
+                    for vert in hairpin_start_verts:
+                        self.hairpin_start_verts.append(vert)
+                    hairpin_end_verts = measure_area.get_hairpin_end()
+                    for vert in hairpin_end_verts:
+                        self.hairpin_end_verts.append(vert)
                     if (measure.has_irregular_rs_barline()):
                         barline_irr_verts = measure_area.get_irr_barlines()
                         barline_idx = measure_area.get_irr_barlines_idx()
@@ -197,6 +211,7 @@ class ScoreWindow(pyglet.window.Window):
         self.load_labels(0, self.height - int(self.msvcfg.TOP_OFFSET))
         self._draw_measures()
         self._draw_ledger_lines()
+        self.draw_hairpins()
 
         for i in range(len(self.irr_barlines_idx)):
             x_start = self.irr_barlines[i][0]
@@ -217,17 +232,27 @@ class ScoreWindow(pyglet.window.Window):
                 self.barline_shapes.append(line)
             # TODO Modify the connecting barline shapes for different irregular barlines
 
-        for i in range(len(self.score.systems[0].parts[0].measures)):
+        for i in range(len(self.barlines)):
             x = self.barlines[i][0]
             y_start = self.barlines[i][1]
             y_end = self.barlines[i][3]
-
-            for vert in self.barlines:
+            for vert in self.barlines[i:]:
                 if vert[0] == x:
                     y_start = vert[1]
-            line = shapes.Line(x, y_start, x, y_end, width=2,
-                               color=(0, 0, 0), batch=self.batch)
+            line = shapes.Line(x, y_start, x, y_end, width=2, color=(0,0,0), batch=self.batch)
             self.barline_shapes.append(line)
+
+        # for i in range(len(self.score.systems[0].parts[0].measures)):
+        #     x = self.barlines[i][0]
+        #     y_start = self.barlines[i][1]
+        #     y_end = self.barlines[i][3]
+
+        #     for vert in self.barlines:
+        #         if vert[0] == x:
+        #             y_start = vert[1]
+        #     line = shapes.Line(x, y_start, x, y_end, width=2,
+        #                        color=(0, 0, 0), batch=self.batch)
+        #     self.barline_shapes.append(line)
 
     def on_draw(self):
         self.clear()
@@ -261,6 +286,8 @@ class ScoreWindow(pyglet.window.Window):
             barline_shape.x += self.x_movement
         for ledger_line in self.ledger_lines:
             ledger_line.x += self.x_movement
+        for hairpin_line in self.hairpin_lines:
+            hairpin_line.x += self.x_movement
 
     def _update_y(self):
         for label in self.labels:
@@ -271,6 +298,8 @@ class ScoreWindow(pyglet.window.Window):
             barline_shape.y += self.y_movement
         for ledger_line in self.ledger_lines:
             ledger_line.y += self.y_movement
+        for hairpin_line in self.hairpin_lines:
+            hairpin_line.y += self.y_movement
 
     def on_key_press(self, symbol, modifiers):
         match symbol:
