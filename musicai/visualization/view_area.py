@@ -86,7 +86,7 @@ class ViewArea():
         self.x = x
         self.y = y
         self.labels = []
-        self.msvcfg = WindowConfig()
+        self._cfg = WindowConfig()
 
     def layout(self):
         pass
@@ -216,7 +216,7 @@ class MeasureArea(ViewArea):
                 note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)
             # Replace six with env['HSPACE'] or equivalent solution
             #x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
-            x += self.msvcfg.NOTE_WIDTH * float(note.value) * 30
+            x += self._cfg.NOTE_WIDTH * float(note.value) * 30
             return x, y
 
         notes = []
@@ -263,7 +263,7 @@ class MeasureArea(ViewArea):
 
             # x offset for notes
             #x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
-            x += self.msvcfg.NOTE_WIDTH * float(note.value) * 30
+            x += self._cfg.NOTE_WIDTH * float(note.value) * 30
         return x, y
 
     def layout_left_barline(self, x, y):
@@ -326,9 +326,9 @@ class MeasureArea(ViewArea):
         if (self.index == 0):
             time_sig = self.measure.time
             # time_sig_numerator = pyglet.text.Label(str(time_sig.numerator),
-            #                                        font_name=self.msvcfg.MUSIC_FONT_NAME,
+            #                                        font_name=self._cfg.MUSIC_FONT_NAME,
             #                                        font_size=int(
-            #                                            self.msvcfg.MUSIC_FONT_SIZE - 5),
+            #                                            self._cfg.MUSIC_FONT_SIZE - 5),
             #                                        x=x, y=y + self.spacing * 3 + 8,
             #                                        anchor_x='center', anchor_y='center')
             numerator_glyph = 'timeSig' + str(time_sig.numerator)
@@ -336,9 +336,9 @@ class MeasureArea(ViewArea):
                 numerator_glyph, GlyphType.TIME, x, y=y + self.spacing * 5)
             denominator_glyph = 'timeSig' + str(time_sig.denominator)
             # time_sig_denominator = pyglet.text.Label(str(time_sig.denominator),
-            #                                          font_name=self.msvcfg.MUSIC_FONT_NAME,
+            #                                          font_name=self._cfg.MUSIC_FONT_NAME,
             #                                          font_size=int(
-            #                                              self.msvcfg.MUSIC_FONT_SIZE - 5),
+            #                                              self._cfg.MUSIC_FONT_SIZE - 5),
             #                                          x=x, y=y + self.spacing + 10,
             #                                          anchor_x='center', anchor_y='center')
             time_sig_denominator = self.add_label(
@@ -474,10 +474,10 @@ class MeasureArea(ViewArea):
                 else:
                     glyph = "dynamic" + mark.dynamic_type.abbr.upper()
                 gtype = "GlyphType." + str(mark.dynamic_type)[7:]
-                dynamic_mark_label = self.add_label(glyph, gtype, x + (float(mark.start_point/100) * 30 * self.msvcfg.NOTE_WIDTH), y)
+                dynamic_mark_label = self.add_label(glyph, gtype, x + (float(mark.start_point/100) * 30 * self._cfg.NOTE_WIDTH), y)
             else:
-                x_spacing_start = self.msvcfg.NOTE_WIDTH * float(mark.start_point/100) * 30
-                x_spacing_end = self.msvcfg.NOTE_WIDTH * float(mark.end_point/100) * 30
+                x_spacing_start = self._cfg.NOTE_WIDTH * float(mark.start_point/100) * 30
+                x_spacing_end = self._cfg.NOTE_WIDTH * float(mark.end_point/100) * 30
                 if mark.dynamic_change_type == DynamicChangeType.CRESCENDO:
                     self.hairpin_start.append((x + x_spacing_start, y))
                     self.hairpin_end.append((x + x_spacing_end, y))
@@ -492,7 +492,7 @@ class MeasureArea(ViewArea):
 
     def add_label(self, glyph, gtype, x=0, y=0):
         glyph_id = Glyph.code(glyph)
-        font_size = self.msvcfg.MUSIC_FONT_SIZE
+        font_size = self._cfg.MUSIC_FONT_SIZE
         note_off = 0
 
         # if gtype == GlyphType.NOTE_UP:  # Possibly move this elsewear (parameter)
@@ -500,15 +500,15 @@ class MeasureArea(ViewArea):
 
         match gtype:            #Possibly make these parameters
             case GlyphType.CLEF:
-                font_size = self.msvcfg.MUSIC_CLEF_FONT_SIZE
+                font_size = self._cfg.MUSIC_CLEF_FONT_SIZE
             case GlyphType.TIME:
-                font_size = self.msvcfg.MUSIC_TIME_SIG_FONT_SIZE
+                font_size = self._cfg.MUSIC_TIME_SIG_FONT_SIZE
             case GlyphType.ACCIDENTAL:
-                font_size = self.msvcfg.MUSIC_ACC_FONT_SIZE
+                font_size = self._cfg.MUSIC_ACC_FONT_SIZE
 
         label = Glyph(gtype=gtype,
                       text=glyph_id,
-                      font_name=self.msvcfg.MUSIC_FONT_NAME,
+                      font_name=self._cfg.MUSIC_FONT_NAME,
                       font_size=int(font_size),
                       x=x + note_off, y=y,
                       anchor_x='center',

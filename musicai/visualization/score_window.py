@@ -14,21 +14,14 @@ _DEBUG = True
 
 class ScoreWindow(pyglet.window.Window):
     def __init__(self, score):
-        self.msvcfg = WindowConfig()
+        self._cfg = WindowConfig()
         super(ScoreWindow, self).__init__(
-            height=self.msvcfg.SCREEN_HEIGHT, width=self.msvcfg.SCREEN_WIDTH)
+            height=self._cfg.SCREEN_HEIGHT,
+            width=self._cfg.SCREEN_WIDTH
+        )
 
-        pyglet.font.add_file(self.msvcfg.MUSIC_FONT_FILE)
-        bravura = pyglet.font.load(self.msvcfg.MUSIC_FONT_NAME)
-
-        # TODO: What does label do and do we need it?
-        self.label = pyglet.text.Label(chr(int('F472', 16)),
-                                       font_name=self.msvcfg.MUSIC_FONT_NAME,
-                                       font_size=int(
-                                           self.msvcfg.MUSIC_FONT_SIZE),
-                                       x=self.width // 2, y=self.height // 2,
-                                       anchor_x='center', anchor_y='center')
-        self.label.color = (0, 0, 0, 255)
+        pyglet.font.add_file(self._cfg.MUSIC_FONT_FILE)
+        bravura = pyglet.font.load(self._cfg.MUSIC_FONT_NAME)
 
         self.batch = pyglet.graphics.Batch()
         self.measures = list()
@@ -45,7 +38,7 @@ class ScoreWindow(pyglet.window.Window):
         self.score = score
 
         self.labels = list()
-        self.measure_height = int(self.msvcfg.MEASURE_HEIGHT)
+        self.measure_height = int(self._cfg.MEASURE_HEIGHT)
         self.measure_area_width = list()
         self.zoom = 1
         self._initialize_display_elements()
@@ -104,7 +97,7 @@ class ScoreWindow(pyglet.window.Window):
 
     def _draw_measure(self, x_start, measure_length, y):
         for i in range(5):
-            y_value = y + i * (self.msvcfg.MEASURE_LINE_SPACING * self.zoom)
+            y_value = y + i * (self._cfg.MEASURE_LINE_SPACING * self.zoom)
             x_end = (x_start + measure_length) * self.zoom
 
             bar_line = shapes.Line(
@@ -118,27 +111,13 @@ class ScoreWindow(pyglet.window.Window):
 
             for num_measures in range(len(self.score.systems[0].parts[0].measures)):
                 measure_width = self.measure_area_width[num_measures]
-                measure_length = self.height - self.msvcfg.TOP_OFFSET - \
-                    (num_parts * self.msvcfg.MEASURE_OFFSET)
+                measure_length = self.height - self._cfg.TOP_OFFSET - \
+                    (num_parts * self._cfg.MEASURE_OFFSET)
 
                 self._draw_measure(total_width, measure_width, measure_length)
 
                 total_width += measure_width
-    """
-    def _draw_measure(self, x, y):
-        for i in range(5):
-            y_value = y + i * (self.msvcfg.MEASURE_LINE_SPACING * self.zoom)
-            x_start = 0
-            x_end = x * self.zoom
-            bar_line = shapes.Line(x_start, y_value, x_end, y_value, width=2, color=(0, 0, 0), batch=self.batch)
-            self.measures.append(bar_line)
 
-    def _draw_measures(self):
-        total_width = sum(self.measure_area_width)
-        for num_parts in range(len(self.score.systems[0].parts)):
-            part_height = self.height - self.msvcfg.TOP_OFFSET - (num_parts * self.msvcfg.MEASURE_OFFSET)
-            self._draw_measure(total_width, part_height)
-    """
     def draw_hairpins(self):
         for i in range(len(self.hairpin_start_verts)):
             y = self.hairpin_start_verts[i][1]
@@ -203,12 +182,12 @@ class ScoreWindow(pyglet.window.Window):
                             if idx not in self.irr_barlines_idx:
                                 self.irr_barlines_idx.append(idx)
                 x = 0
-                y -= self.msvcfg.MEASURE_OFFSET
+                y -= self._cfg.MEASURE_OFFSET
 
     def _initialize_display_elements(self):
         self.background = pyglet.image.SolidColorImagePattern(
             (255, 255, 255, 255)).create_image(self.width, self.height)
-        self.load_labels(0, self.height - int(self.msvcfg.TOP_OFFSET))
+        self.load_labels(0, self.height - int(self._cfg.TOP_OFFSET))
         self._draw_measures()
         self._draw_ledger_lines()
         self.draw_hairpins()
@@ -268,10 +247,32 @@ class ScoreWindow(pyglet.window.Window):
         pyglet.app.run()
 
     def on_mouse_motion(self, x, y, dx, dy):
-        pass
+        self._x_mouse_movement(x)
+        self._y_mouse_movement(y)
+
+    def _x_mouse_movement(self, x_coord):
+        self.x_movement = self._mouse_movement_speed(x_coord, self._cfg.SCREEN_WIDTH)
+
+    def _y_mouse_movement(self, y_coord):
+        self.y_movement = self._mouse_movement_speed(y_coord, self._cfg.SCREEN_HEIGHT)
+
+    def _mouse_movement_speed(self, coord, size):
+        if coord < (size // self._cfg.FAST_SIZE):
+            speed = self._cfg.FAST_MOVEMENT
+        elif coord < (size // self._cfg.SLOW_SIZE):
+            speed = self._cfg.SLOW_MOVEMENT
+        elif coord > (size - self._cfg.SCREEN_WIDTH // self._cfg.FAST_SIZE):
+            speed = -1 * self._cfg.FAST_MOVEMENT
+        elif coord > (size - self._cfg.SCREEN_WIDTH // self._cfg.SLOW_SIZE):
+            speed = -1 * self._cfg.SLOW_MOVEMENT
+        else:
+            speed = 0
+
+        return speed
 
     def on_mouse_leave(self, x, y):
-        pass
+        self.x_movement = 0
+        self.y_movement = 0
 
     def _update_coordinates(self):
         self._update_x()
@@ -303,28 +304,28 @@ class ScoreWindow(pyglet.window.Window):
 
     def on_key_press(self, symbol, modifiers):
         match symbol:
-            case self.msvcfg.KEYBIND_UP:
-                self.y_movement = -1 * int(self.msvcfg.FAST_MOVEMENT)
-            case self.msvcfg.KEYBIND_DOWN:
-                self.y_movement = int(self.msvcfg.FAST_MOVEMENT)
-            case self.msvcfg.KEYBIND_LEFT:
-                self.x_movement = int(self.msvcfg.FAST_MOVEMENT)
-            case self.msvcfg.KEYBIND_RIGHT:
-                self.x_movement = -1 * int(self.msvcfg.FAST_MOVEMENT)
-            case self.msvcfg.KEYBIND_EXIT:
+            case self._cfg.KEYBIND_UP:
+                self.y_movement = -1 * self._cfg.FAST_MOVEMENT
+            case self._cfg.KEYBIND_DOWN:
+                self.y_movement = int(self._cfg.FAST_MOVEMENT)
+            case self._cfg.KEYBIND_LEFT:
+                self.x_movement = int(self._cfg.FAST_MOVEMENT)
+            case self._cfg.KEYBIND_RIGHT:
+                self.x_movement = -1 * int(self._cfg.FAST_MOVEMENT)
+            case self._cfg.KEYBIND_EXIT:
                 self.close()
             case _:
                 pass
 
     def on_key_release(self, symbol, modifiers):
         match symbol:
-            case self.msvcfg.KEYBIND_UP:
+            case self._cfg.KEYBIND_UP:
                 self.y_movement = 0
-            case self.msvcfg.KEYBIND_DOWN:
+            case self._cfg.KEYBIND_DOWN:
                 self.y_movement = 0
-            case self.msvcfg.KEYBIND_LEFT:
+            case self._cfg.KEYBIND_LEFT:
                 self.x_movement = 0
-            case self.msvcfg.KEYBIND_RIGHT:
+            case self._1cfg.KEYBIND_RIGHT:
                 self.x_movement = 0
             case _:
                 pass
