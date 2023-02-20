@@ -325,7 +325,7 @@ class ScoreWindow(pyglet.window.Window):
                 self.y_movement = 0
             case self._cfg.KEYBIND_LEFT:
                 self.x_movement = 0
-            case self._1cfg.KEYBIND_RIGHT:
+            case self._cfg.KEYBIND_RIGHT:
                 self.x_movement = 0
             case _:
                 pass
