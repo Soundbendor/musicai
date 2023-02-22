@@ -42,6 +42,10 @@ class ScoreWindow(pyglet.window.Window):
         self.barline_shapes = list()
         self.ledger_line_verts = list()
         self.ledger_lines = list()
+        self.beam_line_verts = list()
+        self.beam_lines = list()
+        self.stem_verts = list()
+        self.stems = list()
 
         self.score = score
 
@@ -147,6 +151,20 @@ class ScoreWindow(pyglet.window.Window):
                 line[0], line[1], line[2], line[3], width=2, color=(0, 0, 0), batch=self.batch)
             self.ledger_lines.append(ledger_line)
 
+    def _draw_beams(self):
+        for line in self.beam_line_verts:
+            beam_line = shapes.Line(
+                line[0], line[1], line[2], line[3], width=5, color=(0, 0, 0), batch=self.batch)
+            # beam_line = shapes.Polygon(
+            #     [line[0], line[1], line[2], line[3], line[0], line[1] + 5, line[2], line[3] + 5, line[0], line[1]], color=(0, 0, 0), batch=self.batch)
+            self.beam_lines.append(beam_line)
+
+    def _draw_stems(self):
+        for line in self.stem_verts:
+            stem = shapes.Line(
+                line[0], line[1], line[2], line[3], width=2, color=(0, 0, 0), batch=self.batch)
+            self.stems.append(stem)
+
     def load_barlines(self, measure_area):
         self.barlines.append(measure_area.get_barlines())
 
@@ -180,6 +198,14 @@ class ScoreWindow(pyglet.window.Window):
                     for vert in ledger_line_verts:
                         if (len(vert) != 0):
                             self.ledger_line_verts.append(vert)
+                    beam_line_verts = measure_area.get_beam_lines()
+                    for vert in beam_line_verts:
+                        if (len(vert) != 0):
+                            self.beam_line_verts.append(vert)
+                    stem_verts = measure_area.get_stems()
+                    for vert in stem_verts:
+                        if (len(vert) != 0):
+                            self.stem_verts.append(vert)
                     if (measure.has_irregular_rs_barline()):
                         barline_irr_verts = measure_area.get_irr_barlines()
                         barline_idx = measure_area.get_irr_barlines_idx()
@@ -197,6 +223,8 @@ class ScoreWindow(pyglet.window.Window):
         self.load_labels(0, self.height - int(self.msvcfg.TOP_OFFSET))
         self._draw_measures()
         self._draw_ledger_lines()
+        self._draw_beams()
+        self._draw_stems()
 
         for i in range(len(self.irr_barlines_idx)):
             x_start = self.irr_barlines[i][0]
@@ -261,6 +289,10 @@ class ScoreWindow(pyglet.window.Window):
             barline_shape.x += self.x_movement
         for ledger_line in self.ledger_lines:
             ledger_line.x += self.x_movement
+        for beam_line in self.beam_lines:
+            beam_line.x += self.x_movement
+        for stem in self.stems:
+            stem.x += self.x_movement
 
     def _update_y(self):
         for label in self.labels:
@@ -271,6 +303,10 @@ class ScoreWindow(pyglet.window.Window):
             barline_shape.y += self.y_movement
         for ledger_line in self.ledger_lines:
             ledger_line.y += self.y_movement
+        for beam_line in self.beam_lines:
+            beam_line.y += self.y_movement
+        for stem in self.stems:
+            stem.y += self.y_movement
 
     def on_key_press(self, symbol, modifiers):
         match symbol:
