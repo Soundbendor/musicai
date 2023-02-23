@@ -1,4 +1,3 @@
-import dotenv
 from dotenv import dotenv_values
 import os
 import os.path
@@ -25,14 +24,3 @@ class WindowConfig:
             except ValueError:
                 a_val = value
             setattr(self, key, a_val)
-
-# def main():
-#     print("Hello World")
-#     config = WindowConfig()
-#
-#     print(f"config data: {config.data.items()}")
-#
-#     print(f"dir(config): {dir(config)}")
-#
-# if __name__ == '__main__':
-#     main()

@@ -1,40 +1,45 @@
+    # Movement and Scrolling
+    # For movement using keyboard shortcuts, fast movement is used to control the number of pixels each element
+    # is moved per frame.
+    #
+    # For mouse movement, there are 4 values used: fast movement, fast size, slow movement, and slow size. The size
+    # constants are used with screen width and height to determine where on the screen the "speed zones" are located.
+    # These are calculated as such:
+    #   - SCREEN_WIDTH // FAST_SIZE and SCREEN_HEIGHT // FAST_SIZE
+    #   - SCREEN_WIDTH // SLOW_SIZE and SCREEN_HEIGHT // SLOW_SIZE
+    #
+    # FAST_SIZE = 16 means that 1/16 of the pixels on each side of the screen are used for fast movement.
+    # To reduce the size of each "speed zone", change FAST_SIZE and SLOW_SIZE to a larger number.
+
+FAST_SIZE=16
+SLOW_SIZE=8
+
+FAST_MOVEMENT=20
+SLOW_MOVEMENT=10
+
+    # The following constants are used to create the correct spacing and display for the UI, and should not be changed
+    # at this time.
+
+MEASURE_HEIGHT=80
+MEASURE_LINE_SPACING=20
+MEASURE_OFFSET=200
+MUSIC_ACC_FONT_SIZE=60
+MUSIC_CLEF_FONT_SIZE=60
+MUSIC_FONT_FILE="./visualization/assets/Bravura.otf"
+MUSIC_FONT_NAME="Bravura"
+MUSIC_FONT_SIZE=50 # Font Size 50 seems to fit perfectly within staff lines
+MUSIC_TIME_SIG_FONT_SIZE=60
+NOTE_WIDTH=22
 SCREEN_WIDTH=1440
 SCREEN_HEIGHT=1080
-MUSIC_FONT_NAME="Bravura"
-MUSIC_FONT_FILE="./visualization/assets/Bravura.otf"
-FONT_GLYPH_FILE="../../assets/fonts/glyphnames.json"
-MUSIC_FONT_SIZE=50 # Font Size 50 seems to fit perfectly within staff lines
-MUSIC_CLEF_FONT_SIZE=60
-MUSIC_TIME_SIG_FONT_SIZE=60 
-MUSIC_ACC_FONT_SIZE=60
-BACKGROUND_COLOR="WHITE"
-MUSIC_FONT_COLOR="BLACK"
-TEXT_FONT_COLOR="BLACK"
-NOTE_WIDTH=22
-# H_SPACE=${MUSIC_FONT_SIZE}//6
-# V_SPACE=${MUSIC_FONT_SIZE}//6
-LEFT_MARGIN=${MUSIC_FONT_SIZE}
-RIGHT_MARGIN=${MUSIC_FONT_SIZE}
-TOP_MARGIN=${MUSIC_FONT_SIZE}
-BOTTOM_MARGIN=${MUSIC_FONT_SIZE}
-STAFF_LINE_SIZE=1.25
-ANCHOR_X="center"
-ANCHOR_Y="baseline"
-VIEWPORT_MARGIN=300
-CAMERA_SPEED=0.8
-SCROLL_SPEED=20
-FAST_SIZE=16
-FAST_MOVEMENT=20
-SLOW_SIZE=8
-SLOW_MOVEMENT=10
 TOP_OFFSET=150
-MEASURE_HEIGHT=80
-MEASURE_OFFSET=200
-MEASURE_LINE_SPACING=20
 
-# Keybinds
-KEYBIND_UP=65362
-KEYBIND_DOWN=65364
-KEYBIND_LEFT=65361
-KEYBIND_RIGHT=65363
-KEYBIND_EXIT=65307
+    # Keybindings
+    # Keybindings are able to be changed as needed. The values for each key are located at the following link:
+    # https://github.com/pyglet/pyglet/blob/64fb3ef1166574a7c08d4401f9de4645f903a9d0/pyglet/window/key.py#L176
+
+KEYBIND_UP=65362        # Key.A
+KEYBIND_DOWN=65364      # Key.S
+KEYBIND_LEFT=65361      # Key.D
+KEYBIND_RIGHT=65363     # Key.F
+KEYBIND_EXIT=65307      # Key.ESCAPE
