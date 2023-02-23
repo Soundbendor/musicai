@@ -274,33 +274,29 @@ class ScoreWindow(pyglet.window.Window):
         self.x_movement = 0
         self.y_movement = 0
 
-    def _update_coordinates(self):
+    def _update_coordinates(self) -> None:
         self._update_x()
         self._update_y()
 
-    def _update_x(self):
-        for label in self.labels:
-            label.x += self.x_movement
-        for measure in self.measures:
-            measure.x += self.x_movement
-        for barline_shape in self.barline_shapes:
-            barline_shape.x += self.x_movement
-        for ledger_line in self.ledger_lines:
-            ledger_line.x += self.x_movement
-        for hairpin_line in self.hairpin_lines:
-            hairpin_line.x += self.x_movement
+    def _update_x(self) -> None:
+        self._update_axis("x", self.x_movement)
 
-    def _update_y(self):
-        for label in self.labels:
-            label.y += self.y_movement
-        for measure in self.measures:
-            measure.y += self.y_movement
-        for barline_shape in self.barline_shapes:
-            barline_shape.y += self.y_movement
-        for ledger_line in self.ledger_lines:
-            ledger_line.y += self.y_movement
-        for hairpin_line in self.hairpin_lines:
-            hairpin_line.y += self.y_movement
+    def _update_y(self) -> None:
+        self._update_axis("y", self.y_movement)
+
+    def _update_axis(self, axis: str, movement: int) -> None:
+        collections = [self.labels, self.measures,
+                       self.barline_shapes, self.ledger_lines,
+                       self.hairpin_lines]
+
+        for collection in collections:
+            for item in collection:
+                ScoreWindow._set_movement(item, axis, movement)
+
+    @staticmethod
+    def _set_movement(item: any, axis: str, movement: int) -> None:
+        new_movement = getattr(item, axis) + movement
+        setattr(item, axis, new_movement)
 
     def on_key_press(self, symbol, modifiers):
         match symbol:
