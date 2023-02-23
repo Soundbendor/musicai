@@ -168,7 +168,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
             line = shapes.Line(x, y_start, x, y_end, width=2, color=(0, 0, 0), batch=self.batch)
             self.barline_shapes.append(line)
 
-    def on_draw(self, dt) -> None:
+    def on_draw(self, dt=None) -> None:
         self.clear()
         self.background.blit(0, 0)
 
