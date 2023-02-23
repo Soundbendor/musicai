@@ -97,7 +97,7 @@ class ViewArea():
 
 class MeasureArea(ViewArea):
 
-    def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0, width=0):
+    def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0, width=0, batch=None):
         super().__init__(x, y)
         self.measure = measure
         self.area_x = x             # Used to store the initial value of x and y as loaded in
@@ -106,7 +106,7 @@ class MeasureArea(ViewArea):
         self.area_width = width
         self.area_height = height
         self.spacing = self.area_height // 4
-        self.batch = pyglet.graphics.Batch()
+        self.batch = batch
         self.barlines = []
         self.irr_barlines = []
         self.irr_barlines_idx = []
@@ -512,7 +512,8 @@ class MeasureArea(ViewArea):
                       font_size=int(font_size),
                       x=x + note_off, y=y,
                       anchor_x='center',
-                      anchor_y='center')
+                      anchor_y='center',
+                      batch=self.batch)
         label.color = (0, 0, 0, 255)
         self.labels.append(label)
         return label
