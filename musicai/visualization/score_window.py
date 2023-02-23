@@ -249,11 +249,11 @@ class ScoreWindow(pyglet.window.Window):
             case self._cfg.KEYBIND_UP:
                 self.y_movement = -1 * self._cfg.FAST_MOVEMENT
             case self._cfg.KEYBIND_DOWN:
-                self.y_movement = int(self._cfg.FAST_MOVEMENT)
+                self.y_movement = self._cfg.FAST_MOVEMENT
             case self._cfg.KEYBIND_LEFT:
-                self.x_movement = int(self._cfg.FAST_MOVEMENT)
+                self.x_movement = self._cfg.FAST_MOVEMENT
             case self._cfg.KEYBIND_RIGHT:
-                self.x_movement = -1 * int(self._cfg.FAST_MOVEMENT)
+                self.x_movement = -1 * self._cfg.FAST_MOVEMENT
             case self._cfg.KEYBIND_EXIT:
                 self.close()
             case _:
@@ -261,13 +261,9 @@ class ScoreWindow(pyglet.window.Window):
 
     def on_key_release(self, symbol: int, modifiers: int) -> None:
         match symbol:
-            case self._cfg.KEYBIND_UP:
+            case self._cfg.KEYBIND_UP | self._cfg.KEYBIND_DOWN:
                 self.y_movement = 0
-            case self._cfg.KEYBIND_DOWN:
-                self.y_movement = 0
-            case self._cfg.KEYBIND_LEFT:
-                self.x_movement = 0
-            case self._cfg.KEYBIND_RIGHT:
+            case self._cfg.KEYBIND_LEFT | self._cfg.KEYBIND_RIGHT:
                 self.x_movement = 0
             case _:
                 pass
