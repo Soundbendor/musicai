@@ -47,48 +47,13 @@ class ScoreWindow(pyglet.window.Window):
 
     # TODO: Do we want each measure length to be a separate segment?
 
-    def lookup_key_accidentals(self, key: str) -> list[[], []]:
-        accidentals = [[], []]
-        match key:
-            case 'C Major' | 'A Minor':
-                accidentals = key_accidentals[1]
-            case 'G Major' | 'E Minor':
-                accidentals = key_accidentals[2]
-            case 'D Major' | 'B Minor':
-                accidentals = key_accidentals[3]
-            case 'A Major' | 'Fs Minor':
-                accidentals = key_accidentals[4]
-            case 'E Major' | 'Cs Minor':
-                accidentals = key_accidentals[5]
-            case 'B Major' | 'Gs Minor':
-                accidentals = key_accidentals[6]
-            case 'Fs Major' | 'Ds Minor':
-                accidentals = key_accidentals[7]
-            case 'Cs Major' | 'As Minor':
-                accidentals = key_accidentals[8]
-            case 'F Major' | 'D Minor':
-                accidentals = key_accidentals[9]
-            case 'Bb Major' | 'G Minor':
-                accidentals = key_accidentals[10]
-            case 'Eb Major' | 'C Minor':
-                accidentals = key_accidentals[11]
-            case 'Ab Major' | 'F Minor':
-                accidentals = key_accidentals[12]
-            case 'Db Major' | 'Bb Minor':
-                accidentals = key_accidentals[13]
-            case 'Gb Major' | 'Eb Minor':
-                accidentals = key_accidentals[14]
-            case 'Cb Major' | 'Ab Minor':
-                accidentals = key_accidentals[15]
-        return accidentals
-
     def max_key_sig_width(self) -> int:
         max_accidentals = 0
         for system in self.score.systems:
             for part in system.parts:
                 for measure in part.measures:
                     key = measure.key
-                    accidentals = self.lookup_key_accidentals(key.__str__())
+                    accidentals = MeasureArea.lookup_key_accidentals(str(key))
                     if len(accidentals[0]) > max_accidentals:
                         max_accidentals = len(accidentals[0])
                     elif len(accidentals[1]) > max_accidentals:

@@ -375,7 +375,8 @@ class MeasureArea(ViewArea):
 
         return offset
 
-    def lookup_key_accidentals(self, key):
+    @staticmethod
+    def lookup_key_accidentals(key):
         accidentals = [[], []]
         match key:
             case 'C Major' | 'A Minor':
