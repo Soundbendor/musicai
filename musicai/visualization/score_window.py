@@ -4,7 +4,7 @@ from pyglet.window import key
 
 import json
 
-from fileio.mxml import MusicXML
+from fileio.mxml import MusicXML, Score
 from visualization.view_area import MeasureArea
 from visualization.window_config import WindowConfig
 from visualization.view_area import key_accidentals
@@ -13,7 +13,7 @@ _DEBUG = True
 
 
 class ScoreWindow(pyglet.window.Window):
-    def __init__(self, score):
+    def __init__(self, score: Score) -> None:
         self._cfg = WindowConfig()
         super(ScoreWindow, self).__init__(
             height=self._cfg.SCREEN_HEIGHT,
@@ -47,7 +47,7 @@ class ScoreWindow(pyglet.window.Window):
 
     # TODO: Do we want each measure length to be a separate segment?
 
-    def lookup_key_accidentals(self, key):
+    def lookup_key_accidentals(self, key: str) -> list[[], []]:
         accidentals = [[], []]
         match key:
             case 'C Major' | 'A Minor':
@@ -82,7 +82,7 @@ class ScoreWindow(pyglet.window.Window):
                 accidentals = key_accidentals[15]
         return accidentals
 
-    def max_key_sig_width(self):
+    def max_key_sig_width(self) -> int:
         max_accidentals = 0
         for system in self.score.systems:
             for part in system.parts:
@@ -95,7 +95,7 @@ class ScoreWindow(pyglet.window.Window):
                         max_accidentals = len(accidentals[1])
         return max_accidentals
 
-    def _draw_measure(self, x_start, measure_length, y):
+    def _draw_measure(self, x_start: int, measure_length: int, y: int) -> None:
         for i in range(5):
             y_value = y + i * (self._cfg.MEASURE_LINE_SPACING * self.zoom)
             x_end = (x_start + measure_length) * self.zoom
@@ -105,7 +105,7 @@ class ScoreWindow(pyglet.window.Window):
 
             self.measures.append(bar_line)
 
-    def _draw_measures(self):
+    def _draw_measures(self) -> None:
         for num_parts in range(len(self.score.systems[0].parts)):
             total_width = 0
 
@@ -118,7 +118,7 @@ class ScoreWindow(pyglet.window.Window):
 
                 total_width += measure_width
 
-    def draw_hairpins(self):
+    def draw_hairpins(self) -> None:
         for i in range(len(self.hairpin_start_verts)):
             y = self.hairpin_start_verts[i][1]
             x_start = self.hairpin_start_verts[i][0]
@@ -128,16 +128,16 @@ class ScoreWindow(pyglet.window.Window):
             self.hairpin_lines.append(hairpin_line_top)
             self.hairpin_lines.append(hairpin_line_bottom)
 
-    def _draw_ledger_lines(self):
+    def _draw_ledger_lines(self) -> None:
         for line in self.ledger_line_verts:
             ledger_line = shapes.Line(
                 line[0], line[1], line[2], line[3], width=2, color=(0, 0, 0), batch=self.batch)
             self.ledger_lines.append(ledger_line)
 
-    def load_barlines(self, measure_area):
+    def load_barlines(self, measure_area: list[[4], ...]) -> None:
         self.barlines.append(measure_area.get_barlines())
 
-    def load_labels(self, x, y):
+    def load_labels(self, x: int, y: int) -> None:
         key_sig_width = self.max_key_sig_width()
         for system in self.score.systems:
             for i in range(len(system.parts[0].measures)):
@@ -184,7 +184,7 @@ class ScoreWindow(pyglet.window.Window):
                 x = 0
                 y -= self._cfg.MEASURE_OFFSET
 
-    def _initialize_display_elements(self):
+    def _initialize_display_elements(self) -> None:
         self.background = pyglet.image.SolidColorImagePattern(
             (255, 255, 255, 255)).create_image(self.width, self.height)
         self.load_labels(0, self.height - int(self._cfg.TOP_OFFSET))
@@ -233,7 +233,7 @@ class ScoreWindow(pyglet.window.Window):
         #                        color=(0, 0, 0), batch=self.batch)
         #     self.barline_shapes.append(line)
 
-    def on_draw(self):
+    def on_draw(self) -> None:
         self.clear()
         self.background.blit(0, 0)
 
@@ -243,20 +243,20 @@ class ScoreWindow(pyglet.window.Window):
         # TODO I'm not sure what this line does or if it needs to be included.
         # pyglet.gl.glFlush()
 
-    def display(self):
+    def display(self) -> None:
         pyglet.app.run()
 
-    def on_mouse_motion(self, x, y, dx, dy):
+    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
         self._x_mouse_movement(x)
         self._y_mouse_movement(y)
 
-    def _x_mouse_movement(self, x_coord):
+    def _x_mouse_movement(self, x_coord: int) -> None:
         self.x_movement = self._mouse_movement_speed(x_coord, self._cfg.SCREEN_WIDTH)
 
-    def _y_mouse_movement(self, y_coord):
+    def _y_mouse_movement(self, y_coord: int) -> None:
         self.y_movement = self._mouse_movement_speed(y_coord, self._cfg.SCREEN_HEIGHT)
 
-    def _mouse_movement_speed(self, coord, size):
+    def _mouse_movement_speed(self, coord: int, size: int) -> int:
         if coord < (size // self._cfg.FAST_SIZE):
             speed = self._cfg.FAST_MOVEMENT
         elif coord < (size // self._cfg.SLOW_SIZE):
@@ -270,7 +270,7 @@ class ScoreWindow(pyglet.window.Window):
 
         return speed
 
-    def on_mouse_leave(self, x, y):
+    def on_mouse_leave(self, x: int, y: int) -> None:
         self.x_movement = 0
         self.y_movement = 0
 
@@ -298,7 +298,7 @@ class ScoreWindow(pyglet.window.Window):
         new_movement = getattr(item, axis) + movement
         setattr(item, axis, new_movement)
 
-    def on_key_press(self, symbol, modifiers):
+    def on_key_press(self, symbol: int, modifiers: int) -> None:
         match symbol:
             case self._cfg.KEYBIND_UP:
                 self.y_movement = -1 * self._cfg.FAST_MOVEMENT
@@ -313,7 +313,7 @@ class ScoreWindow(pyglet.window.Window):
             case _:
                 pass
 
-    def on_key_release(self, symbol, modifiers):
+    def on_key_release(self, symbol: int, modifiers: int) -> None:
         match symbol:
             case self._cfg.KEYBIND_UP:
                 self.y_movement = 0
