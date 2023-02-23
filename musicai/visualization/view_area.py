@@ -518,25 +518,3 @@ class MeasureArea(ViewArea):
         label.color = (0, 0, 0, 255)
         self.labels.append(label)
         return label
-
-    def get_labels(self):
-        return self.labels
-
-    def get_barlines(self):
-        return self.barlines
-
-    def get_irr_barlines(self):
-        return self.irr_barlines
-
-    def get_irr_barlines_idx(self):
-        return self.irr_barlines_idx
-
-    def get_ledger_lines(self):
-        return self.ledger_lines
-
-    def get_hairpin_start(self):
-        return self.hairpin_start
-    
-    def get_hairpin_end(self):
-        return self.hairpin_end
-

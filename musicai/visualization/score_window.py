@@ -121,8 +121,8 @@ class ScoreWindow(pyglet.window.Window): # noqa
                     self.hairpin_start_verts.extend(measure_area.hairpin_start)
                     self.hairpin_end_verts.extend(measure_area.hairpin_end)
                     if measure.has_irregular_rs_barline():
-                        barline_irr_verts = measure_area.get_irr_barlines()
-                        barline_idx = measure_area.get_irr_barlines_idx()
+                        barline_irr_verts = measure_area.irr_barlines
+                        barline_idx = measure_area.irr_barlines_idx
                         for vert in barline_irr_verts:
                             self.irr_barlines.append(vert)
                         for idx in barline_idx:
