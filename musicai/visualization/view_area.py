@@ -3,14 +3,12 @@ from enum import Enum, auto
 import pyglet
 import json
 
-from structure.measure import Barline, BarlineLocation, BarlineType
+from structure.measure import Barline, BarlineType
 from structure.measure_mark import DynamicMark, DynamicType, DynamicChangeType
 from structure.note import NoteGroup, Rest, Note
-from structure.pitch import Pitch
-from pyglet import shapes
 from visualization.window_config import WindowConfig
 
-_DEBUG = False
+_DEBUG = True
 
 # stores [[sharps], [flats], [double sharp], [double flat]]
 # TODO: modes
@@ -58,14 +56,14 @@ class GlyphType(Enum):
 class Glyph(pyglet.text.Label):
     glyph_map = json.load(open('./visualization/assets/glyphnames.json'))
 
-    def __init__(self, gtype, *args, **kwargs):
+    def __init__(self, gtype, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.label_x = self.x
         self.label_y = self.y
         self.gtype = gtype
 
     @classmethod
-    def code(cls, glyph_id):
+    def code(cls, glyph_id) -> chr:
         if glyph_id in cls.glyph_map:
             code_str = cls.glyph_map[glyph_id]['codepoint']
             return chr(int(code_str[2:], 16))
@@ -73,31 +71,31 @@ class Glyph(pyglet.text.Label):
             print("Not found: " + glyph_id)
             raise ValueError('Glyph {0} not found in font.'.format(glyph_id))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"x: {self.label_x:.3f} y: {self.label_y:.3f} glyph type: {self.gtype}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
 
-class ViewArea():
+class ViewArea:
 
-    def __init__(self, x=0, y=0):
+    def __init__(self, x=0, y=0) -> None:
         self.x = x
         self.y = y
         self.labels = []
         self._cfg = WindowConfig()
 
-    def layout(self):
+    def layout(self) -> None:
         pass
 
-    def draw(self):
+    def draw(self) -> None:
         pass
 
 
 class MeasureArea(ViewArea):
 
-    def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0, width=0):
+    def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0, width=0, batch=None) -> None:
         super().__init__(x, y)
         self.measure = measure
         self.area_x = x             # Used to store the initial value of x and y as loaded in
@@ -115,9 +113,10 @@ class MeasureArea(ViewArea):
         self.hairpin_end = []
         self.index = idx
         self.key_sig_width = key_sig_width
+        self.batch = batch
         self.layout()
 
-    def layout(self):
+    def layout(self) -> None:
         if _DEBUG:
             print('========')
             print('measure=', self.measure.measure_number, self.measure)
@@ -139,21 +138,21 @@ class MeasureArea(ViewArea):
         
         note_idx = 0
         for note in self.measure.notes:
-            #self.layout_right_barline(x, y)
+            # self.layout_right_barline(x, y)
             if not isinstance(note, Rest) or note_idx == 1:
                 note_idx += 1
             if note_idx == 1:
-                self.layout_dynamic_markings(x,y-30)
+                self.layout_dynamic_markings(x, y-30)
             x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
 
-        if (self.area_width != 0):
+        if self.area_width != 0:
             x = self.area_width + self.area_x
         x, y = self.layout_right_barline(x, y)
 
         self.area_width = x - self.area_x
         self.area_height = y + 36
 
-    def _clef_line_pitch(self):
+    def _clef_line_pitch(self) -> int:
         clef_value = self.measure.clef.value
         line_offset = 3 - self.measure.clef.line
         clef_pitch = self.measure.clef.value + line_offset * 2
@@ -163,7 +162,7 @@ class MeasureArea(ViewArea):
         return clef_pitch
 
     # use c4 as 0
-    def note_offset(self, note):
+    def note_offset(self, note) -> int:
         step = note.pitch.step.name
         octave = note.pitch.octave
         offset = 0
@@ -200,22 +199,16 @@ class MeasureArea(ViewArea):
         offset += clef_offset
         return offset
 
-    def layout_notes(self, note, clef_pitch, x, y):
+    def layout_notes(self, note, clef_pitch, x, y) -> tuple[int, int]: # noqa
         # TODO replace constant 10 with (staff) spacing // 2
         if isinstance(note, Rest):
             if _DEBUG:
-                barline_verts = []
-                barline_verts.append(x)
-                barline_verts.append(y)
-                barline_verts.append(x)
-                barline_verts.append(y + self.area_height)
+                barline_verts = list([x, y, x, y + self.area_height])
                 self.barlines.append(barline_verts)
             if _DEBUG:
                 print('rest=', note, note.glyph)
-            rest_label = self.add_label(
-                note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)
             # Replace six with env['HSPACE'] or equivalent solution
-            #x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
+            # x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
             x += self._cfg.NOTE_WIDTH * float(note.value) * 30
             return x, y
 
@@ -232,11 +225,7 @@ class MeasureArea(ViewArea):
 
         for n in notes:
             if _DEBUG:
-                barline_verts = []
-                barline_verts.append(x)
-                barline_verts.append(y)
-                barline_verts.append(x)
-                barline_verts.append(y + self.area_height)
+                barline_verts = list([x, y, x, y + self.area_height])
                 self.barlines.append(barline_verts)
             # print(str(n.pitch.step.name) + str(n.pitch.octave) +
             #       ' ' + str(n.pitch.midi))
@@ -245,28 +234,30 @@ class MeasureArea(ViewArea):
             # accidentals
             if str(n.accidental).strip() != '':
                 if n.pitch.step not in self.measure.key.altered():
-                    accidental_label = self.add_label(
-                        n.accidental.glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
-                    #x += accidental_label.content_width + 6
+                    accidental_label = self.add_label( # noqa
+                        n.accidental.glyph, GlyphType.ACCIDENTAL,
+                        x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                    # x += accidental_label.content_width + 6
             # notes
             if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
                 gtype = GlyphType.NOTE_UP
             else: 
                 gtype = GlyphType.NOTE_DOWN
             # Replace 6 with env['VSPACE'] or equivalent solution
-            note_label = self.add_label(
-                n.glyph, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+            note_label = self.add_label( # noqa
+                n.glyph, gtype, x=x,
+                y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
 
             # ledger lines
             self.layout_ledger_lines(
                 x, y, line_offset)
 
             # x offset for notes
-            #x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
+            # x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
             x += self._cfg.NOTE_WIDTH * float(note.value) * 30
         return x, y
 
-    def layout_left_barline(self, x, y):
+    def layout_left_barline(self, x, y) -> tuple[int, int]:
         # only if Barline is on left
         if _DEBUG:
             print('l-barline=', self.measure.barline)
@@ -275,39 +266,27 @@ class MeasureArea(ViewArea):
                 self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
             x += 18 + barline_label.content_width
         elif isinstance(self.measure.barline, BarlineType):
-            barline_verts = []
-            barline_verts.append(x)
-            barline_verts.append(y)
-            barline_verts.append(x)
-            barline_verts.append(y + self.area_height)
+            barline_verts = list([x, y, x, x + self.area_height])
             self.barlines.append(barline_verts)
             x += 18
         return x, y
 
-    def layout_right_barline(self, x, y):
+    def layout_right_barline(self, x, y) -> tuple[int, int]:
         if isinstance(self.measure.barline, Barline):
             barline_label = self.add_label(
                 self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
-            barline_verts = []
-            barline_verts.append(x)
-            barline_verts.append(y)
-            barline_verts.append(x + barline_label.content_width)
-            barline_verts.append(y + self.area_height)
+            barline_verts = list([x, y, x + barline_label.content_width, y + self.area_height])
             self.irr_barlines.append(barline_verts)
             self.irr_barlines_idx.append(self.index)
             x += 18 + barline_label.content_width
         elif isinstance(self.measure.barline, BarlineType):
-            barline_verts = []
-            barline_verts.append(x)
-            barline_verts.append(y)
-            barline_verts.append(x)
-            barline_verts.append(y + self.area_height)
+            barline_verts = list([x, y, x, y + self.area_height])
             self.barlines.append(barline_verts)
             x += -18
         return x, y
 
     def layout_clef(self, x, y):
-        if (self.index == 0):
+        if self.index == 0:
             x += 12
             clef_pitch = self.measure.clef.value
             # base is treble (G) clef
@@ -322,8 +301,8 @@ class MeasureArea(ViewArea):
             x += clef_label.content_width + 10
         return x, y
 
-    def layout_time_signature(self, x, y):
-        if (self.index == 0):
+    def layout_time_signature(self, x, y) -> tuple[int, int]:
+        if self.index == 0:
             time_sig = self.measure.time
             # time_sig_numerator = pyglet.text.Label(str(time_sig.numerator),
             #                                        font_name=self._cfg.MUSIC_FONT_NAME,
@@ -341,14 +320,15 @@ class MeasureArea(ViewArea):
             #                                              self._cfg.MUSIC_FONT_SIZE - 5),
             #                                          x=x, y=y + self.spacing + 10,
             #                                          anchor_x='center', anchor_y='center')
-            time_sig_denominator = self.add_label(
+            time_sig_denominator = self.add_label( # noqa
                 denominator_glyph, GlyphType.TIME, x, y=y + self.spacing * 3)
 
             x += time_sig_numerator.content_width + 30
 
         return x, y
 
-    def key_sig_accidental_offset(self, note, accidental_type):
+    @staticmethod
+    def key_sig_accidental_offset(note, accidental_type) -> int:
         offset = 0
 
         match note:
@@ -359,12 +339,12 @@ class MeasureArea(ViewArea):
             case 'E':
                 offset += 10
             case 'F':
-                if (accidental_type == 'sharp'):
+                if accidental_type == 'sharp':
                     offset += 11
                 else:
                     offset += 3
             case 'G':
-                if (accidental_type == 'sharp'):
+                if accidental_type == 'sharp':
                     offset += 12
                 else:
                     offset += 4
@@ -375,7 +355,8 @@ class MeasureArea(ViewArea):
 
         return offset
 
-    def lookup_key_accidentals(self, key):
+    @staticmethod
+    def lookup_key_accidentals(key) -> list[[], []]:
         accidentals = [[], []]
         match key:
             case 'C Major' | 'A Minor':
@@ -410,63 +391,55 @@ class MeasureArea(ViewArea):
                 accidentals = key_accidentals[15]
         return accidentals
 
-    def layout_key_signature(self, x, y):
-        if (self.index == 0):
+    def layout_key_signature(self, x, y) -> tuple[int, int]:
+        if self.index == 0:
             key = self.measure.key
             accidentals = self.lookup_key_accidentals(key.__str__())
             if _DEBUG:
-                print(key_accidentals[key.__str__()])
+                print(f"accidentals: {accidentals}")
+
             if len(accidentals[0]) == 0 and len(accidentals[1]) == 0:
                 accidental_label = self.add_label(
                     'accidentalFlat', GlyphType.ACCIDENTAL, x, y)
-                # pass
+
                 x += (accidental_label.content_width + 6) * self.key_sig_width
                 self.labels.pop()
             else:
                 for note in accidentals[0]:
                     line_offset = self.key_sig_accidental_offset(note, 'sharp')
                     accidental_label = self.add_label(
-                        'accidentalSharp', GlyphType.ACCIDENTAL, x, y + 10 + (line_offset) * (self.spacing // 2))  # (+ 10) to align glyph with staff
+                        'accidentalSharp', GlyphType.ACCIDENTAL, x,
+                        y + 10 + line_offset * (self.spacing // 2))  # (+ 10) to align glyph with staff
                     x += accidental_label.content_width + 4
                 for note in accidentals[1]:
                     line_offset = self.key_sig_accidental_offset(note, 'flat')
                     accidental_label = self.add_label(
-                        'accidentalFlat', GlyphType.ACCIDENTAL, x, y + 10 + (line_offset) * (self.spacing // 2))  # (+ 10) to align glyph with staff
+                        'accidentalFlat', GlyphType.ACCIDENTAL, x,
+                        y + 10 + line_offset * (self.spacing // 2))  # (+ 10) to align glyph with staff
                     x += accidental_label.content_width + 4
         x += 20
         return x, y
 
-    def layout_ledger_lines(self, x, y, line_offset):
-        if (line_offset < 3):
+    def layout_ledger_lines(self, x, y, line_offset) -> None:
+        if line_offset < 3:
             for num in range(line_offset - 1, 3):
                 if num % 2 != 0:
-                    ledger_line_verts = []
-                    ledger_line_verts.append(x - (self.spacing) - 4)
-                    ledger_line_verts.append(
-                        y + (num - 1) * (self.spacing // 2))
-                    ledger_line_verts.append(x + (self.spacing) - 4)
-                    ledger_line_verts.append(
-                        y + (num - 1) * (self.spacing // 2))
+                    ledger_line_verts = list([x - self.spacing - 4, y + (num - 1) * (self.spacing // 2),
+                                              x + self.spacing - 4, y + (num - 1) * (self.spacing // 2)])
                     self.ledger_lines.append(ledger_line_verts)
 
-        elif (line_offset > 11):
+        elif line_offset > 11:
             for num in range(11, line_offset):
                 if num % 2 != 0:
-                    ledger_line_verts = []
-                    ledger_line_verts.append(x - (self.spacing) + 2)
-                    ledger_line_verts.append(
-                        y + (num - 1) * (self.spacing // 2))
-                    ledger_line_verts.append(x + (self.spacing) + 2)
-                    ledger_line_verts.append(
-                        y + (num - 1) * (self.spacing // 2))
+                    ledger_line_verts = list([x - self.spacing + 2, y + (num - 1) * (self.spacing // 2),
+                                              x + self.spacing + 2, y + (num - 1) * (self.spacing // 2)])
                     self.ledger_lines.append(ledger_line_verts)
 
-    def layout_dynamic_markings(self, x, y):
-        #TODO: Fine tune X and Y placement and find a way to make hairpins look cleaner (less line aliasing?)
-        #Currently places all dynamic marks below the measure with a hardcoded offset
-        #Implement a way to offset vertically based on other elements at location
+    def layout_dynamic_markings(self, x, y) -> None:
+        # TODO: Fine tune X and Y placement and find a way to make hairpins look cleaner (less line aliasing?)
+        # Currently places all dynamic marks below the measure with a hardcoded offset
+        # Implement a way to offset vertically based on other elements at location
 
-        glyph = ""
         for mark in self.measure.measure_marks:
             if isinstance(mark, DynamicMark):
                 if mark.dynamic_type == DynamicType.PIANO or mark.dynamic_type == DynamicType.FORTE:
@@ -474,7 +447,9 @@ class MeasureArea(ViewArea):
                 else:
                     glyph = "dynamic" + mark.dynamic_type.abbr.upper()
                 gtype = "GlyphType." + str(mark.dynamic_type)[7:]
-                dynamic_mark_label = self.add_label(glyph, gtype, x + (float(mark.start_point/100) * 30 * self._cfg.NOTE_WIDTH), y)
+                if _DEBUG:
+                    print(f"glyph: {glyph}")
+                    print(f"gtype: {gtype}")
             else:
                 x_spacing_start = self._cfg.NOTE_WIDTH * float(mark.start_point/100) * 30
                 x_spacing_end = self._cfg.NOTE_WIDTH * float(mark.end_point/100) * 30
@@ -486,19 +461,19 @@ class MeasureArea(ViewArea):
                     self.hairpin_end.append((x + x_spacing_start, y))
                 pass
 
-    def draw(self):
+    def draw(self) -> None:
         for label in self.labels:
             label.draw()
 
-    def add_label(self, glyph, gtype, x=0, y=0):
+    def add_label(self, glyph, gtype, x=0, y=0) -> Glyph:
         glyph_id = Glyph.code(glyph)
         font_size = self._cfg.MUSIC_FONT_SIZE
         note_off = 0
 
-        # if gtype == GlyphType.NOTE_UP:  # Possibly move this elsewear (parameter)
+        # if gtype == GlyphType.NOTE_UP:  # Possibly move this elsewhere (parameter)
         #     note_off = 20
 
-        match gtype:            #Possibly make these parameters
+        match gtype:            # Possibly make these parameters
             case GlyphType.CLEF:
                 font_size = self._cfg.MUSIC_CLEF_FONT_SIZE
             case GlyphType.TIME:
@@ -512,29 +487,8 @@ class MeasureArea(ViewArea):
                       font_size=int(font_size),
                       x=x + note_off, y=y,
                       anchor_x='center',
-                      anchor_y='center')
+                      anchor_y='center',
+                      batch=self.batch)
         label.color = (0, 0, 0, 255)
         self.labels.append(label)
         return label
-
-    def get_labels(self):
-        return self.labels
-
-    def get_barlines(self):
-        return self.barlines
-
-    def get_irr_barlines(self):
-        return self.irr_barlines
-
-    def get_irr_barlines_idx(self):
-        return self.irr_barlines_idx
-
-    def get_ledger_lines(self):
-        return self.ledger_lines
-
-    def get_hairpin_start(self):
-        return self.hairpin_start
-    
-    def get_hairpin_end(self):
-        return self.hairpin_end
-
