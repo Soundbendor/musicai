@@ -8,7 +8,7 @@ from structure.measure_mark import DynamicMark, DynamicType, DynamicChangeType
 from structure.note import NoteGroup, Rest, Note
 from visualization.window_config import WindowConfig
 
-_DEBUG = True
+_DEBUG = False
 
 # stores [[sharps], [flats], [double sharp], [double flat]]
 # TODO: modes
@@ -266,7 +266,7 @@ class MeasureArea(ViewArea):
                 self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
             x += 18 + barline_label.content_width
         elif isinstance(self.measure.barline, BarlineType):
-            barline_verts = list([x, y, x, x + self.area_height])
+            barline_verts = list([x, y, x, y + self.area_height])
             self.barlines.append(barline_verts)
             x += 18
         return x, y
