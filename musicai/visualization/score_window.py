@@ -152,27 +152,15 @@ class ScoreWindow(pyglet.window.Window):
             for part in system.parts:
                 for idx, measure in enumerate(part.measures):
                     measure_area = MeasureArea(
-                        measure, x, y, self.measure_height, key_sig_width, idx, self.measure_area_width[idx])
+                        measure, x, y, self.measure_height, key_sig_width, idx, self.measure_area_width[idx], batch=self.batch)
                     # TODO calc and set area_width
                     # x += measure_area.area_width
                     x += self.measure_area_width[idx]
-                    measure_labels = measure_area.get_labels()
-                    for label in measure_labels:
-                        label.batch = self.batch
-                        self.labels.append(label)
-                    barline_verts = measure_area.get_barlines()
-                    for vert in barline_verts:
-                        self.barlines.append(vert)
-                    ledger_line_verts = measure_area.get_ledger_lines()
-                    for vert in ledger_line_verts:
-                        if (len(vert) != 0):
-                            self.ledger_line_verts.append(vert)
-                    hairpin_start_verts = measure_area.get_hairpin_start()
-                    for vert in hairpin_start_verts:
-                        self.hairpin_start_verts.append(vert)
-                    hairpin_end_verts = measure_area.get_hairpin_end()
-                    for vert in hairpin_end_verts:
-                        self.hairpin_end_verts.append(vert)
+                    self.labels.extend(measure_area.labels)
+                    self.barlines.extend(measure_area.barlines)
+                    self.ledger_line_verts.extend(measure_area.ledger_lines)
+                    self.hairpin_start_verts.extend(measure_area.hairpin_start)
+                    self.hairpin_end_verts.extend(measure_area.hairpin_end)
                     if (measure.has_irregular_rs_barline()):
                         barline_irr_verts = measure_area.get_irr_barlines()
                         barline_idx = measure_area.get_irr_barlines_idx()
