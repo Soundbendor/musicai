@@ -1,8 +1,7 @@
 from dotenv import dotenv_values
-import os
-import os.path
 
 _DEBUG = False
+
 
 class WindowConfig:
     def __init__(self, file_name: str = ".msvconfig"):
