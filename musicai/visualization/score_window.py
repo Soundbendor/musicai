@@ -8,7 +8,7 @@ from visualization.window_config import WindowConfig
 _DEBUG = True
 
 
-class ScoreWindow(pyglet.window.Window):
+class ScoreWindow(pyglet.window.Window): # noqa
     def __init__(self, score: Score) -> None:
         self._cfg = WindowConfig()
         super(ScoreWindow, self).__init__(
@@ -84,8 +84,8 @@ class ScoreWindow(pyglet.window.Window):
             y = self.hairpin_start_verts[i][1]
             x_start = self.hairpin_start_verts[i][0]
             x_end = self.hairpin_end_verts[i][0]
-            hairpin_line_top = shapes.Line(x_start, y, x_end, y + 15, width=2, color=(0,0,0), batch=self.batch)
-            hairpin_line_bottom = shapes.Line(x_start, y, x_end, y - 15, width=2, color=(0,0,0), batch=self.batch)
+            hairpin_line_top = shapes.Line(x_start, y, x_end, y + 15, width=2, color=(0, 0, 0), batch=self.batch)
+            hairpin_line_bottom = shapes.Line(x_start, y, x_end, y - 15, width=2, color=(0, 0, 0), batch=self.batch)
             self.hairpin_lines.append(hairpin_line_top)
             self.hairpin_lines.append(hairpin_line_bottom)
 
@@ -103,23 +103,24 @@ class ScoreWindow(pyglet.window.Window):
                 for part in system.parts:
                     measure_area = MeasureArea(
                         part.measures[i], x, y, self.measure_height, key_sig_width, i)
-                    if (measure_area.area_width > max_measure_area):
+                    if measure_area.area_width > max_measure_area:
                         max_measure_area = measure_area.area_width
                 self.measure_area_width.append(int(max_measure_area))
 
             for part in system.parts:
-                for idx, measure in enumerate(part.measures):
+                for measure_idx, measure in enumerate(part.measures):
                     measure_area = MeasureArea(
-                        measure, x, y, self.measure_height, key_sig_width, idx, self.measure_area_width[idx], batch=self.batch)
+                        measure, x, y, self.measure_height, key_sig_width,
+                        measure_idx, self.measure_area_width[measure_idx], batch=self.batch)
                     # TODO calc and set area_width
                     # x += measure_area.area_width
-                    x += self.measure_area_width[idx]
+                    x += self.measure_area_width[measure_idx]
                     self.labels.extend(measure_area.labels)
                     self.barlines.extend(measure_area.barlines)
                     self.ledger_line_verts.extend(measure_area.ledger_lines)
                     self.hairpin_start_verts.extend(measure_area.hairpin_start)
                     self.hairpin_end_verts.extend(measure_area.hairpin_end)
-                    if (measure.has_irregular_rs_barline()):
+                    if measure.has_irregular_rs_barline():
                         barline_irr_verts = measure_area.get_irr_barlines()
                         barline_idx = measure_area.get_irr_barlines_idx()
                         for vert in barline_irr_verts:
@@ -146,7 +147,7 @@ class ScoreWindow(pyglet.window.Window):
             for vert in self.irr_barlines:
                 if vert[0] == x_start:
                     y_start = vert[1]
-            if (self.score.systems[0].parts[0].measures[self.irr_barlines_idx[i]].barline.barlinetype.glyph == 'repeatRight'):
+            if self.score.systems[0].parts[0].measures[self.irr_barlines_idx[i]].barline.barlinetype.glyph == 'repeatRight':
                 x_start = x_start + 4
                 x_end = x_end - 10
                 rectangle = shapes.Rectangle(
@@ -164,22 +165,10 @@ class ScoreWindow(pyglet.window.Window):
             for vert in self.barlines[i:]:
                 if vert[0] == x:
                     y_start = vert[1]
-            line = shapes.Line(x, y_start, x, y_end, width=2, color=(0,0,0), batch=self.batch)
+            line = shapes.Line(x, y_start, x, y_end, width=2, color=(0, 0, 0), batch=self.batch)
             self.barline_shapes.append(line)
 
-        # for i in range(len(self.score.systems[0].parts[0].measures)):
-        #     x = self.barlines[i][0]
-        #     y_start = self.barlines[i][1]
-        #     y_end = self.barlines[i][3]
-
-        #     for vert in self.barlines:
-        #         if vert[0] == x:
-        #             y_start = vert[1]
-        #     line = shapes.Line(x, y_start, x, y_end, width=2,
-        #                        color=(0, 0, 0), batch=self.batch)
-        #     self.barline_shapes.append(line)
-
-    def on_draw(self) -> None:
+    def on_draw(self, dt) -> None:
         self.clear()
         self.background.blit(0, 0)
 
