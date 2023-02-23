@@ -1,13 +1,9 @@
 import pyglet
-from pyglet import shapes, gl
-from pyglet.window import key
+from pyglet import shapes
 
-import json
-
-from fileio.mxml import MusicXML, Score
+from fileio.mxml import Score
 from visualization.view_area import MeasureArea
 from visualization.window_config import WindowConfig
-from visualization.view_area import key_accidentals
 
 _DEBUG = True
 
@@ -98,9 +94,6 @@ class ScoreWindow(pyglet.window.Window):
             ledger_line = shapes.Line(
                 line[0], line[1], line[2], line[3], width=2, color=(0, 0, 0), batch=self.batch)
             self.ledger_lines.append(ledger_line)
-
-    def load_barlines(self, measure_area: list[[4], ...]) -> None:
-        self.barlines.append(measure_area.get_barlines())
 
     def load_labels(self, x: int, y: int) -> None:
         key_sig_width = self.max_key_sig_width()
