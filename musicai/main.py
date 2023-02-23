@@ -2,6 +2,7 @@ import pyglet
 
 #from fileio import MusicXML
 from visualization.score_window import ScoreWindow
+from visualization.window_config import WindowConfig
 from fileio.mxml import MusicXML
 
 
@@ -61,7 +62,7 @@ def main():
     # score = score[0:4]
     # score = score.slice_parts(0,1)
 
-    window = ScoreWindow(score)
+    window = ScoreWindow(score, WindowConfig())
     window.display()
 
 

@@ -80,25 +80,11 @@ class Glyph(pyglet.text.Label):
         return self.__str__()
 
 
-class ViewArea():
+class MeasureArea:
 
-    def __init__(self, x=0, y=0):
-        self.x = x
-        self.y = y
+    def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0, width=0, config=None, batch=None):
+        self._cfg = config
         self.labels = []
-        self._cfg = WindowConfig()
-
-    def layout(self):
-        pass
-
-    def draw(self):
-        pass
-
-
-class MeasureArea(ViewArea):
-
-    def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0, width=0, batch=None):
-        super().__init__(x, y)
         self.measure = measure
         self.area_x = x             # Used to store the initial value of x and y as loaded in
         self.area_y = y

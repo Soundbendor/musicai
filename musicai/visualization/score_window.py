@@ -6,11 +6,11 @@ from visualization.view_area import MeasureArea
 from visualization.window_config import WindowConfig
 
 _DEBUG = True
-_RBG_BLACK = (0, 0, 0)
+_RGB_BLACK = (0, 0, 0)
 
 class ScoreWindow(pyglet.window.Window): # noqa
-    def __init__(self, score: Score) -> None:
-        self._cfg = WindowConfig()
+    def __init__(self, score: Score, window_config: WindowConfig) -> None:
+        self._cfg = window_config
         super(ScoreWindow, self).__init__(
             height=self._cfg.SCREEN_HEIGHT,
             width=self._cfg.SCREEN_WIDTH
@@ -62,7 +62,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
             x_end = (x_start + measure_length) * self.zoom
 
             bar_line = shapes.Line(
-                x_start, y_value, x_end, y_value, width=2, color=_RBG_BLACK, batch=self.batch)
+                x_start, y_value, x_end, y_value, width=2, color=_RGB_BLACK, batch=self.batch)
 
             self.measures.append(bar_line)
 
@@ -84,15 +84,15 @@ class ScoreWindow(pyglet.window.Window): # noqa
             y = self.hairpin_start_verts[i][1]
             x_start = self.hairpin_start_verts[i][0]
             x_end = self.hairpin_end_verts[i][0]
-            hairpin_line_top = shapes.Line(x_start, y, x_end, y + 15, width=2, color=_RBG_BLACK, batch=self.batch)
-            hairpin_line_bottom = shapes.Line(x_start, y, x_end, y - 15, width=2, color=_RBG_BLACK, batch=self.batch)
+            hairpin_line_top = shapes.Line(x_start, y, x_end, y + 15, width=2, color=_RGB_BLACK, batch=self.batch)
+            hairpin_line_bottom = shapes.Line(x_start, y, x_end, y - 15, width=2, color=_RGB_BLACK, batch=self.batch)
             self.hairpin_lines.append(hairpin_line_top)
             self.hairpin_lines.append(hairpin_line_bottom)
 
     def _draw_ledger_lines(self) -> None:
         for line in self.ledger_line_verts:
             ledger_line = shapes.Line(
-                line[0], line[1], line[2], line[3], width=2, color=_RBG_BLACK, batch=self.batch)
+                line[0], line[1], line[2], line[3], width=2, color=_RGB_BLACK, batch=self.batch)
             self.ledger_lines.append(ledger_line)
 
     def load_labels(self, x: int, y: int) -> None:
@@ -102,7 +102,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
                 max_measure_area = 0
                 for part in system.parts:
                     measure_area = MeasureArea(
-                        part.measures[i], x, y, self.measure_height, key_sig_width, i)
+                        part.measures[i], x, y, self.measure_height, key_sig_width, i, config=self._cfg, batch=self.batch)
                     if measure_area.area_width > max_measure_area:
                         max_measure_area = measure_area.area_width
                 self.measure_area_width.append(int(max_measure_area))
@@ -111,7 +111,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
                 for measure_idx, measure in enumerate(part.measures):
                     measure_area = MeasureArea(
                         measure, x, y, self.measure_height, key_sig_width,
-                        measure_idx, self.measure_area_width[measure_idx], batch=self.batch)
+                        measure_idx, self.measure_area_width[measure_idx], config=self._cfg, batch=self.batch)
                     # TODO calc and set area_width
                     # x += measure_area.area_width
                     x += self.measure_area_width[measure_idx]
@@ -151,9 +151,9 @@ class ScoreWindow(pyglet.window.Window): # noqa
                 x_start = x_start + 4
                 x_end = x_end - 10
                 rectangle = shapes.Rectangle(
-                    x_start, y_start,  x_end - x_start, y_end - y_start, color=_RBG_BLACK, batch=self.batch)
+                    x_start, y_start,  x_end - x_start, y_end - y_start, color=_RGB_BLACK, batch=self.batch)
                 line = shapes.Line(x_start - 5, y_start, x_start-5,
-                                   y_end, width=1, color=_RBG_BLACK, batch=self.batch)
+                                   y_end, width=1, color=_RGB_BLACK, batch=self.batch)
                 self.barline_shapes.append(rectangle)
                 self.barline_shapes.append(line)
             # TODO Modify the connecting barline shapes for different irregular barlines
@@ -165,7 +165,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
             for vert in self.barlines[i:]:
                 if vert[0] == x:
                     y_start = vert[1]
-            line = shapes.Line(x, y_start, x, y_end, width=2, color=_RBG_BLACK, batch=self.batch)
+            line = shapes.Line(x, y_start, x, y_end, width=2, color=_RGB_BLACK, batch=self.batch)
             self.barline_shapes.append(line)
 
     def on_draw(self, dt=None) -> None:
