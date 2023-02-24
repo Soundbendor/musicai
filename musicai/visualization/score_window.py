@@ -23,7 +23,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
         self.measures = list()
         self.barlines = list()
         self.irr_barlines = list()
-        self.irr_barlines_idx = list()
+        self.irr_barline_labels = list()
         self.barline_shapes = list()
         self.ledger_line_verts = list()
         self.ledger_lines = list()
@@ -102,6 +102,8 @@ class ScoreWindow(pyglet.window.Window): # noqa
                 max_measure_area = 0
                 measure_area_barlines = list()
                 measure_area_irr_barlines = list()
+                measure_area_irr_barline_labels = list()
+                start_y  =  y 
 
                 for part in system.parts:
                     measure_area = MeasureArea(
@@ -110,24 +112,39 @@ class ScoreWindow(pyglet.window.Window): # noqa
                         max_measure_area = measure_area.area_width
 
                     self.labels.extend(measure_area.labels)
-                    self.ledger_lines.extend(measure_area.ledger_lines)
+                    self.ledger_line_verts.extend(measure_area.ledger_lines)
                     self.hairpin_start_verts.extend(measure_area.hairpin_start)
                     self.hairpin_end_verts.extend(measure_area.hairpin_end)
 
                     measure_area_barlines.extend(measure_area.barlines)
+                    measure_area_irr_barlines.extend(measure_area.irr_barlines)
+                    measure_area_irr_barline_labels.extend(measure_area.irr_barline_labels)
 
                     y -= self._cfg.MEASURE_OFFSET
                 
                 for barline_verts in measure_area_barlines:
-                    # print("# ", measure_idx, " || ", barline_verts)
                     if barline_verts[0] != 0:
-                        barline_verts[0] = int(max_measure_area)
-                        barline_verts[2] = int(max_measure_area)
+                        barline_verts[0] = int(x + max_measure_area)
+                        barline_verts[2] = int(x +max_measure_area)
+                
+                if measure_area.measure.has_irregular_rs_barline():
+
+                    for irr_barline_label in measure_area_irr_barline_labels:
+                        irr_barline_label.x = int(x+ max_measure_area)
+                        irr_barline_label.batch = self.batch
+                    for irr_barline_verts in measure_area_irr_barlines:
+                        if irr_barline_verts[0] != 0:
+                            irr_barline_verts[0] = int(x + max_measure_area)
+                            irr_barline_verts[2] = int(x + max_measure_area + measure_area.irr_barline_labels[0].content_width)
                     
                 self.barlines.extend(measure_area_barlines)
-                # print("post modified barlines: ", self.barlines)
+                self.irr_barlines.extend(measure_area_irr_barlines)
+                self.irr_barline_labels.extend(measure_area_irr_barline_labels)
                 
                 self.measure_area_width.append(int(max_measure_area))
+                x += max_measure_area
+                y = start_y
+
 
 
     def _initialize_display_elements(self) -> None:
@@ -138,16 +155,19 @@ class ScoreWindow(pyglet.window.Window): # noqa
         self._draw_ledger_lines()
         self.draw_hairpins()
 
-        for i in range(len(self.irr_barlines_idx)):
-            print("aaa")
+        self.labels.extend(self.irr_barline_labels)
+
+
+        for i in range(len(self.irr_barline_labels)):
             x_start = self.irr_barlines[i][0]
             y_start = self.irr_barlines[i][1]
             x_end = self.irr_barlines[i][2]
             y_end = self.irr_barlines[i][3]
+
             for vert in self.irr_barlines:
                 if vert[0] == x_start:
                     y_start = vert[1]
-            if self.score.systems[0].parts[0].measures[self.irr_barlines_idx[i]].barline.barlinetype.glyph == 'repeatRight':
+            if (self.irr_barline_labels[0].gtype.glyph == 'repeatRight'):
                 x_start = x_start + 4
                 x_end = x_end - 10
                 rectangle = shapes.Rectangle(

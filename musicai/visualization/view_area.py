@@ -95,7 +95,7 @@ class MeasureArea:
         self.batch = batch
         self.barlines = []
         self.irr_barlines = []
-        self.irr_barlines_idx = []
+        self.irr_barline_labels = []
         self.ledger_lines = []
         self.hairpin_start = []
         self.hairpin_end = []
@@ -272,15 +272,23 @@ class MeasureArea:
 
     def layout_right_barline(self, x, y):
         if isinstance(self.measure.barline, Barline):
-            barline_label = self.add_label(
-                self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
+            
+            barline_label = Glyph(gtype=self.measure.barline.barlinetype, 
+                                text=Glyph.code(self.measure.barline.barlinetype.glyph),
+                                font_name=self._cfg.MUSIC_FONT_NAME,
+                                font_size=int(self._cfg.MUSIC_FONT_SIZE),
+                                x=x, y=y + (self.area_height//2),
+                                anchor_x='center',
+                                anchor_y='center')
+            barline_label.color = (0,0,0,255)
+
             barline_verts = []
             barline_verts.append(x)
             barline_verts.append(y)
             barline_verts.append(x + barline_label.content_width)
             barline_verts.append(y + self.area_height)
             self.irr_barlines.append(barline_verts)
-            self.irr_barlines_idx.append(self.index)
+            self.irr_barline_labels.append(barline_label)
             x += 18 + barline_label.content_width
         elif isinstance(self.measure.barline, BarlineType):
             barline_verts = []
