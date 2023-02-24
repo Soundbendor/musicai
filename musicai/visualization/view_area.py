@@ -132,8 +132,8 @@ class MeasureArea:
                 self.layout_dynamic_markings(x,y-30)
             x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
 
-        if (self.area_width != 0):
-            x = self.area_width + self.area_x
+        # if (self.area_width != 0):
+        #     x = self.area_width + self.area_x
         x, y = self.layout_right_barline(x, y)
 
         self.area_width = x - self.area_x
@@ -289,7 +289,7 @@ class MeasureArea:
             barline_verts.append(x)
             barline_verts.append(y + self.area_height)
             self.barlines.append(barline_verts)
-            x += -18
+        x += -18
         return x, y
 
     def layout_clef(self, x, y):

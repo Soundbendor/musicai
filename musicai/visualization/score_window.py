@@ -98,38 +98,37 @@ class ScoreWindow(pyglet.window.Window): # noqa
     def load_labels(self, x: int, y: int) -> None:
         key_sig_width = self.max_key_sig_width()
         for system in self.score.systems:
-            for i in range(len(system.parts[0].measures)):
+            for measure_idx in range(len(system.parts[0].measures)):
                 max_measure_area = 0
+                measure_area_barlines = list()
+                measure_area_irr_barlines = list()
+
                 for part in system.parts:
                     measure_area = MeasureArea(
-                        part.measures[i], x, y, self.measure_height, key_sig_width, i, config=self._cfg, batch=self.batch)
+                        part.measures[measure_idx], x, y, self.measure_height, key_sig_width, x, config=self._cfg, batch=self.batch)
                     if measure_area.area_width > max_measure_area:
                         max_measure_area = measure_area.area_width
-                self.measure_area_width.append(int(max_measure_area))
 
-            for part in system.parts:
-                for measure_idx, measure in enumerate(part.measures):
-                    measure_area = MeasureArea(
-                        measure, x, y, self.measure_height, key_sig_width,
-                        measure_idx, self.measure_area_width[measure_idx], config=self._cfg, batch=self.batch)
-                    # TODO calc and set area_width
-                    # x += measure_area.area_width
-                    x += self.measure_area_width[measure_idx]
                     self.labels.extend(measure_area.labels)
-                    self.barlines.extend(measure_area.barlines)
-                    self.ledger_line_verts.extend(measure_area.ledger_lines)
+                    self.ledger_lines.extend(measure_area.ledger_lines)
                     self.hairpin_start_verts.extend(measure_area.hairpin_start)
                     self.hairpin_end_verts.extend(measure_area.hairpin_end)
-                    if measure.has_irregular_rs_barline():
-                        barline_irr_verts = measure_area.irr_barlines
-                        barline_idx = measure_area.irr_barlines_idx
-                        for vert in barline_irr_verts:
-                            self.irr_barlines.append(vert)
-                        for idx in barline_idx:
-                            if idx not in self.irr_barlines_idx:
-                                self.irr_barlines_idx.append(idx)
-                x = 0
-                y -= self._cfg.MEASURE_OFFSET
+
+                    measure_area_barlines.extend(measure_area.barlines)
+
+                    y -= self._cfg.MEASURE_OFFSET
+                
+                for barline_verts in measure_area_barlines:
+                    # print("# ", measure_idx, " || ", barline_verts)
+                    if barline_verts[0] != 0:
+                        barline_verts[0] = int(max_measure_area)
+                        barline_verts[2] = int(max_measure_area)
+                    
+                self.barlines.extend(measure_area_barlines)
+                # print("post modified barlines: ", self.barlines)
+                
+                self.measure_area_width.append(int(max_measure_area))
+
 
     def _initialize_display_elements(self) -> None:
         self.background = pyglet.image.SolidColorImagePattern(
@@ -140,6 +139,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
         self.draw_hairpins()
 
         for i in range(len(self.irr_barlines_idx)):
+            print("aaa")
             x_start = self.irr_barlines[i][0]
             y_start = self.irr_barlines[i][1]
             x_end = self.irr_barlines[i][2]
@@ -230,6 +230,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
 
     @staticmethod
     def _set_movement(item: any, axis: str, movement: int) -> None:
+        # print("item: ", item, "axis: ", axis, "movement: ", movement)
         new_movement = getattr(item, axis) + movement
         setattr(item, axis, new_movement)
 
