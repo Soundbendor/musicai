@@ -202,7 +202,7 @@ class MeasureArea:
                 note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)
             # Replace six with env['HSPACE'] or equivalent solution
             #x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
-            x += self._cfg.NOTE_WIDTH * float(note.value) * 30
+            x += self._cfg.NOTE_WIDTH * float(note.value) * 20
             return x, y
 
         notes = []
@@ -249,7 +249,7 @@ class MeasureArea:
 
             # x offset for notes
             #x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
-            x += self._cfg.NOTE_WIDTH * float(note.value) * 30
+            x += self._cfg.NOTE_WIDTH * float(note.value) * 20
         return x, y
 
     def layout_left_barline(self, x, y):
