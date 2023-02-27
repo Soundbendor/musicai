@@ -139,6 +139,28 @@ class ScoreWindow(pyglet.window.Window): # noqa
         self._draw_ledger_lines()
         self.draw_hairpins()
 
+        # for i in range(len(self.irr_barlines_idx)):
+        #     x_start = self.irr_barlines[i][0]
+        #     y_start = self.irr_barlines[i][1]
+        #     x_end = self.irr_barlines[i][2]
+        #     y_end = self.irr_barlines[i][3]
+        #     for vert in self.irr_barlines:
+        #         if vert[0] == x_start:
+        #             y_start = vert[1]
+        #     if self.score.systems[0].parts[0].measures[self.irr_barlines_idx[i]].barline.barlinetype.glyph == 'repeatRight':
+        #         x_start = x_start + 4
+        #         x_end = x_end - 10
+        #         rectangle = shapes.Rectangle(
+        #             x_start, y_start,  x_end - x_start, y_end - y_start, color=_RGB_BLACK, batch=self.batch)
+        #         line = shapes.Line(x_start - 5, y_start, x_start-5,
+        #                            y_end, width=1, color=_RGB_BLACK, batch=self.batch)
+        #         self.barline_shapes.append(rectangle)
+        #         self.barline_shapes.append(line)
+        #     # TODO Modify the connecting barline shapes for different irregular barlines
+        self.draw_barlines()
+        self.draw_irr_barlines
+
+    def draw_irr_barlines(self):
         for i in range(len(self.irr_barlines_idx)):
             x_start = self.irr_barlines[i][0]
             y_start = self.irr_barlines[i][1]
@@ -147,17 +169,19 @@ class ScoreWindow(pyglet.window.Window): # noqa
             for vert in self.irr_barlines:
                 if vert[0] == x_start:
                     y_start = vert[1]
-            if self.score.systems[0].parts[0].measures[self.irr_barlines_idx[i]].barline.barlinetype.glyph == 'repeatRight':
+            if self.score.systems[0].parts[0].measures[
+                self.irr_barlines_idx[i]].barline.barlinetype.glyph == 'repeatRight':
                 x_start = x_start + 4
                 x_end = x_end - 10
                 rectangle = shapes.Rectangle(
-                    x_start, y_start,  x_end - x_start, y_end - y_start, color=_RGB_BLACK, batch=self.batch)
-                line = shapes.Line(x_start - 5, y_start, x_start-5,
+                    x_start, y_start, x_end - x_start, y_end - y_start, color=_RGB_BLACK, batch=self.batch)
+                line = shapes.Line(x_start - 5, y_start, x_start - 5,
                                    y_end, width=1, color=_RGB_BLACK, batch=self.batch)
                 self.barline_shapes.append(rectangle)
                 self.barline_shapes.append(line)
             # TODO Modify the connecting barline shapes for different irregular barlines
 
+    def draw_barlines(self) -> None:
         for i in range(len(self.barlines)):
             x = self.barlines[i][0]
             y_start = self.barlines[i][1]
