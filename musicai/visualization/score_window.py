@@ -5,7 +5,7 @@ from fileio.mxml import Score
 from visualization.view_area import MeasureArea
 from visualization.window_config import WindowConfig
 from structure.measure import Measure
-from structure.score import Part
+from structure.score import Part, PartSystem
 
 _DEBUG = True
 _RGB_BLACK = (0, 0, 0)
@@ -45,7 +45,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
 
     # TODO: Do we want each measure length to be a separate segment?
 
-    def max_key_sig_width(self) -> int:
+    def max_key_sig_width(self, systems: list[PartSystem]) -> int:
         max_accidentals = 0
         for system in self.score.systems:
             for part in system.parts:
@@ -102,9 +102,9 @@ class ScoreWindow(pyglet.window.Window): # noqa
                 line[0], line[1], line[2], line[3], width=2, color=_RGB_BLACK, batch=self.batch)
             self.ledger_lines.append(ledger_line)
 
-    def load_labels(self, x: int, y: int) -> None:
-        key_sig_width = self.max_key_sig_width()
-        for system in self.score.systems:
+    def load_labels(self, x: int = 0, y: int = 0, systems: list[PartSystem] = None) -> None:
+        key_sig_width = self.max_key_sig_width(systems)
+        for system in systems:
             for i in range(len(system.parts[0].measures)):
                 max_measure_area = 0
                 for part in system.parts:
@@ -141,7 +141,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
     def _initialize_display_elements(self) -> None:
         self.background = pyglet.image.SolidColorImagePattern(
             (255, 255, 255, 255)).create_image(self.width, self.height)
-        self.load_labels(0, self.height - self._cfg.TOP_OFFSET)
+        self.load_labels(0, self.height - self._cfg.TOP_OFFSET, self.score.systems)
         self.measures = self._draw_measures(self.score.systems[0].parts) # TODO: This is quite a chain and I don't like it
         self._draw_ledger_lines()
         self.draw_hairpins()
