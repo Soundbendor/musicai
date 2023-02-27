@@ -45,9 +45,10 @@ class ScoreWindow(pyglet.window.Window): # noqa
 
     # TODO: Do we want each measure length to be a separate segment?
 
-    def max_key_sig_width(self, systems: list[PartSystem]) -> int:
+    @staticmethod
+    def max_key_sig_width(systems: list[PartSystem]) -> int:
         max_accidentals = 0
-        for system in self.score.systems:
+        for system in systems:
             for part in system.parts:
                 for measure in part.measures:
                     key = measure.key
