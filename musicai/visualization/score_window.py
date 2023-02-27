@@ -58,17 +58,20 @@ class ScoreWindow(pyglet.window.Window): # noqa
                         max_accidentals = len(accidentals[1])
         return max_accidentals
 
-    def _draw_measure(self, x_start: int, measure_length: int, y: int) -> None:
+    def _draw_measure(self, x_start: int, measure_length: int, y: int) -> list[shapes.Line]:
+        barlines = list()
         for i in range(5):
             y_value = y + i * (self._cfg.MEASURE_LINE_SPACING * self.zoom)
             x_end = (x_start + measure_length) * self.zoom
 
-            bar_line = shapes.Line(
-                x_start, y_value, x_end, y_value, width=2, color=_RGB_BLACK, batch=self.batch)
+            barlines.append(shapes.Line(
+                x_start, y_value, x_end, y_value, width=2, color=_RGB_BLACK, batch=self.batch))
 
-            self.measures.append(bar_line)
+        return barlines
 
-    def _draw_measures(self, parts: list[Part]) -> None:
+    def _draw_measures(self, parts: list[Part]) -> list[shapes.Line]:
+        measure_lines = list()
+
         for num_parts in range(len(parts)):
             total_width = 0
 
@@ -77,9 +80,11 @@ class ScoreWindow(pyglet.window.Window): # noqa
                 measure_length = self.height - self._cfg.TOP_OFFSET - \
                     (num_parts * self._cfg.MEASURE_OFFSET)
 
-                self._draw_measure(total_width, measure_width, measure_length)
+                measure_lines.extend(self._draw_measure(total_width, measure_width, measure_length))
 
                 total_width += measure_width
+
+        return measure_lines
 
     def draw_hairpins(self) -> None:
         for i in range(len(self.hairpin_start_verts)):
@@ -137,7 +142,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
         self.background = pyglet.image.SolidColorImagePattern(
             (255, 255, 255, 255)).create_image(self.width, self.height)
         self.load_labels(0, self.height - self._cfg.TOP_OFFSET)
-        self._draw_measures(self.score.systems[0].parts) # TODO: This is quite a chain and I don't like it
+        self.measures = self._draw_measures(self.score.systems[0].parts) # TODO: This is quite a chain and I don't like it
         self._draw_ledger_lines()
         self.draw_hairpins()
         self.draw_barlines()
