@@ -6,9 +6,7 @@ import json
 from structure.measure import Barline, BarlineLocation, BarlineType
 from structure.measure_mark import DynamicMark, DynamicType, DynamicChangeType
 from structure.note import NoteGroup, Rest, Note
-from structure.pitch import Pitch
-from pyglet import shapes
-from visualization.window_config import WindowConfig
+from structure.score import PartSystem
 
 _DEBUG = False
 
@@ -396,6 +394,20 @@ class MeasureArea:
             case 'Cb Major' | 'Ab Minor':
                 accidentals = key_accidentals[15]
         return accidentals
+
+    @staticmethod
+    def max_key_sig_width(systems: list[PartSystem]) -> int:
+        max_accidentals = 0
+        for system in systems:
+            for part in system.parts:
+                for measure in part.measures:
+                    key = measure.key
+                    accidentals = MeasureArea.lookup_key_accidentals(str(key))
+                    if len(accidentals[0]) > max_accidentals:
+                        max_accidentals = len(accidentals[0])
+                    elif len(accidentals[1]) > max_accidentals:
+                        max_accidentals = len(accidentals[1])
+        return max_accidentals
 
     def layout_key_signature(self, x, y):
         if (self.index == 0):

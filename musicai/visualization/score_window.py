@@ -45,20 +45,6 @@ class ScoreWindow(pyglet.window.Window): # noqa
 
     # TODO: Do we want each measure length to be a separate segment?
 
-    @staticmethod
-    def max_key_sig_width(systems: list[PartSystem]) -> int:
-        max_accidentals = 0
-        for system in systems:
-            for part in system.parts:
-                for measure in part.measures:
-                    key = measure.key
-                    accidentals = MeasureArea.lookup_key_accidentals(str(key))
-                    if len(accidentals[0]) > max_accidentals:
-                        max_accidentals = len(accidentals[0])
-                    elif len(accidentals[1]) > max_accidentals:
-                        max_accidentals = len(accidentals[1])
-        return max_accidentals
-
     def _draw_measure(self, x_start: int, measure_length: int, y: int) -> list[shapes.Line]:
         barlines = list()
         for i in range(5):
@@ -104,7 +90,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
             self.ledger_lines.append(ledger_line)
 
     def load_labels(self, x: int = 0, y: int = 0, systems: list[PartSystem] = None) -> None:
-        key_sig_width = self.max_key_sig_width(systems)
+        key_sig_width = MeasureArea.max_key_sig_width(systems)
         for system in systems:
             for i in range(len(system.parts[0].measures)):
                 max_measure_area = 0
