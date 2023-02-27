@@ -4,6 +4,8 @@ from pyglet import shapes
 from fileio.mxml import Score
 from visualization.view_area import MeasureArea
 from visualization.window_config import WindowConfig
+from structure.measure import Measure
+from structure.score import Part
 
 _DEBUG = True
 _RGB_BLACK = (0, 0, 0)
@@ -66,11 +68,11 @@ class ScoreWindow(pyglet.window.Window): # noqa
 
             self.measures.append(bar_line)
 
-    def _draw_measures(self) -> None:
-        for num_parts in range(len(self.score.systems[0].parts)):
+    def _draw_measures(self, parts: list[Part]) -> None:
+        for num_parts in range(len(parts)):
             total_width = 0
 
-            for num_measures in range(len(self.score.systems[0].parts[0].measures)):
+            for num_measures in range(len(parts[0].measures)):
                 measure_width = self.measure_area_width[num_measures]
                 measure_length = self.height - self._cfg.TOP_OFFSET - \
                     (num_parts * self._cfg.MEASURE_OFFSET)
@@ -135,7 +137,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
         self.background = pyglet.image.SolidColorImagePattern(
             (255, 255, 255, 255)).create_image(self.width, self.height)
         self.load_labels(0, self.height - self._cfg.TOP_OFFSET)
-        self._draw_measures()
+        self._draw_measures(self.score.systems[0].parts) # TODO: This is quite a chain and I don't like it
         self._draw_ledger_lines()
         self.draw_hairpins()
         self.draw_barlines()
