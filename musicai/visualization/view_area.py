@@ -117,11 +117,28 @@ class Staff:
 
         return lines
 
-    def get_staff_lines(self):
+    def staff_lines(self):
         return self._lines
 
-class MeasureArea:
 
+class LedgerLine:
+    def __init__(self, ledger_coords: list[int] = None, batch: pyglet.graphics.Batch = None) -> None:
+        self._lines = self._draw(ledger_coords, batch)
+
+    def _draw(self, ledger_coords, batch):
+        ledger_lines = list()
+        for coords in ledger_coords:
+            ledger_line = Line(
+                coords[0], coords[1], coords[2], coords[3], width=2, color=(0, 0, 0), batch=batch)
+            ledger_lines.append(ledger_line)
+
+        return ledger_lines
+
+    def ledger_lines(self):
+        return self._lines
+
+
+class MeasureArea:
     def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0, width=0, config=None, batch=None):
         self._cfg = config
         self.labels = []

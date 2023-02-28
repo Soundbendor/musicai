@@ -2,9 +2,9 @@ import pyglet
 from pyglet import shapes
 
 from fileio.mxml import Score
-from visualization.view_area import MeasureArea, Staff
+from visualization.view_area import MeasureArea, Staff, LedgerLine
 from visualization.window_config import WindowConfig
-from structure.score import Part, PartSystem
+from structure.score import PartSystem
 
 _DEBUG = True
 _RGB_BLACK = (0, 0, 0)
@@ -55,12 +55,6 @@ class ScoreWindow(pyglet.window.Window): # noqa
             hairpin_line_bottom = shapes.Line(x_start, y, x_end, y - 15, width=2, color=_RGB_BLACK, batch=self.batch)
             self.hairpin_lines.append(hairpin_line_top)
             self.hairpin_lines.append(hairpin_line_bottom)
-
-    def _draw_ledger_lines(self) -> None:
-        for line in self.ledger_line_verts:
-            ledger_line = shapes.Line(
-                line[0], line[1], line[2], line[3], width=2, color=_RGB_BLACK, batch=self.batch)
-            self.ledger_lines.append(ledger_line)
 
     def _draw_beams(self):
         for line in self.beam_line_verts:
@@ -124,8 +118,8 @@ class ScoreWindow(pyglet.window.Window): # noqa
 
         num_parts = len(self.score.systems[0].parts)
         self.staff_lines = Staff(num_parts=num_parts, measure_widths=self.measure_area_width,
-                                 height=self.height, batch=self.batch).get_staff_lines()
-        self._draw_ledger_lines()
+                                 height=self.height, batch=self.batch).staff_lines()
+        self.ledger_lines = LedgerLine(ledger_coords=self.ledger_line_verts, batch=self.batch).ledger_lines()
         self._draw_beams()
         self._draw_stems()
         self.draw_hairpins()
