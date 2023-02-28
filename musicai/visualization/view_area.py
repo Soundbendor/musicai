@@ -7,6 +7,8 @@ from structure.measure import Barline, BarlineLocation, BarlineType
 from structure.measure_mark import DynamicMark, DynamicType, DynamicChangeType
 from structure.note import NoteGroup, Rest, Note
 from structure.score import PartSystem
+from visualization.window_config import WindowConfig
+from pyglet.shapes import Line
 
 _DEBUG = False
 
@@ -77,6 +79,46 @@ class Glyph(pyglet.text.Label):
     def __repr__(self):
         return self.__str__()
 
+
+class Staff:
+    # TODO Instead of so many parameters, maybe create a new class for StaffParams or something like it?
+    def __init__(self, num_parts: int = 0, measure_widths: list[int] = None,
+                 staff_lines: int = 5, height: int = 0, batch: pyglet.graphics.Batch = None) -> None:
+
+        # TODO Should we do some type of validation on parameters here?
+        self._lines = self._part_staff_lines(num_parts, measure_widths, height, staff_lines, batch)
+
+    @staticmethod
+    def _measure_staff_lines(x_start, y_start, staff_length, staff_lines, batch):
+        barlines = list()
+
+        for val in range(staff_lines):
+            y_value = y_start + val * (WindowConfig().MEASURE_LINE_SPACING * WindowConfig().ZOOM)
+            x_end = (x_start + staff_length) * WindowConfig().ZOOM
+            barlines.append(Line(
+                x_start, y_value, x_end, y_value, width=2, color=(0, 0, 0), batch=batch))
+
+        return barlines
+
+    def _part_staff_lines(self, num_parts, measure_widths, height, staff_lines, batch):
+        lines = list()
+
+        for part_idx in range(num_parts):
+            total_width = 0
+
+            for width in measure_widths:
+                measure_length = height - WindowConfig().TOP_OFFSET - \
+                    (part_idx * WindowConfig().MEASURE_OFFSET)
+
+                lines.extend(Staff._measure_staff_lines(x_start=total_width, y_start=measure_length, staff_length=width,
+                                                        staff_lines=staff_lines, batch=batch))
+
+                total_width += width
+
+        return lines
+
+    def get_staff_lines(self):
+        return self._lines
 
 class MeasureArea:
 

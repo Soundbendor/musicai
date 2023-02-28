@@ -33,6 +33,7 @@ NOTE_WIDTH=22
 SCREEN_WIDTH=1440
 SCREEN_HEIGHT=1080
 TOP_OFFSET=150
+ZOOM=1
 
     # Keybindings
     # Keybindings are able to be changed as needed. The values for each key are located at the following link:
