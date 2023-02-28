@@ -2,6 +2,7 @@ import pyglet
 
 #from fileio import MusicXML
 from visualization.score_window import ScoreWindow
+from visualization.window_config import WindowConfig
 from fileio.mxml import MusicXML
 
 
@@ -15,7 +16,6 @@ def main():
     #file = '../examples/mxml2/Bach_Cello_Suite_No._1_For_Violin.musicxml'
     #file = '../examples/mxml2/Prelude_No._3_BWV_848_in_C_Major.musicxml'
 
-
     # ---- Viewable (Buggy) ./mxml files ----
     #file = '../examples/mxml/BrahWiMeSample.musicxml'
     #file = '../examples/mxml/Dichterliebe01.musicxml'
@@ -25,7 +25,6 @@ def main():
 
     # ---- Viewable (Buggy) ./mxml2 files ----
     #file = '../examples/mxml2/Dance_of_the_Sugar_Plum_Fairy.musicxml'  # Second part has no staff
-    
     
     # ---- Non-working ./mxml files ----
     #file = '../examples/mxml/ActorPreludeSample.musicxml'          # Chord problem?
@@ -63,7 +62,7 @@ def main():
     # score = score[0:4]
     # score = score.slice_parts(0,1)
 
-    window = ScoreWindow(score)
+    window = ScoreWindow(score, WindowConfig())
     window.display()
 
 

@@ -7,10 +7,15 @@ from enum import Enum
 from typing import Union
 import numpy as np
 
-import util
 from structure.lyric import Lyric
-from structure.note_mark import StemType, Beam, TieType, Notehead
+from structure.note_mark import Beam, Notehead, StemType, TieType
 from structure.pitch import Accidental, Pitch
+from structure.clef import Clef
+
+# import util
+# from musicai.structure.lyric import Lyric
+# from musicai.structure.note_mark import StemType, Beam, TieType, Notehead
+# from musicai.structure.pitch import Accidental, Pitch
 
 
 # -------------
@@ -595,7 +600,7 @@ class NoteValue:
             raise TypeError(f'Cannot add type {type(other)} and NoteValue.')
 
     def __sub__(self, other: Union['NoteValue', 'NoteType', int, float, np.inexact, np.integer]) -> 'NoteValue':
-        if isinstance(other, Union['NoteValue', int, float, np.inexact, np.integer]):
+        if isinstance(other, Union[int, float, np.inexact, np.integer]):
             return NoteValue.find(self.value - other)
         elif isinstance(other, Union[NoteValue, NoteType]):
             return NoteValue.find(self.value - other.value)
