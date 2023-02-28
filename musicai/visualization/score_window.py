@@ -104,14 +104,8 @@ class ScoreWindow(pyglet.window.Window): # noqa
                     self.ledger_line_verts.extend(measure_area.ledger_lines)
                     self.hairpin_start_verts.extend(measure_area.hairpin_start)
                     self.hairpin_end_verts.extend(measure_area.hairpin_end)
-                    beam_line_verts = measure_area.get_beam_lines()
-                    for vert in beam_line_verts:
-                        if (len(vert) != 0):
-                            self.beam_line_verts.append(vert)
-                    stem_verts = measure_area.get_stems()
-                    for vert in stem_verts:
-                        if (len(vert) != 0):
-                            self.stem_verts.append(vert)
+                    self.beam_line_verts.extend(measure_area.beam_lines)
+                    self.stem_verts.extend(measure_area.stems)
                     if measure.has_irregular_rs_barline():
                         barline_irr_verts = measure_area.irr_barlines
                         barline_idx = measure_area.irr_barlines_idx
@@ -224,7 +218,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
     def _update_axis(self, axis: str, movement: int) -> None:
         collections = [self.labels, self.staff_lines,
                        self.barline_shapes, self.ledger_lines,
-                       self.hairpin_lines]
+                       self.hairpin_lines, self.beam_lines, self.stems]
 
         for collection in collections:
             for item in collection:
