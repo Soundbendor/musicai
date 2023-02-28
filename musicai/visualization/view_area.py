@@ -112,7 +112,6 @@ class MeasureArea(ViewArea):
         self.ledger_lines = []
         self.index = idx
         self.key_sig_width = key_sig_width
-        self.beam_xy = []
         self.beam_lines = []
         self.stems = []
         self.layout()
@@ -136,13 +135,13 @@ class MeasureArea(ViewArea):
         x, y = self.layout_clef(x, y)
         x, y = self.layout_key_signature(x, y)
         x, y = self.layout_time_signature(x, y)
-        beam_direction = 0
+        beam_notes = []
         for note in self.measure.notes:
             if len(note.beams) == 0:
                 x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
             else:
-                x, y, beam_direction = self.layout_beamed_notes(
-                    note, beam_direction, x=x, y=y)
+                x, y, beam_notes = self.layout_beamed_notes(
+                    note, beam_notes, x=x, y=y)
 
         if (self.area_width != 0):
             x = self.area_width + self.area_x
@@ -204,53 +203,15 @@ class MeasureArea(ViewArea):
         else:
             return 'noteheadBlack'
 
-    def layout_beam(self, beam_start, beam_end, beam_direction):
-        # beam direction:
-        #   -1: down
-        #   1: up
-        #   3: split
-        beam_offset = 0
-        if beam_direction == -1:
-            self.beam_lines.append(
-                [beam_start[0], beam_start[1] - self.spacing * 4 - beam_offset, beam_end[0], beam_end[1] - self.spacing * 4 - beam_offset])
-        elif beam_direction == 1:
-            self.beam_lines.append(
-                [beam_start[0], beam_start[1] + self.spacing * 2 + beam_offset, beam_end[0], beam_end[1] + self.spacing * 2 + beam_offset])
-        elif beam_direction == 3:
-            pass
+    def layout_beamed_notes(self, note, beam_notes, x, y):
+        # collect beamed notes in one list
+        beam_notes = beam_notes
 
-    def layout_stems(self, beam_direction):
-        slope = (self.beam_xy[-1][1] - self.beam_xy[0][1]) / \
-            (self.beam_xy[-1][0] - self.beam_xy[0][0])
-
-        if beam_direction == -1:
-            for i in self.beam_xy:
-                self.stems.append(
-                    [i[0], i[1] - self.spacing * 1.5 - 2, i[0], slope * (i[0] - self.beam_xy[0][0]) + self.beam_xy[0][1] - 80])
-        elif beam_direction == 1:
-            for i in self.beam_xy:
-                self.stems.append(
-                    [i[0], i[1] - self.spacing * 1.5 - 2, i[0], slope * (i[0] - self.beam_xy[0][0]) + self.beam_xy[0][1] + 40])
-        elif beam_direction == 3:
-            pass
-
-    # adjust beams left/right for up and down
-
-    def adjust_beams(self, beam_direction):
-        if beam_direction == -1:
-            for i in self.beam_xy:
-                i[0] -= 7.5
-        elif beam_direction == 1:
-            for i in self.beam_xy:
-                i[0] += 10
-            pass
-        # TODO
-        elif beam_direction == 3:
-            pass
-
-    def layout_beamed_notes(self, note, beam_direction, x, y):
-        # get y value
-        line_offset = self.note_offset(note)
+        layout_beam = False
+        if (note.beams[0].beamtype.value == 1):
+            beam_notes = []
+        elif(note.beams[0].beamtype.value == 3):
+            layout_beam = True
 
         notes = []
         if isinstance(note, NoteGroup):
@@ -264,6 +225,7 @@ class MeasureArea(ViewArea):
             notes.append(note)
 
         for n in notes:
+            line_offset = self.note_offset(note)
             # accidentals
             if str(n.accidental).strip() != '':
                 if n.pitch.step not in self.measure.key.altered():
@@ -278,31 +240,11 @@ class MeasureArea(ViewArea):
 
             notehead = self.get_notehead(n)
 
-            # TODO: adjust x - (x) to dynamic value
-            # track notehead vertices
-            beam_direction = beam_direction
-            if note.beams[0].beamtype.value == 1:
-                beam_direction = note.stem.value
-                self.beam_xy = list()
-                self.beam_xy.append(
-                    [x, y + 3 + (line_offset + 1) * (self.spacing // 2)])
-            elif note.beams[0].beamtype.value == 3:
-                if note.stem.value != beam_direction:
-                    beam_direction = 3
-                self.beam_xy.append(
-                    [x, y + 3 + (line_offset + 1) * (self.spacing // 2)])
-                self.adjust_beams(beam_direction)
-                self.layout_beam(
-                    self.beam_xy[0], self.beam_xy[-1], beam_direction)
-                self.layout_stems(beam_direction)
-            else:
-                if note.stem.value != beam_direction:
-                    beam_direction = 3
-                self.beam_xy.append(
-                    [x, y + 3 + (line_offset + 1) * (self.spacing // 2)])
-
             note_label = self.add_label(
                 notehead, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+
+            beam_notes.append(
+                ((x, y + 3 + (line_offset + 1) * (self.spacing // 2)), note))
 
             # ledger lines
             self.layout_ledger_lines(
@@ -312,7 +254,59 @@ class MeasureArea(ViewArea):
             x += note_label.content_width + \
                 int((6 * (100 * n.value))) * float(n.value) * 15
 
-        return x, y, beam_direction
+        if layout_beam:
+            # for i in beam_notes:
+            #     print(i[0][0], i[0][1], i[1].value)
+
+            # get beam direction
+            beam_direction = 0
+            for n_tuple in beam_notes:
+                beam_direction = n_tuple[1].stem.value
+                if n_tuple[1].stem.value != beam_direction:
+                    beam_direction = 3
+                    break
+
+            # all up stem
+            if beam_direction == 1:
+                slope = (beam_notes[-1][0][1] - beam_notes[0][0][1]) / \
+                    (beam_notes[-1][0][0] - beam_notes[0][0][0])
+                prev_note_value = None
+                prev_stem_tip = None
+                for idx, n_tuple in enumerate(beam_notes):
+                    stem_tip = (n_tuple[0]
+                                       [0] + 10, slope * (n_tuple[0][0] - beam_notes[0][0][0]) + beam_notes[0][0][1] + 40)
+                    self.stems.append(
+                        [n_tuple[0][0] + 10, n_tuple[0][1] - self.spacing * 1.5 - 2, stem_tip[0], stem_tip[1]])
+                    if idx != 0:
+                        if n_tuple[1].value == prev_note_value:
+                            self.beam_lines.append(
+                                [prev_stem_tip[0], prev_stem_tip[1], stem_tip[0], stem_tip[1]])
+                    prev_note_value = n_tuple[1].value
+                    prev_stem_tip = stem_tip
+
+            # all down stem
+            elif beam_direction == -1:
+                slope = (beam_notes[-1][0][1] - beam_notes[0][0][1]) / \
+                    (beam_notes[-1][0][0] - beam_notes[0][0][0])
+                prev_note_value = None
+                prev_stem_tip = None
+                for idx, n_tuple in enumerate(beam_notes):
+                    stem_tip = (n_tuple[0]
+                                       [0] - 7.5, slope * (n_tuple[0][0] - beam_notes[0][0][0]) + beam_notes[0][0][1] - 80)
+                    self.stems.append(
+                        [n_tuple[0][0] - 7.5, n_tuple[0][1] - self.spacing * 1.5 - 2, stem_tip[0], stem_tip[1]])
+                    if idx != 0:
+                        if n_tuple[1].value == prev_note_value:
+                            self.beam_lines.append(
+                                [prev_stem_tip[0], prev_stem_tip[1], stem_tip[0], stem_tip[1]])
+                    prev_note_value = n_tuple[1].value
+                    prev_stem_tip = stem_tip
+
+            # split stem
+            elif beam_direction == 3:
+                pass
+
+        return x, y, beam_notes
 
     def layout_notes(self, note, clef_pitch, x, y):
         # TODO replace constant 10 with (staff) spacing // 2
@@ -320,7 +314,7 @@ class MeasureArea(ViewArea):
             if _DEBUG:
                 print('rest=', note, note.glyph, note.value)
             rest_label = self.add_label(
-                note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)
+                note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)  # (+15) glyph alignment
             # Replace six with env['HSPACE'] or equivalent solution
             x += rest_label.content_width + \
                 int((6 * (100 * note.value))) * float(note.value) * 15
@@ -425,11 +419,11 @@ class MeasureArea(ViewArea):
             if time_sig.timesymboltype.__str__() == 'common':
                 time_sig = self.add_label(
                     'timeSigCommon', GlyphType.TIME, x, y=y + self.spacing * 4)
-                x += time_sig.content_width + 15
+                x += time_sig.content_width + 15  # (+15) x offset
             elif time_sig.timesymboltype.__str__() == 'cut':
                 time_sig = self.add_label(
                     'timeSigCutCommon', GlyphType.TIME, x, y=y + self.spacing * 4)
-                x += time_sig.content_width + 15
+                x += time_sig.content_width + 15  # (+15) x offset
             else:
                 numerator_glyph = 'timeSig' + str(time_sig.numerator)
                 time_sig_numerator = self.add_label(
@@ -438,7 +432,7 @@ class MeasureArea(ViewArea):
                 time_sig_denominator = self.add_label(
                     denominator_glyph, GlyphType.TIME, x, y=y + self.spacing * 3)
 
-                x += time_sig_numerator.content_width + 15
+                x += time_sig_numerator.content_width + 15  # (+15) x offset
         return x, y
 
     def key_sig_accidental_offset(self, note, accidental_type):
@@ -513,22 +507,24 @@ class MeasureArea(ViewArea):
                 accidental_label = self.add_label(
                     'accidentalFlat', GlyphType.ACCIDENTAL, x, y)
                 # pass
-                x += (accidental_label.content_width + 4) * self.key_sig_width
+                x += (accidental_label.content_width + 4) * \
+                    self.key_sig_width  # (+4) x offset
                 self.labels.pop()
             else:
                 for note in accidentals[0]:
                     line_offset = self.key_sig_accidental_offset(note, 'sharp')
                     accidental_label = self.add_label(
                         'accidentalSharp', GlyphType.ACCIDENTAL, x, y + 10 + (line_offset) * (self.spacing // 2))  # (+ 10) to align glyph with staff
-                    x += accidental_label.content_width + 4
+                    x += accidental_label.content_width + 4  # (+4) x offset
                 for note in accidentals[1]:
                     line_offset = self.key_sig_accidental_offset(note, 'flat')
                     accidental_label = self.add_label(
                         'accidentalFlat', GlyphType.ACCIDENTAL, x, y + 10 + (line_offset) * (self.spacing // 2))  # (+ 10) to align glyph with staff
-                    x += accidental_label.content_width + 4
+                    x += accidental_label.content_width + 4  # (+4) x offset
         x += 20
         return x, y
 
+    # TODO refactoring / bug fix
     def layout_ledger_lines(self, x, y, note, line_offset):
         if (line_offset < 3):
             for num in range(line_offset - 1, 3):
