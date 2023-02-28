@@ -208,6 +208,7 @@ class MeasureArea(ViewArea):
         beam_notes = beam_notes
 
         layout_beam = False
+        #layout noteheads
         if (note.beams[0].beamtype.value == 1):
             beam_notes = []
         elif(note.beams[0].beamtype.value == 3):
@@ -254,10 +255,8 @@ class MeasureArea(ViewArea):
             x += note_label.content_width + \
                 int((6 * (100 * n.value))) * float(n.value) * 15
 
+        # layout beams and stems
         if layout_beam:
-            # for i in beam_notes:
-            #     print(i[0][0], i[0][1], i[1].value)
-
             # get beam direction
             beam_direction = 0
             for n_tuple in beam_notes:
@@ -266,39 +265,60 @@ class MeasureArea(ViewArea):
                     beam_direction = 3
                     break
 
+            beam_type = None
+            x_offset = None
+            y_offset = None
+            stem_direction = None
             # all up stem
             if beam_direction == 1:
-                slope = (beam_notes[-1][0][1] - beam_notes[0][0][1]) / \
-                    (beam_notes[-1][0][0] - beam_notes[0][0][0])
-                prev_note_value = None
-                prev_stem_tip = None
-                for idx, n_tuple in enumerate(beam_notes):
-                    stem_tip = (n_tuple[0]
-                                       [0] + 10, slope * (n_tuple[0][0] - beam_notes[0][0][0]) + beam_notes[0][0][1] + 40)
-                    self.stems.append(
-                        [n_tuple[0][0] + 10, n_tuple[0][1] - self.spacing * 1.5 - 2, stem_tip[0], stem_tip[1]])
-                    if idx != 0:
-                        if n_tuple[1].value == prev_note_value:
-                            self.beam_lines.append(
-                                [prev_stem_tip[0], prev_stem_tip[1], stem_tip[0], stem_tip[1]])
-                    prev_note_value = n_tuple[1].value
-                    prev_stem_tip = stem_tip
-
-            # all down stem
+                beam_type = 1
+                x_offset = 10
+                y_offset = 40
+                stem_direction = 1
             elif beam_direction == -1:
+                beam_type = 1
+                x_offset = -7.5
+                y_offset = -80
+                stem_direction = -1
+            else:
+                beam_type = 2
+
+            if beam_type == 1:
                 slope = (beam_notes[-1][0][1] - beam_notes[0][0][1]) / \
                     (beam_notes[-1][0][0] - beam_notes[0][0][0])
                 prev_note_value = None
                 prev_stem_tip = None
                 for idx, n_tuple in enumerate(beam_notes):
                     stem_tip = (n_tuple[0]
-                                       [0] - 7.5, slope * (n_tuple[0][0] - beam_notes[0][0][0]) + beam_notes[0][0][1] - 80)
+                                       [0] + x_offset, slope * (n_tuple[0][0] - beam_notes[0][0][0]) + beam_notes[0][0][1] + y_offset)
+                    stem_base = (n_tuple[0][0] + x_offset, n_tuple[0][1] - self.spacing * 1.5 - 2)
                     self.stems.append(
-                        [n_tuple[0][0] - 7.5, n_tuple[0][1] - self.spacing * 1.5 - 2, stem_tip[0], stem_tip[1]])
+                        [stem_base[0], stem_base[1], stem_tip[0], stem_tip[1]])
                     if idx != 0:
+                        extra_stem = 0
                         if n_tuple[1].value == prev_note_value:
-                            self.beam_lines.append(
-                                [prev_stem_tip[0], prev_stem_tip[1], stem_tip[0], stem_tip[1]])
+                            # eight note
+                            if n_tuple[1].value <= 0.125:
+                                pass
+                            # 16th note
+                            if n_tuple[1].value <= 0.0625:
+                                extra_stem += 1
+                            # 32nd note
+                            if n_tuple[1].value <= 0.03125:
+                                extra_stem += 1
+                            # 64th note
+                            if n_tuple[1].value <= 0.051625:
+                                extra_stem += 1
+                            # add extra beams
+                            i = 0
+                            while i < extra_stem + 1:
+                                self.beam_lines.append(
+                                    [prev_stem_tip[0], prev_stem_tip[1] + extra_stem * stem_direction * 3, stem_tip[0], stem_tip[1] + extra_stem * stem_direction * 3])
+                                i += 1
+                            self.stems.append(
+                                [stem_tip[0], stem_tip[1], stem_tip[0], stem_tip[1] + stem_direction * extra_stem * 3])
+                        if n_tuple[1].value != prev_note_value:
+                            pass
                     prev_note_value = n_tuple[1].value
                     prev_stem_tip = stem_tip
 
