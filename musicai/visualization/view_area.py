@@ -281,8 +281,8 @@ class MeasureArea:
             if str(n.accidental).strip() != '':
                 if n.pitch.step not in self.measure.key.altered():
                     accidental_label = self.add_label(
-                        n.accidental.glyph, GlyphType.ACCIDENTAL, x, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
-                    x += accidental_label.content_width + 6
+                        n.accidental.glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))
+                    # x += accidental_label.content_width + 6
 
             if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
                 gtype = GlyphType.NOTE_UP
@@ -292,18 +292,19 @@ class MeasureArea:
             notehead = self.get_notehead(n)
 
             note_label = self.add_label(
-                notehead, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+                notehead, gtype, x=x, y=y + 8 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
 
             beam_notes.append(
-                ((x, y + 3 + (line_offset + 1) * (self.spacing // 2)), note))
+                ((x - 2, y + 3 + (line_offset + 1) * (self.spacing // 2)), note))
 
             # ledger lines
             self.layout_ledger_lines(
                 x, y, note, line_offset)
 
             # x offset for notes
-            x += note_label.content_width + \
-                int((6 * (100 * n.value))) * float(n.value) * 15
+            x += self._cfg.NOTE_WIDTH * float(note.value) * 20
+            # x += note_label.content_width + \
+            #     int((6 * (100 * n.value))) * float(n.value) * 15
 
         # layout beams and stems
         if layout_beam:
@@ -713,6 +714,9 @@ class MeasureArea:
                 font_size = self._cfg.MUSIC_TIME_SIG_FONT_SIZE
             case GlyphType.ACCIDENTAL:
                 font_size = self._cfg.MUSIC_ACC_FONT_SIZE
+
+        if glyph == 'noteheadBlack':
+            font_size = 56
 
         label = Glyph(gtype=gtype,
                       text=glyph_id,

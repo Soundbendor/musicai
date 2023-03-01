@@ -17,7 +17,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
         super(ScoreWindow, self).__init__(
             height=self._cfg.SCREEN_HEIGHT,
             width=self._cfg.SCREEN_WIDTH,
-            config=config
+            #config=config
         )
 
         pyglet.font.add_file(self._cfg.MUSIC_FONT_FILE)
@@ -62,7 +62,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
     def _draw_beams(self):
         for line in self.beam_line_verts:
             beam_line = shapes.Line(
-                line[0], line[1], line[2], line[3], width=5, color=(0, 0, 0), batch=self.batch)
+                line[0], line[1], line[2], line[3], width=8, color=(0, 0, 0), batch=self.batch)
             # beam_line = shapes.Polygon(
             #     [line[0], line[1], line[2], line[3], line[0], line[1] + 5, line[2], line[3] + 5, line[0], line[1]], color=(0, 0, 0), batch=self.batch)
             self.beam_lines.append(beam_line)
