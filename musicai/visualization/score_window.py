@@ -12,9 +12,12 @@ _RGB_BLACK = (0, 0, 0)
 class ScoreWindow(pyglet.window.Window): # noqa
     def __init__(self, score: Score, window_config: WindowConfig) -> None:
         self._cfg = window_config
+
+        config = pyglet.gl.Config(sample_buffers=1,buffers=2,double_buffer=True)
         super(ScoreWindow, self).__init__(
             height=self._cfg.SCREEN_HEIGHT,
-            width=self._cfg.SCREEN_WIDTH
+            width=self._cfg.SCREEN_WIDTH,
+            config=config
         )
 
         pyglet.font.add_file(self._cfg.MUSIC_FONT_FILE)
@@ -24,7 +27,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
         self.staff_lines = list()
         self.barlines = list()
         self.irr_barlines = list()
-        self.irr_barlines_idx = list()
+        self.irr_barline_labels = list()
         self.barline_shapes = list()
         self.ledger_line_verts = list()
         self.ledger_lines = list()
@@ -75,41 +78,56 @@ class ScoreWindow(pyglet.window.Window): # noqa
 
     def load_labels(self, x: int = 0, y: int = 0, systems: list[PartSystem] = None) -> None:
         key_sig_width = MeasureArea.max_key_sig_width(systems)
-        for system in systems:
-            for i in range(len(system.parts[0].measures)):
+        for system in self.score.systems:
+            for measure_idx in range(len(system.parts[0].measures)):
                 max_measure_area = 0
+                measure_area_barlines = list()
+                measure_area_irr_barlines = list()
+                measure_area_irr_barline_labels = list()
+                start_y  =  y 
+
                 for part in system.parts:
                     measure_area = MeasureArea(
-                        part.measures[i], x, y, self.measure_height, key_sig_width, i, config=self._cfg, batch=self.batch)
+                        part.measures[measure_idx], x, y, self.measure_height, key_sig_width, x, config=self._cfg, batch=self.batch)
                     if measure_area.area_width > max_measure_area:
                         max_measure_area = measure_area.area_width
-                self.measure_area_width.append(int(max_measure_area))
 
-            for part in system.parts:
-                for measure_idx, measure in enumerate(part.measures):
-                    measure_area = MeasureArea(
-                        measure, x, y, self.measure_height, key_sig_width,
-                        measure_idx, self.measure_area_width[measure_idx], config=self._cfg, batch=self.batch)
-                    # TODO calc and set area_width
-                    # x += measure_area.area_width
-                    x += self.measure_area_width[measure_idx]
                     self.labels.extend(measure_area.labels)
-                    self.barlines.extend(measure_area.barlines)
                     self.ledger_line_verts.extend(measure_area.ledger_lines)
                     self.hairpin_start_verts.extend(measure_area.hairpin_start)
                     self.hairpin_end_verts.extend(measure_area.hairpin_end)
                     self.beam_line_verts.extend(measure_area.beam_lines)
                     self.stem_verts.extend(measure_area.stems)
-                    if measure.has_irregular_rs_barline():
-                        barline_irr_verts = measure_area.irr_barlines
-                        barline_idx = measure_area.irr_barlines_idx
-                        for vert in barline_irr_verts:
-                            self.irr_barlines.append(vert)
-                        for idx in barline_idx:
-                            if idx not in self.irr_barlines_idx:
-                                self.irr_barlines_idx.append(idx)
-                x = 0
-                y -= self._cfg.MEASURE_OFFSET
+
+                    measure_area_barlines.extend(measure_area.barlines)
+                    measure_area_irr_barlines.extend(measure_area.irr_barlines)
+                    measure_area_irr_barline_labels.extend(measure_area.irr_barline_labels)
+
+                    y -= self._cfg.MEASURE_OFFSET
+                
+                for barline_verts in measure_area_barlines:
+                    if barline_verts[0] != 0:
+                        barline_verts[0] = int(x + max_measure_area)
+                        barline_verts[2] = int(x +max_measure_area)
+                
+                if measure_area.measure.has_irregular_rs_barline():
+                    for irr_barline_label in measure_area_irr_barline_labels:
+                        irr_barline_label.x = int(x+ max_measure_area)
+                        irr_barline_label.batch = self.batch
+                    for irr_barline_verts in measure_area_irr_barlines:
+                        if irr_barline_verts[0] != 0:
+                            irr_barline_verts[0] = int(x + max_measure_area)
+                            irr_barline_verts[2] = int(x + max_measure_area + measure_area.irr_barline_labels[0].content_width)
+                    
+                self.barlines.extend(measure_area_barlines)
+                self.irr_barlines.extend(measure_area_irr_barlines)
+                self.irr_barline_labels.extend(measure_area_irr_barline_labels)
+                
+                self.measure_area_width.append(max_measure_area)
+                x += max_measure_area
+                y = start_y
+            
+
 
     def _initialize_display_elements(self) -> None:
         self.background = pyglet.image.SolidColorImagePattern(
@@ -127,27 +145,28 @@ class ScoreWindow(pyglet.window.Window): # noqa
         self.draw_irr_barlines()
 
     def draw_irr_barlines(self):
-        for i in range(len(self.irr_barlines_idx)):
+        for i in range(len(self.irr_barline_labels)):
             x_start = self.irr_barlines[i][0]
             y_start = self.irr_barlines[i][1]
             x_end = self.irr_barlines[i][2]
             y_end = self.irr_barlines[i][3]
+
             for vert in self.irr_barlines:
                 if vert[0] == x_start:
                     y_start = vert[1]
-            if self.score.systems[0].parts[0].measures[
-                self.irr_barlines_idx[i]].barline.barlinetype.glyph == 'repeatRight':
+            if (self.irr_barline_labels[0].gtype.glyph == 'repeatRight'):
                 x_start = x_start + 4
                 x_end = x_end - 10
                 rectangle = shapes.Rectangle(
-                    x_start, y_start, x_end - x_start, y_end - y_start, color=_RGB_BLACK, batch=self.batch)
-                line = shapes.Line(x_start - 5, y_start, x_start - 5,
+                    x_start, y_start,  x_end - x_start, y_end - y_start, color=_RGB_BLACK, batch=self.batch)
+                line = shapes.Line(x_start - 5, y_start, x_start-5,
                                    y_end, width=1, color=_RGB_BLACK, batch=self.batch)
                 self.barline_shapes.append(rectangle)
                 self.barline_shapes.append(line)
+        # TODO Modify the connecting barline shapes for different irregular barlines
+        
 
     def draw_barlines(self) -> None:
-        # TODO Modify the connecting barline shapes for different irregular barlines
         for i in range(len(self.barlines)):
             x = self.barlines[i][0]
             y_start = self.barlines[i][1]
