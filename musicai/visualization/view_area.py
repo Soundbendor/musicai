@@ -165,7 +165,7 @@ class MeasureArea:
     def layout(self):
         if _DEBUG:
             print('========')
-            print('measure=', self.measure.measure_number, self.measure)
+            print('measure=', self.index, self.measure)
 
         x = self.area_x
         y = self.area_y
@@ -185,7 +185,7 @@ class MeasureArea:
         note_idx = 0
         for note in self.measure.notes:
             if len(note.beams) == 0:
-                #self.layout_right_barline(x, y)
+                # self.layout_right_barline(x, y)
                 if not isinstance(note, Rest) or note_idx == 1:
                     note_idx += 1
                 if note_idx == 1:
@@ -671,6 +671,8 @@ class MeasureArea:
         glyph = ""
         for mark in self.measure.measure_marks:
             if isinstance(mark, DynamicMark):
+                # print("mark type start divisions ==", mark.dynamic_type, mark.start_point, mark.divisions,x)
+
                 if mark.dynamic_type == DynamicType.PIANO or mark.dynamic_type == DynamicType.FORTE:
                     glyph = "dynamic" + str(mark.dynamic_type)[12:].title()
                 else:
@@ -678,8 +680,12 @@ class MeasureArea:
                 gtype = "GlyphType." + str(mark.dynamic_type)[7:]
                 dynamic_mark_label = self.add_label(glyph, gtype, x + (float(mark.start_point/100) * 30 * self._cfg.NOTE_WIDTH), y)
             else:
-                x_spacing_start = self._cfg.NOTE_WIDTH * float(mark.start_point/100) * 30
-                x_spacing_end = self._cfg.NOTE_WIDTH * float(mark.end_point/100) * 30
+                x_spacing_start = mark.start_point/mark.divisions * self._cfg.NOTE_WIDTH * 20 * .25
+                x_spacing_end = mark.end_point/mark.divisions * self._cfg.NOTE_WIDTH * 20 * .25
+
+                # print("mark type start end divisions ==", mark.dynamic_change_type, mark.start_point, mark.end_point, mark.divisions, x)
+                # print("x_spacing_start x_spacing_end ==", x_spacing_start, x_spacing_end)
+
                 if mark.dynamic_change_type == DynamicChangeType.CRESCENDO:
                     self.hairpin_start.append((x + x_spacing_start, y))
                     self.hairpin_end.append((x + x_spacing_end, y))

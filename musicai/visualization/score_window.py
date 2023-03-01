@@ -13,7 +13,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
     def __init__(self, score: Score, window_config: WindowConfig) -> None:
         self._cfg = window_config
 
-        config = pyglet.gl.Config(sample_buffers=1,buffers=2,double_buffer=True)
+        config = pyglet.gl.Config(sample_buffers=1,buffers=4,double_buffer=True)
         super(ScoreWindow, self).__init__(
             height=self._cfg.SCREEN_HEIGHT,
             width=self._cfg.SCREEN_WIDTH,
@@ -88,7 +88,7 @@ class ScoreWindow(pyglet.window.Window): # noqa
 
                 for part in system.parts:
                     measure_area = MeasureArea(
-                        part.measures[measure_idx], x, y, self.measure_height, key_sig_width, x, config=self._cfg, batch=self.batch)
+                        part.measures[measure_idx], x, y, self.measure_height, key_sig_width, measure_idx,  x, config=self._cfg, batch=self.batch)
                     if measure_area.area_width > max_measure_area:
                         max_measure_area = measure_area.area_width
 
@@ -126,6 +126,10 @@ class ScoreWindow(pyglet.window.Window): # noqa
                 self.measure_area_width.append(max_measure_area)
                 x += max_measure_area
                 y = start_y
+            
+            for part in system.parts:
+                y -= self._cfg.MEASURE_OFFSET
+            x = 0
             
 
 
