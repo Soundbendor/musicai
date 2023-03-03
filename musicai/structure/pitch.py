@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Union
 import numpy as np
 
-from musicai.structure.clef import Clef
+from structure.clef import Clef
 
 
 # ---------

@@ -7,10 +7,10 @@ from enum import Enum
 from typing import Union
 import numpy as np
 
-from musicai.structure.lyric import Lyric
-from musicai.structure.note_mark import Beam, Notehead, StemType, TieType
-from musicai.structure.pitch import Accidental, Pitch
-from musicai.structure.clef import Clef
+from structure.lyric import Lyric
+from structure.note_mark import Beam, Notehead, StemType, TieType
+from structure.pitch import Accidental, Pitch
+from structure.clef import Clef
 
 # import util
 # from musicai.structure.lyric import Lyric
