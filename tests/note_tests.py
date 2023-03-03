@@ -338,11 +338,11 @@ class NoteValueTest(unittest.TestCase):
         self.assertEqual(mean([NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)]), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
         self.assertEqual(mean([NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR)]), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR))
 
-    # def test_std(self):
-    #     self.assertEqual(std([NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR)]), NoteValue(NoteType.NONE, DotType.NONE, TupletType.REGULAR))
-    #     self.assertEqual(std([NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR)]), NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR))
-    #     self.assertEqual(std([NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR)]), NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR))
-    #     self.assertEqual(std([NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR)]), NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR))
+    def test_std(self):
+        self.assertEqual(std([NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR).value, NoteValue(NoteType.FOUR_THOUSAND_NINETY_SIXTH, DotType.NONE, TupletType.REGULAR).value]), NoteValue(NoteType.NONE, DotType.NONE, TupletType.REGULAR).value)
+        self.assertEqual(std([NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR).value, NoteValue(NoteType.QUARTER, DotType.NONE, TupletType.REGULAR).value]), NoteValue(NoteType.NONE, DotType.NONE, TupletType.REGULAR).value)
+        self.assertEqual(std([NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR).value, NoteValue(NoteType.WHOLE, DotType.NONE, TupletType.REGULAR).value]), NoteValue(NoteType.NONE, DotType.NONE, TupletType.REGULAR).value)
+        self.assertEqual(std([NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR).value, NoteValue(NoteType.DOUBLE, DotType.NONE, TupletType.REGULAR).value]), NoteValue(NoteType.NONE, DotType.NONE, TupletType.REGULAR).value)
 
     def test_exists(self):
         self.assertEqual(NoteValue.exists(0.000244141), True)
