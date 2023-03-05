@@ -818,6 +818,9 @@ class Note:
         self.show_accidental: bool = False
 
         self.stem: StemType = StemType.UP
+        if self._notevalue_ >= NoteType.WHOLE:
+            self.stem = StemType.NONE
+
         self.beams: list[Beam] = []
         self.notehead: Notehead = Notehead()
         self.lyric: Lyric | None = None
@@ -849,6 +852,10 @@ class Note:
         else:
             raise TypeError(f'Invalid type {type(value)} for NoteValue.')
 
+        # remove Stem for whole notes
+        if self._notevalue_ >= NoteType.WHOLE:
+            self.stem = StemType.NONE
+
     @property
     def midi(self):
         return self.pitch.midi
@@ -866,6 +873,9 @@ class Note:
         # noteEmptyBlack, stem
         glyph_code = 'note'
 
+        if self._notevalue_ >= NoteType.WHOLE:
+            self.stem = StemType.NONE
+
         if self.is_beamed():
             # beamed
             if self._notevalue_ <= NoteType.HALF:
@@ -878,7 +888,8 @@ class Note:
             # not beamed, use version with flag
             glyph_code += self._notevalue_.notetype.abbr
 
-        glyph_code += self.stem.name.title()
+        if self._notevalue_ < NoteType.WHOLE:
+            glyph_code += self.stem.name.title()
         return glyph_code
 
     @property
