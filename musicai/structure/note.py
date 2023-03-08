@@ -823,7 +823,7 @@ class Note:
         self.show_accidental: bool = False
 
         self.stem: StemType = StemType.UP
-        if self._notevalue_ >= NoteType.WHOLE:
+        if self.value >= NoteType.WHOLE:
             self.stem = StemType.NONE
 
         self.beams: list[Beam] = []
