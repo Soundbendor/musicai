@@ -56,22 +56,39 @@ class GlyphType(Enum):
 
 
 class Glyph(pyglet.text.Label):
-    glyph_map = json.load(open('./visualization/assets/glyphnames.json'))
+    _glyph_map = json.load(open('./visualization/assets/glyphnames.json'))
 
     def __init__(self, gtype, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_x = self.x
         self.label_y = self.y
         self.gtype = gtype
+        self.font_size = self._font_size()
 
     @classmethod
     def code(cls, glyph_id):
-        if glyph_id in cls.glyph_map:
-            code_str = cls.glyph_map[glyph_id]['codepoint']
+        if glyph_id in cls._glyph_map:
+            code_str = cls._glyph_map[glyph_id]['codepoint']
             return chr(int(code_str[2:], 16))
         else:
             print("Not found: " + glyph_id)
             raise ValueError('Glyph {0} not found in font.'.format(glyph_id))
+
+    def _font_size(self):
+        match self.gtype:  # Possibly make these parameters
+            case GlyphType.CLEF:
+                font_size = WindowConfig().MUSIC_CLEF_FONT_SIZE
+            case GlyphType.TIME:
+                font_size = WindowConfig().MUSIC_TIME_SIG_FONT_SIZE
+            case GlyphType.ACCIDENTAL:
+                font_size = WindowConfig().MUSIC_ACC_FONT_SIZE
+            case _:
+                font_size = WindowConfig().MUSIC_FONT_SIZE
+
+        if self.text == 'noteheadBlack':
+            font_size = WindowConfig().MUSIC_NB_FONT_SIZE
+
+        return font_size
 
     def __str__(self):
         return f"x: {self.label_x:.3f} y: {self.label_y:.3f} glyph type: {self.gtype}"
@@ -138,6 +155,22 @@ class LedgerLine:
         return self._lines
 
 
+class PartDisplay:
+    def __init__(self):
+        self.measures = None
+
+
+class MeasureDisplay:
+    def __init__(self, batch: pyglet.graphics.Batch = None) -> None:
+        self.batch = batch
+        self.clef = None
+
+
+class ClefMeasure:
+    def __init__(self, clef) -> None:
+        self.clef = clef
+
+
 class MeasureArea:
     def __init__(self, measure, x=0, y=0, height=80, key_sig_width=0, idx=0, width=0, config=None, batch=None):
         self._cfg = config
@@ -170,8 +203,6 @@ class MeasureArea:
         x = self.area_x
         y = self.area_y
 
-        clef_pitch = self._clef_line_pitch()
-
         if self.index == 0:
             x, y = self.layout_left_barline(x, y)
         else:
@@ -190,7 +221,7 @@ class MeasureArea:
                     note_idx += 1
                 if note_idx == 1:
                     self.layout_dynamic_markings(x,y-30)
-                x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
+                x, y, = self.layout_notes(note, x=x, y=y)
             else:
                 x, y, beam_notes = self.layout_beamed_notes(
                     note, beam_notes, x=x, y=y)
@@ -199,15 +230,6 @@ class MeasureArea:
 
         self.area_width = x - self.area_x
         self.area_height = y + 36
-
-    def _clef_line_pitch(self):
-        clef_value = self.measure.clef.value
-        line_offset = 3 - self.measure.clef.line
-        clef_pitch = self.measure.clef.value + line_offset * 2
-        if _DEBUG:
-            print('clef_value=', clef_value,
-                  self.measure.clef.line, line_offset, clef_pitch)
-        return clef_pitch
 
     # use c4 as 0
     def note_offset(self, note):
@@ -236,12 +258,13 @@ class MeasureArea:
 
         # TODO offset for different clefs (tenor clef + more uncommon)
         clef_pitch = self.measure.clef.value
-        clef_offset = 0
         match clef_pitch:
             case 53:  # bass clef
                 clef_offset = 12
             case 60:  # alto clef
                 clef_offset = 6
+            case _:
+                clef_offset = 0
         if _DEBUG:
             print('clef_pitch' + str(clef_pitch))
         offset += clef_offset
@@ -379,7 +402,7 @@ class MeasureArea:
 
         return x, y, beam_notes
 
-    def layout_notes(self, note, clef_pitch, x, y):
+    def layout_notes(self, note, x, y):
         # TODO replace constant 10 with (staff) spacing // 2
         if isinstance(note, Rest):
             if _DEBUG:
@@ -464,13 +487,12 @@ class MeasureArea:
 
     def layout_right_barline(self, x, y):
         if isinstance(self.measure.barline, Barline):
-            barline_label = Glyph(gtype=self.measure.barline.barlinetype, 
-                                text=Glyph.code(self.measure.barline.barlinetype.glyph),
-                                font_name=self._cfg.MUSIC_FONT_NAME,
-                                font_size=int(self._cfg.MUSIC_FONT_SIZE),
-                                x=x, y=y + (self.area_height//2),
-                                anchor_x='center',
-                                anchor_y='center')
+            barline_label = Glyph(gtype=self.measure.barline.barlinetype,
+                                  text=Glyph.code(self.measure.barline.barlinetype.glyph),
+                                  font_name=self._cfg.MUSIC_FONT_NAME,
+                                  x=x, y=y + (self.area_height//2),
+                                  anchor_x='center',
+                                  anchor_y='center')
             barline_label.color = (0,0,0,255)
 
             barline_verts = []
@@ -496,12 +518,14 @@ class MeasureArea:
             x += 12
             clef_pitch = self.measure.clef.value
             # base is treble (G) clef
-            clef_offset = self.spacing // 2 + 10
+
             match clef_pitch:
                 case 53:  # bass clef
                     clef_offset = (self.spacing // 2) * 5 + 10
                 case 60:  # alto clef
                     clef_offset = (self.spacing // 2) * 3 + 10
+                case _:
+                    clef_offset = self.spacing // 2 + 10
             clef_label = self.add_label(
                 self.measure.clef.glyph, GlyphType.CLEF, x=x, y=y + self.spacing * 2 + clef_offset)
             x += clef_label.content_width + 10
@@ -701,32 +725,19 @@ class MeasureArea:
 
     def add_label(self, glyph, gtype, x=0, y=0):
         glyph_id = Glyph.code(glyph)
-        font_size = self._cfg.MUSIC_FONT_SIZE
         note_off = 0
 
         # if gtype == GlyphType.NOTE_UP:  # Possibly move this elsewear (parameter)
         #     note_off = 20
 
-        match gtype:  # Possibly make these parameters
-            case GlyphType.CLEF:
-                font_size = self._cfg.MUSIC_CLEF_FONT_SIZE
-            case GlyphType.TIME:
-                font_size = self._cfg.MUSIC_TIME_SIG_FONT_SIZE
-            case GlyphType.ACCIDENTAL:
-                font_size = self._cfg.MUSIC_ACC_FONT_SIZE
-
-        if glyph == 'noteheadBlack':
-            font_size = 56
-
         label = Glyph(gtype=gtype,
                       text=glyph_id,
                       font_name=self._cfg.MUSIC_FONT_NAME,
-                      font_size=int(font_size),
                       x=x + note_off, y=y,
                       anchor_x='center',
                       anchor_y='center',
+                      color=(0, 0, 0, 255),
                       batch=self.batch)
-        label.color = (0, 0, 0, 255)
         self.labels.append(label)
         return label
 
