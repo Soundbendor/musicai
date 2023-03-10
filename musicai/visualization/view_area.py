@@ -58,12 +58,12 @@ class GlyphType(Enum):
 class Glyph(pyglet.text.Label):
     _glyph_map = json.load(open('./visualization/assets/glyphnames.json'))
 
-    def __init__(self, gtype, *args, **kwargs):
+    def __init__(self, glyph, gtype, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_x = self.x
         self.label_y = self.y
         self.gtype = gtype
-        self.font_size = self._font_size()
+        self.font_size = self._font_size(glyph)
 
     @classmethod
     def code(cls, glyph_id):
@@ -74,7 +74,7 @@ class Glyph(pyglet.text.Label):
             print("Not found: " + glyph_id)
             raise ValueError('Glyph {0} not found in font.'.format(glyph_id))
 
-    def _font_size(self):
+    def _font_size(self, glyph):
         match self.gtype:  # Possibly make these parameters
             case GlyphType.CLEF:
                 font_size = WindowConfig().MUSIC_CLEF_FONT_SIZE
@@ -85,7 +85,7 @@ class Glyph(pyglet.text.Label):
             case _:
                 font_size = WindowConfig().MUSIC_FONT_SIZE
 
-        if self.text == 'noteheadBlack':
+        if glyph == 'noteheadBlack':
             font_size = WindowConfig().MUSIC_NB_FONT_SIZE
 
         return font_size
@@ -488,6 +488,7 @@ class MeasureArea:
     def layout_right_barline(self, x, y):
         if isinstance(self.measure.barline, Barline):
             barline_label = Glyph(gtype=self.measure.barline.barlinetype,
+                                  glyph=self.measure.barline.barlinetype.glyph,
                                   text=Glyph.code(self.measure.barline.barlinetype.glyph),
                                   font_name=self._cfg.MUSIC_FONT_NAME,
                                   x=x, y=y + (self.area_height//2),
@@ -731,6 +732,7 @@ class MeasureArea:
         #     note_off = 20
 
         label = Glyph(gtype=gtype,
+                      glyph=glyph,
                       text=glyph_id,
                       font_name=self._cfg.MUSIC_FONT_NAME,
                       x=x + note_off, y=y,
