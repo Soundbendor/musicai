@@ -86,14 +86,16 @@ class Staff:
                  staff_lines: int = 5, height: int = 0, batch: pyglet.graphics.Batch = None) -> None:
 
         # TODO Should we do some type of validation on parameters here?
-        self._lines = self._part_staff_lines(num_parts, measure_widths, height, staff_lines, batch)
+        self._lines = self._part_staff_lines(
+            num_parts, measure_widths, height, staff_lines, batch)
 
     @staticmethod
     def _measure_staff_lines(x_start, y_start, staff_length, staff_lines, batch):
         barlines = list()
 
         for val in range(staff_lines):
-            y_value = y_start + val * (WindowConfig().MEASURE_LINE_SPACING * WindowConfig().ZOOM)
+            y_value = y_start + val * \
+                (WindowConfig().MEASURE_LINE_SPACING * WindowConfig().ZOOM)
             x_end = (x_start + staff_length) * WindowConfig().ZOOM
             barlines.append(Line(
                 x_start, y_value, x_end, y_value, width=2, color=(0, 0, 0), batch=batch))
@@ -189,12 +191,12 @@ class MeasureArea:
                 if not isinstance(note, Rest) or note_idx == 1:
                     note_idx += 1
                 if note_idx == 1:
-                    self.layout_dynamic_markings(x,y-30)
+                    self.layout_dynamic_markings(x, y-30)
                 x, y, = self.layout_notes(note, clef_pitch, x=x, y=y)
             else:
                 x, y, beam_notes = self.layout_beamed_notes(
                     note, beam_notes, x=x, y=y)
-    
+
         x, y = self.layout_right_barline(x, y)
 
         self.area_width = x - self.area_x
@@ -258,7 +260,7 @@ class MeasureArea:
         beam_notes = beam_notes
 
         layout_beam = False
-        #layout noteheads
+        # layout noteheads
         if (note.beams[0].beamtype.value == 1):
             beam_notes = []
         elif(note.beams[0].beamtype.value == 3):
@@ -299,7 +301,7 @@ class MeasureArea:
 
             # ledger lines
             self.layout_ledger_lines(
-                x, y, note, line_offset)
+                x, y, line_offset)
 
             # x offset for notes
             x += self._cfg.NOTE_WIDTH * float(note.value) * 20
@@ -308,6 +310,9 @@ class MeasureArea:
 
         # layout beams and stems
         if layout_beam:
+            if _DEBUG:
+                for note in beam_notes:
+                    print(note[1].value, note[1].beams[0], note[1].stem)
             # get beam direction
             beam_direction = 0
             for n_tuple in beam_notes:
@@ -323,12 +328,13 @@ class MeasureArea:
             # all up stem
             if beam_direction == 1:
                 beam_type = 1
-                x_offset = 10
+                x_offset = 12
                 y_offset = 40
                 stem_direction = 1
+            # all down stem
             elif beam_direction == -1:
                 beam_type = 1
-                x_offset = -7.5
+                x_offset = -7
                 y_offset = -80
                 stem_direction = -1
             else:
@@ -337,14 +343,58 @@ class MeasureArea:
             if beam_type == 1:
                 slope = (beam_notes[-1][0][1] - beam_notes[0][0][1]) / \
                     (beam_notes[-1][0][0] - beam_notes[0][0][0])
+                # max / min slope is 0.35 / - 0.35, adjust if necessary
+                if slope > 0.35 or slope < -0.35:
+                    if slope < 0:
+                        slope = -0.35
+                    else:
+                        slope = 0.35
+                if _DEBUG:
+                    print('Slope: ', slope)
+
                 prev_note_value = None
                 prev_stem_tip = None
+
+                # check if beam is too close to note heads or note head is on wrong side of beam
+                # TODO: make dynamic for zooming
+                vertical_offset = False
+                fix_offset = 0
                 for idx, n_tuple in enumerate(beam_notes):
                     stem_tip = (n_tuple[0]
                                        [0] + x_offset, slope * (n_tuple[0][0] - beam_notes[0][0][0]) + beam_notes[0][0][1] + y_offset)
-                    stem_base = (n_tuple[0][0] + x_offset, n_tuple[0][1] - self.spacing * 1.5 - 2)
+                    stem_base = (n_tuple[0][0] + x_offset,
+                                 n_tuple[0][1] - self.spacing * 1.5 - 2)
+
+                    diff = stem_tip[1] - stem_base[1]
+
+                    # wrong side of beam
+                    if (stem_direction > 0 and diff < 0) or (stem_direction < 0 and diff > 0):
+                        vertical_offset = True
+                        fix_offset = diff + 30
+                        break
+
+                    # too close to beam
+                    if abs(diff) < 18:
+                        vertical_offset = True
+                        fix_offset = 30 - abs(diff)
+
+                for idx, n_tuple in enumerate(beam_notes):
+                    stem_tip = (n_tuple[0]
+                                       [0] + x_offset, slope * (n_tuple[0][0] - beam_notes[0][0][0]) + beam_notes[0][0][1] + y_offset)
+                    stem_base = (n_tuple[0][0] + x_offset,
+                                 n_tuple[0][1] - self.spacing * 1.5 - 2)
+                    if vertical_offset:
+                        if stem_tip[1] - stem_base[1] > 0:
+
+                            stem_tip = (stem_tip[0], stem_tip[1] + fix_offset)
+                        else:
+                            stem_tip = (stem_tip[0], stem_tip[1] - fix_offset)
+
                     self.stems.append(
                         [stem_base[0], stem_base[1], stem_tip[0], stem_tip[1]])
+                    # add to idx 0 stem if necessary
+
+                    # layout stem and beams together (idx > 0)
                     if idx != 0:
                         extra_stem = 0
                         if n_tuple[1].value == prev_note_value:
@@ -360,14 +410,18 @@ class MeasureArea:
                             # 64th note
                             if n_tuple[1].value <= 0.051625:
                                 extra_stem += 1
+
+                            if idx == 1 and extra_stem > 0:
+                                for i in range(0, extra_stem + 1):
+                                    self.stems[-2][3] += i * \
+                                        stem_direction * 10
                             # add extra beams
-                            i = 0
-                            while i < extra_stem + 1:
+                            for i in range(0, extra_stem + 1):
                                 self.beam_lines.append(
-                                    [prev_stem_tip[0], prev_stem_tip[1] + extra_stem * stem_direction * 3, stem_tip[0], stem_tip[1] + extra_stem * stem_direction * 3])
-                                i += 1
-                            self.stems.append(
-                                [stem_tip[0], stem_tip[1], stem_tip[0], stem_tip[1] + stem_direction * extra_stem * 3])
+                                    [prev_stem_tip[0], prev_stem_tip[1] + i * stem_direction * 10, stem_tip[0], stem_tip[1] + i * stem_direction * 10])
+                                self.stems[-1][3] += i * \
+                                    stem_direction * 10
+
                         if n_tuple[1].value != prev_note_value:
                             pass
                     prev_note_value = n_tuple[1].value
@@ -437,7 +491,7 @@ class MeasureArea:
 
             # ledger lines
             self.layout_ledger_lines(
-                x, y, note, line_offset)
+                x, y, line_offset)
 
             # x offset for notes
             #x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
@@ -464,14 +518,15 @@ class MeasureArea:
 
     def layout_right_barline(self, x, y):
         if isinstance(self.measure.barline, Barline):
-            barline_label = Glyph(gtype=self.measure.barline.barlinetype, 
-                                text=Glyph.code(self.measure.barline.barlinetype.glyph),
-                                font_name=self._cfg.MUSIC_FONT_NAME,
-                                font_size=int(self._cfg.MUSIC_FONT_SIZE),
-                                x=x, y=y + (self.area_height//2),
-                                anchor_x='center',
-                                anchor_y='center')
-            barline_label.color = (0,0,0,255)
+            barline_label = Glyph(gtype=self.measure.barline.barlinetype,
+                                  text=Glyph.code(
+                                      self.measure.barline.barlinetype.glyph),
+                                  font_name=self._cfg.MUSIC_FONT_NAME,
+                                  font_size=int(self._cfg.MUSIC_FONT_SIZE),
+                                  x=x, y=y + (self.area_height//2),
+                                  anchor_x='center',
+                                  anchor_y='center')
+            barline_label.color = (0, 0, 0, 255)
 
             barline_verts = []
             barline_verts.append(x)
@@ -632,42 +687,42 @@ class MeasureArea:
         x += 20
         return x, y
 
-    # TODO refactoring / bug fix
-    def layout_ledger_lines(self, x, y, note, line_offset):
-        if (line_offset < 3):
-            for num in range(line_offset - 1, 3):
-                if num % 2 != 0:
-                    ledger_line_verts = []
-                    if (note.value == 0.125):
-                        ledger_line_verts.append(x - (self.spacing) - 8)
-                    else:
-                        ledger_line_verts.append(x - (self.spacing) + 2)
-                    ledger_line_verts.append(
-                        y + (num - 1) * (self.spacing // 2))
-                    if (note.value == 0.125):
-                        ledger_line_verts.append(x + (self.spacing) - 8)
-                    else:
-                        ledger_line_verts.append(x + (self.spacing) + 2)
-                    ledger_line_verts.append(
-                        y + (num - 1) * (self.spacing // 2))
-                    self.ledger_lines.append(ledger_line_verts)
+    def layout_ledger_lines(self, x, y, line_offset):
+        ledger_lines = False
+        start_num = 0
+        end_num = 0
+        # below staff
+        if line_offset < 2:
+            ledger_lines = True
+            start_num = line_offset
+            end_num = 3
+        # above staff
+        elif line_offset > 12:
+            ledger_lines = True
+            start_num = 11
+            end_num = line_offset
 
-        elif (line_offset > 11):
-            for num in range(11, line_offset):
+        if ledger_lines:
+            num = start_num - 1
+            while (num <= end_num):
+                # ledger lines only on odd staff lines
                 if num % 2 != 0:
                     ledger_line_verts = []
-                    ledger_line_verts.append(x - (self.spacing) + 2)
+                    # - 2 is subjective aesthetics
+                    ledger_line_verts.append(x - (self.spacing - 2))
                     ledger_line_verts.append(
                         y + (num - 1) * (self.spacing // 2))
-                    ledger_line_verts.append(x + (self.spacing) + 2)
+                    # - 2 is subjective aesthetics
+                    ledger_line_verts.append(x + (self.spacing - 2))
                     ledger_line_verts.append(
                         y + (num - 1) * (self.spacing // 2))
                     self.ledger_lines.append(ledger_line_verts)
+                num += 1
 
     def layout_dynamic_markings(self, x, y):
-        #TODO: Fine tune X and Y placement and find a way to make hairpins look cleaner (less line aliasing?)
-        #Currently places all dynamic marks below the measure with a hardcoded offset
-        #Implement a way to offset vertically based on other elements at location
+        # TODO: Fine tune X and Y placement and find a way to make hairpins look cleaner (less line aliasing?)
+        # Currently places all dynamic marks below the measure with a hardcoded offset
+        # Implement a way to offset vertically based on other elements at location
 
         glyph = ""
         for mark in self.measure.measure_marks:
@@ -679,7 +734,8 @@ class MeasureArea:
                 else:
                     glyph = "dynamic" + mark.dynamic_type.abbr.upper()
                 gtype = "GlyphType." + str(mark.dynamic_type)[7:]
-                dynamic_mark_label = self.add_label(glyph, gtype, x + (float(mark.start_point/100) * 30 * self._cfg.NOTE_WIDTH), y)
+                dynamic_mark_label = self.add_label(
+                    glyph, gtype, x + (float(mark.start_point/100) * 30 * self._cfg.NOTE_WIDTH), y)
             else:
                 x_spacing_start = mark.start_point/mark.divisions * self._cfg.NOTE_WIDTH * 20 * .25
                 x_spacing_end = mark.end_point/mark.divisions * self._cfg.NOTE_WIDTH * 20 * .25
