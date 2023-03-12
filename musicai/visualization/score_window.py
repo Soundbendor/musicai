@@ -198,6 +198,10 @@ class ScoreWindow(pyglet.window.Window): # noqa
         self._x_mouse_movement(x)
         self._y_mouse_movement(y)
 
+    def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int) -> None:
+        if _DEBUG:
+            print(f"scroll - x: {x}, y: {y}, scroll_x: {scroll_x}, scroll_y: {scroll_y}")
+
     def _x_mouse_movement(self, x_coord: int) -> None:
         self.x_movement = self._mouse_movement_speed(x_coord, self._cfg.SCREEN_WIDTH)
 

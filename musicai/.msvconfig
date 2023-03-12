@@ -25,6 +25,7 @@ MEASURE_LINE_SPACING=20
 MEASURE_OFFSET=200
 MUSIC_ACC_FONT_SIZE=60
 MUSIC_CLEF_FONT_SIZE=60
+MUSIC_NB_FONT_SIZE=56
 MUSIC_FONT_FILE="./visualization/assets/Bravura.otf"
 MUSIC_FONT_NAME="Bravura"
 MUSIC_FONT_SIZE=50 # Font Size 50 seems to fit perfectly within staff lines

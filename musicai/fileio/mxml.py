@@ -1833,8 +1833,12 @@ class MusicXML:
                 case 'lyric':
                     note.lyric = MXMLConversion.lyric_from_elem(note_child)
 
+                case 'voice':
+                    note.voice = int(note_child.text)
+
                 case 'play':
                     pass
+
                 case 'listen':
                     pass
 
