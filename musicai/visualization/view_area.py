@@ -234,7 +234,7 @@ class MeasureArea:
         self.area_height = y + 36
 
     # use c4 as 0
-    def note_offset(self, note):
+    def note_offset(self, note: Note) -> int:
         step = note.pitch.step.name
         octave = note.pitch.octave
         offset = 0
@@ -272,7 +272,7 @@ class MeasureArea:
         offset += clef_offset
         return offset
 
-    def get_notehead(self, note):
+    def get_notehead(self, note: Note) -> str:
         if note.glyph == 'noteHalfDown' or note.glyph == 'noteHalfUp':
             return 'noteheadHalf'
         else:
@@ -569,7 +569,7 @@ class MeasureArea:
         x += -18
         return x, y
 
-    def layout_clef(self, x, y):
+    def layout_clef(self, x: int, y: int) -> tuple:
         if (self.index == 0):
             x += 12
             clef_pitch = self.measure.clef.value
@@ -587,7 +587,7 @@ class MeasureArea:
             x += clef_label.content_width + 10
         return x, y
 
-    def layout_time_signature(self, x, y):
+    def layout_time_signature(self, x: int, y: int) -> tuple:
         if (self.index == 0):
             time_sig = self.measure.time
             if time_sig.timesymboltype.__str__() == 'common':
@@ -609,7 +609,7 @@ class MeasureArea:
                 x += time_sig_numerator.content_width + 30  # (+30) x offset
         return x, y
 
-    def key_sig_accidental_offset(self, note, accidental_type):
+    def key_sig_accidental_offset(self, note: Note, accidental_type: str) -> int:
         offset = 0
 
         match note:
@@ -686,7 +686,7 @@ class MeasureArea:
                         max_accidentals = len(accidentals[1])
         return max_accidentals
 
-    def layout_key_signature(self, x, y):
+    def layout_key_signature(self, x: int, y: int) -> tuple:
         if (self.index == 0):
             key = self.measure.key
             accidentals = self.lookup_key_accidentals(key.__str__())
@@ -712,7 +712,7 @@ class MeasureArea:
         x += 20
         return x, y
 
-    def layout_ledger_lines(self, x, y, line_offset):
+    def layout_ledger_lines(self, x: int, y: int, line_offset) -> None:
         ledger_lines = False
         start_num = 0
         end_num = 0
@@ -729,7 +729,7 @@ class MeasureArea:
 
         if ledger_lines:
             num = start_num - 1
-            while (num <= end_num):
+            while (num < end_num):
                 # ledger lines only on odd staff lines
                 if num % 2 != 0:
                     ledger_line_verts = []
