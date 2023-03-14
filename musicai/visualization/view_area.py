@@ -320,7 +320,7 @@ class MeasureArea:
                 notehead, gtype, x=x, y=y + 8 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
 
             beam_notes.append(
-                ((x - 2, y + 3 + (line_offset + 1) * (self.spacing // 2)), note))
+                ((x - 2, y + (line_offset - 2) * (self.spacing // 2)), note))
 
             # ledger lines
             self.layout_ledger_lines(
@@ -352,17 +352,18 @@ class MeasureArea:
             if beam_direction == 1:
                 beam_type = 1
                 x_offset = 12
-                y_offset = 40
+                y_offset = 0
                 stem_direction = 1
             # all down stem
             elif beam_direction == -1:
                 beam_type = 1
                 x_offset = -7
-                y_offset = -80
+                y_offset = 0
                 stem_direction = -1
             else:
                 beam_type = 2
 
+            # all up / down stems
             if beam_type == 1:
                 slope = (beam_notes[-1][0][1] - beam_notes[0][0][1]) / \
                     (beam_notes[-1][0][0] - beam_notes[0][0][0])
@@ -372,50 +373,49 @@ class MeasureArea:
                         slope = -0.35
                     else:
                         slope = 0.35
-                if _DEBUG:
-                    print('Slope: ', slope)
-
-                prev_note_value = None
-                prev_stem_tip = None
+                # if _DEBUG:
+                print('Slope: ', slope)
 
                 # check if beam is too close to note heads or note head is on wrong side of beam
                 # TODO: make dynamic for zooming
                 vertical_offset = False
                 fix_offset = 0
+                y_0 = 0
+                if stem_direction == 1:
+                    index = 0
+                    max_y = float('-inf')
+                    for idx, n_tuple in enumerate(beam_notes):
+                        if n_tuple[0][1] > max_y:
+                            max_y = n_tuple[0][1]
+                            index = idx
+                    max_y += self.spacing * 2
+                    y_0 = max_y - slope * index
+                    if _DEBUG:
+                        print('Max: ', max_y, idx)
+                        print('y0', y_0)
+                elif stem_direction == -1:
+                    index = 0
+                    min_y = float('inf')
+                    for idx, n_tuple in enumerate(beam_notes):
+                        if n_tuple[0][1] < min_y:
+                            min_y = n_tuple[0][1]
+                            index = idx
+                    min_y -= self.spacing * 2
+                    y_0 = min_y - slope * index
+                    if _DEBUG:
+                        print('Min: ', min_y, idx)
+                        print('y0', y_0)
+
+                prev_note_value = None
+                prev_stem_tip = None
                 for idx, n_tuple in enumerate(beam_notes):
-                    stem_tip = (n_tuple[0]
-                                       [0] + x_offset, slope * (n_tuple[0][0] - beam_notes[0][0][0]) + beam_notes[0][0][1] + y_offset)
-                    stem_base = (n_tuple[0][0] + x_offset,
-                                 n_tuple[0][1] - self.spacing * 1.5 - 2)
-
-                    diff = stem_tip[1] - stem_base[1]
-
-                    # wrong side of beam
-                    if (stem_direction > 0 and diff < 0) or (stem_direction < 0 and diff > 0):
-                        vertical_offset = True
-                        fix_offset = diff + 30
-                        break
-
-                    # too close to beam
-                    if abs(diff) < 18:
-                        vertical_offset = True
-                        fix_offset = 30 - abs(diff)
-
-                for idx, n_tuple in enumerate(beam_notes):
-                    stem_tip = (n_tuple[0]
-                                       [0] + x_offset, slope * (n_tuple[0][0] - beam_notes[0][0][0]) + beam_notes[0][0][1] + y_offset)
-                    stem_base = (n_tuple[0][0] + x_offset,
-                                 n_tuple[0][1] - self.spacing * 1.5 - 2)
-                    if vertical_offset:
-                        if stem_tip[1] - stem_base[1] > 0:
-
-                            stem_tip = (stem_tip[0], stem_tip[1] + fix_offset)
-                        else:
-                            stem_tip = (stem_tip[0], stem_tip[1] - fix_offset)
+                    stem_base = (n_tuple[0][0] + x_offset, n_tuple[0]
+                                 [1])
+                    stem_tip = (n_tuple[0][0] + x_offset,
+                                n_tuple[0][1] + slope * idx + (y_0 - n_tuple[0][1]))
 
                     self.stems.append(
                         [stem_base[0], stem_base[1], stem_tip[0], stem_tip[1]])
-                    # add to idx 0 stem if necessary
 
                     # layout stem and beams together (idx > 0)
                     if idx != 0:
@@ -444,7 +444,7 @@ class MeasureArea:
                                     [prev_stem_tip[0], prev_stem_tip[1] + i * stem_direction * 10, stem_tip[0], stem_tip[1] + i * stem_direction * 10])
                                 self.stems[-1][3] += i * \
                                     stem_direction * 10
-
+                        # TODO
                         if n_tuple[1].value != prev_note_value:
                             pass
                     prev_note_value = n_tuple[1].value
@@ -471,7 +471,7 @@ class MeasureArea:
             rest_label = self.add_label(
                 note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)  # (+15) glyph alignment
             # Replace six with env['HSPACE'] or equivalent solution
-            #x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
+            # x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
             x += self._cfg.NOTE_WIDTH * float(note.value) * 20
             return x, y
 
@@ -503,7 +503,7 @@ class MeasureArea:
                 if n.pitch.step not in self.measure.key.altered():
                     accidental_label = self.add_label(
                         n.accidental.glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
-                    #x += accidental_label.content_width + 6
+                    # x += accidental_label.content_width + 6
             # notes
             if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
                 gtype = GlyphType.NOTE_UP
@@ -517,7 +517,7 @@ class MeasureArea:
                 x, y, line_offset)
 
             # x offset for notes
-            #x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
+            # x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
             x += self._cfg.NOTE_WIDTH * float(note.value) * 20
         return x, y
 
@@ -636,7 +636,7 @@ class MeasureArea:
 
         return offset
 
-    @staticmethod
+    @ staticmethod
     def lookup_key_accidentals(key):
         accidentals = [[], []]
         match key:
@@ -672,7 +672,7 @@ class MeasureArea:
                 accidentals = key_accidentals[15]
         return accidentals
 
-    @staticmethod
+    @ staticmethod
     def max_key_sig_width(systems: list[PartSystem]) -> int:
         max_accidentals = 0
         for system in systems:
