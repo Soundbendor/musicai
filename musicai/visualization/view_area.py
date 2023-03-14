@@ -373,8 +373,8 @@ class MeasureArea:
                         slope = -0.35
                     else:
                         slope = 0.35
-                # if _DEBUG:
-                print('Slope: ', slope)
+                if _DEBUG:
+                    print('Slope: ', slope)
 
                 # check if beam is too close to note heads or note head is on wrong side of beam
                 # TODO: make dynamic for zooming
@@ -445,8 +445,51 @@ class MeasureArea:
                                 self.stems[-1][3] += i * \
                                     stem_direction * 10
                         # TODO
+                        curr_note_extra_stem = 0
                         if n_tuple[1].value != prev_note_value:
-                            pass
+                            # eight note
+                            if n_tuple[1].value <= 0.125:
+                                pass
+                            if prev_note_value <= 0.125:
+                                pass
+                            # 16th note
+                            if n_tuple[1].value <= 0.0625:
+                                extra_stem += 1
+                            if prev_note_value <= 0.0625:
+                                curr_note_extra_stem += 1
+                            # 32nd note
+                            if n_tuple[1].value <= 0.03125:
+                                extra_stem += 1
+                            if prev_note_value <= 0.03125:
+                                curr_note_extra_stem += 1
+                            # 64th note
+                            if n_tuple[1].value <= 0.051625:
+                                extra_stem += 1
+                            if prev_note_value <= 0.051625:
+                                curr_note_extra_stem += 1
+
+                            if prev_note_value > n_tuple[1].value:
+                                if idx == 1 and extra_stem > 0:
+                                    for i in range(0, extra_stem + 1):
+                                        self.stems[-2][3] += i * \
+                                            stem_direction * 10
+                                # add extra beams
+                                for i in range(extra_stem, curr_note_extra_stem, -1):
+                                    self.beam_lines.append(
+                                        [prev_stem_tip[0], prev_stem_tip[1] + i * stem_direction * 10, stem_tip[0], stem_tip[1] + i * stem_direction * 10])
+                                    self.stems[-1][3] += i * \
+                                        stem_direction * 10
+
+                            if prev_note_value < n_tuple[1].value:
+                                # add extra beams
+                                for i in range(curr_note_extra_stem, extra_stem, -1):
+                                    self.beam_lines.append(
+                                        [prev_stem_tip[0], prev_stem_tip[1] + i * stem_direction * 10, stem_tip[0], stem_tip[1] + i * stem_direction * 10])
+                                    self.stems[-1][3] += i * \
+                                        stem_direction * 10
+
+                            # print(extra_stem, curr_note_extra_stem)
+
                     prev_note_value = n_tuple[1].value
                     prev_stem_tip = stem_tip
 
