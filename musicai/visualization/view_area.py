@@ -278,9 +278,9 @@ class MeasureArea:
         else:
             return 'noteheadBlack'
 
-    def layout_beamed_notes(self, note, beam_notes, x, y):
+    def layout_beamed_notes(self, note: Note, beam_notes: list, x: int, y: int) -> tuple:
         # collect beamed notes in one list
-        beam_notes = beam_notes
+        beam_notes = beam_notes  # list of tuples ((x_pos, y_pos), Note)
 
         layout_beam = False
         # layout noteheads
@@ -324,7 +324,7 @@ class MeasureArea:
 
             # ledger lines
             self.layout_ledger_lines(
-                x, y, line_offset)
+                x, y, line_offset, note)
 
             # x offset for notes
             x += self._cfg.NOTE_WIDTH * float(note.value) * 20
@@ -336,6 +336,7 @@ class MeasureArea:
             if _DEBUG:
                 for note in beam_notes:
                     print(note[1].value, note[1].beams[0], note[1].stem)
+
             # get beam direction
             beam_direction = 0
             for n_tuple in beam_notes:
@@ -343,30 +344,31 @@ class MeasureArea:
                 if n_tuple[1].stem.value != beam_direction:
                     beam_direction = 3
                     break
-
+            # beam algo params
             beam_type = None
             x_offset = None
-            y_offset = None
             stem_direction = None
             # all up stem
             if beam_direction == 1:
                 beam_type = 1
                 x_offset = 12
-                y_offset = 0
                 stem_direction = 1
             # all down stem
             elif beam_direction == -1:
                 beam_type = 1
                 x_offset = -7
-                y_offset = 0
                 stem_direction = -1
             else:
                 beam_type = 2
 
             # all up / down stems
             if beam_type == 1:
-                slope = (beam_notes[-1][0][1] - beam_notes[0][0][1]) / \
-                    (beam_notes[-1][0][0] - beam_notes[0][0][0])
+                # calc slope
+                slope_y = beam_notes[-1][0][1] - beam_notes[0][0][1]
+                slope_x = beam_notes[-1][0][0] - beam_notes[0][0][0]
+                slope = 0
+                if slope_x != 0:
+                    slope = slope_y / slope_x
                 # max / min slope is 0.35 / - 0.35, adjust if necessary
                 if slope > 0.35 or slope < -0.35:
                     if slope < 0:
@@ -376,8 +378,8 @@ class MeasureArea:
                 if _DEBUG:
                     print('Slope: ', slope)
 
-                # check if beam is too close to note heads or note head is on wrong side of beam
                 # TODO: make dynamic for zooming
+                # calculate y for stem tip
                 vertical_offset = False
                 fix_offset = 0
                 y_0 = 0
@@ -390,9 +392,6 @@ class MeasureArea:
                             index = idx
                     max_y += self.spacing * 2
                     y_0 = max_y - slope * index
-                    if _DEBUG:
-                        print('Max: ', max_y, idx)
-                        print('y0', y_0)
                 elif stem_direction == -1:
                     index = 0
                     min_y = float('inf')
@@ -402,98 +401,71 @@ class MeasureArea:
                             index = idx
                     min_y -= self.spacing * 2
                     y_0 = min_y - slope * index
-                    if _DEBUG:
-                        print('Min: ', min_y, idx)
-                        print('y0', y_0)
 
-                prev_note_value = None
-                prev_stem_tip = None
+                # layout beams
+                beam_nums = []  # list of number of beams for note value at index
                 for idx, n_tuple in enumerate(beam_notes):
+                    # add base stem
                     stem_base = (n_tuple[0][0] + x_offset, n_tuple[0]
                                  [1])
                     stem_tip = (n_tuple[0][0] + x_offset,
                                 n_tuple[0][1] + slope * idx + (y_0 - n_tuple[0][1]))
-
                     self.stems.append(
-                        [stem_base[0], stem_base[1], stem_tip[0], stem_tip[1]])
+                        [stem_base[0], stem_base[1], stem_tip[0], stem_tip[1] + (4 * stem_direction)])  # add / subtract 4 to line up with beam
 
-                    # layout stem and beams together (idx > 0)
-                    if idx != 0:
-                        extra_stem = 0
-                        if n_tuple[1].value == prev_note_value:
-                            # eight note
-                            if n_tuple[1].value <= 0.125:
-                                pass
-                            # 16th note
-                            if n_tuple[1].value <= 0.0625:
-                                extra_stem += 1
-                            # 32nd note
-                            if n_tuple[1].value <= 0.03125:
-                                extra_stem += 1
-                            # 64th note
-                            if n_tuple[1].value <= 0.051625:
-                                extra_stem += 1
+                    # use glyph to get number of beams for note
+                    beam_num = 0
+                    # eighth note
+                    if str(n_tuple[1].glyph) == 'note8thDown' or str(n_tuple[1].glyph) == 'note8thUp':
+                        beam_num = 1
+                    # 16th note
+                    if str(n_tuple[1].glyph) == 'note16thDown' or str(n_tuple[1].glyph) == 'note16thUp':
+                        beam_num = 2
+                    # 32nd note
+                    if str(n_tuple[1].glyph) == 'note32ndDown' or str(n_tuple[1].glyph) == 'note32ndUp':
+                        beam_num = 3
+                    # 64th note
+                    if str(n_tuple[1].glyph) == 'note64thDown' or str(n_tuple[1].glyph) == 'note64thUp':
+                        beam_num = 4
+                    beam_nums.append(beam_num)
 
-                            if idx == 1 and extra_stem > 0:
-                                for i in range(0, extra_stem + 1):
-                                    self.stems[-2][3] += i * \
-                                        stem_direction * 10
-                            # add extra beams
-                            for i in range(0, extra_stem + 1):
-                                self.beam_lines.append(
-                                    [prev_stem_tip[0], prev_stem_tip[1] + i * stem_direction * 10, stem_tip[0], stem_tip[1] + i * stem_direction * 10])
-                                self.stems[-1][3] += i * \
-                                    stem_direction * 10
-                        # TODO
-                        curr_note_extra_stem = 0
-                        if n_tuple[1].value != prev_note_value:
-                            # eight note
-                            if n_tuple[1].value <= 0.125:
-                                pass
-                            if prev_note_value <= 0.125:
-                                pass
-                            # 16th note
-                            if n_tuple[1].value <= 0.0625:
-                                extra_stem += 1
-                            if prev_note_value <= 0.0625:
-                                curr_note_extra_stem += 1
-                            # 32nd note
-                            if n_tuple[1].value <= 0.03125:
-                                extra_stem += 1
-                            if prev_note_value <= 0.03125:
-                                curr_note_extra_stem += 1
-                            # 64th note
-                            if n_tuple[1].value <= 0.051625:
-                                extra_stem += 1
-                            if prev_note_value <= 0.051625:
-                                curr_note_extra_stem += 1
+                for i in range(len(beam_nums)):
+                    # base bar y (lowest / highest bar)
+                    base_y_offset = (max(beam_nums) - 1) * \
+                        stem_direction * (self.spacing // 2) + 4
+                    # add half beam forward and half beam backward for note
+                    if i == 0:
+                        # add backward half beam
+                        back_beam_dist = (
+                            self.stems[1][0] - self.stems[0][0]) / 2
+                        for j in range(beam_nums[0] - 1, -1, -1):
+                            self.beam_lines.append([self.stems[0][2], self.stems[0][3] + base_y_offset + j * self.spacing // 2,
+                                                    self.stems[0][2] + back_beam_dist, self.stems[0][3] + base_y_offset + j * self.spacing // 2])
+                    elif i == len(beam_nums) - 1:
+                        # add forward half beam
+                        forward_beam_dist = (self.stems[i][0] -
+                                             self.stems[i - 1][0]) / 2
+                        for j in range(beam_nums[i] - 1, -1, -1):
+                            self.beam_lines.append([
+                                self.stems[i][2], self.stems[i][3] + base_y_offset + j * (self.spacing // 2), self.stems[i][2] - forward_beam_dist - 2, self.stems[i][3] + base_y_offset + j * (self.spacing // 2)])
+                    else:
+                        # add forward and backward half beams
+                        back_beam_dist = (
+                            self.stems[i + 1][0] - self.stems[i][0]) / 2
+                        for j in range(beam_nums[i + 1] - 1, -1, -1):
+                            self.beam_lines.append([self.stems[i][2], self.stems[i][3] + base_y_offset + j * self.spacing // 2,
+                                                    self.stems[i][2] + back_beam_dist + 1, self.stems[i][3] + base_y_offset + j * self.spacing // 2])
+                        forward_beam_dist = (self.stems[i][0] -
+                                             self.stems[i - 1][0]) / 2
+                        for j in range(beam_nums[i - 1] - 1, -1, -1):
+                            self.beam_lines.append([
+                                self.stems[i][2], self.stems[i][3] + base_y_offset + j * (self.spacing // 2), self.stems[i][2] - forward_beam_dist - 1, self.stems[i][3] + base_y_offset + j * (self.spacing // 2)])
 
-                            if prev_note_value > n_tuple[1].value:
-                                if idx == 1 and extra_stem > 0:
-                                    for i in range(0, extra_stem + 1):
-                                        self.stems[-2][3] += i * \
-                                            stem_direction * 10
-                                # add extra beams
-                                for i in range(extra_stem, curr_note_extra_stem, -1):
-                                    self.beam_lines.append(
-                                        [prev_stem_tip[0], prev_stem_tip[1] + i * stem_direction * 10, stem_tip[0], stem_tip[1] + i * stem_direction * 10])
-                                    self.stems[-1][3] += i * \
-                                        stem_direction * 10
-
-                            if prev_note_value < n_tuple[1].value:
-                                # add extra beams
-                                for i in range(curr_note_extra_stem, extra_stem, -1):
-                                    self.beam_lines.append(
-                                        [prev_stem_tip[0], prev_stem_tip[1] + i * stem_direction * 10, stem_tip[0], stem_tip[1] + i * stem_direction * 10])
-                                    self.stems[-1][3] += i * \
-                                        stem_direction * 10
-
-                            # print(extra_stem, curr_note_extra_stem)
-
-                    prev_note_value = n_tuple[1].value
-                    prev_stem_tip = stem_tip
-
-            # split stem
+                # adjust stems to match base bar y
+                for stem in self.stems:
+                    stem[3] += (max(beam_nums) - 1) * \
+                        stem_direction * (self.spacing // 2)
+            # TODO split stem
             elif beam_direction == 3:
                 pass
 
@@ -557,7 +529,7 @@ class MeasureArea:
 
             # ledger lines
             self.layout_ledger_lines(
-                x, y, line_offset)
+                x, y, line_offset, note)
 
             # x offset for notes
             # x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
@@ -755,10 +727,11 @@ class MeasureArea:
         x += 20
         return x, y
 
-    def layout_ledger_lines(self, x: int, y: int, line_offset) -> None:
+    def layout_ledger_lines(self, x: int, y: int, line_offset: int, note: Note) -> None:
         ledger_lines = False
         start_num = 0
         end_num = 0
+        x_offset = 0
         # below staff
         if line_offset < 2:
             ledger_lines = True
@@ -770,6 +743,10 @@ class MeasureArea:
             start_num = 11
             end_num = line_offset
 
+        # offset ledger line x for up stem glyph
+        if note.value <= 0.125 and len(note.beams) == 0 and str(note.stem) == 'StemType.UP':
+            x_offset = self.spacing // 2 - 2
+
         if ledger_lines:
             num = start_num - 1
             while (num < end_num):
@@ -777,11 +754,11 @@ class MeasureArea:
                 if num % 2 != 0:
                     ledger_line_verts = []
                     # - 2 is subjective aesthetics
-                    ledger_line_verts.append(x - (self.spacing - 2))
+                    ledger_line_verts.append(x - (self.spacing - 2) - x_offset)
                     ledger_line_verts.append(
                         y + (num - 1) * (self.spacing // 2))
                     # - 2 is subjective aesthetics
-                    ledger_line_verts.append(x + (self.spacing - 2))
+                    ledger_line_verts.append(x + (self.spacing - 2) - x_offset)
                     ledger_line_verts.append(
                         y + (num - 1) * (self.spacing // 2))
                     self.ledger_lines.append(ledger_line_verts)
