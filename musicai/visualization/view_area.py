@@ -6,7 +6,7 @@ import json
 
 from structure.measure import Barline, BarlineLocation, BarlineType
 from structure.measure_mark import DynamicMark, DynamicType, DynamicChangeType
-from structure.note import NoteGroup, Rest, Note
+from structure.note import NoteGroup, Rest, Note, DotType
 from structure.score import PartSystem
 from visualization.window_config import WindowConfig
 from pyglet.shapes import Line
@@ -274,7 +274,8 @@ class MeasureArea:
         offset += clef_offset
         return offset
 
-    def get_notehead(self, note: Note) -> str:
+    @staticmethod
+    def get_notehead(note: Note) -> str:
         if note.glyph == 'noteHalfDown' or note.glyph == 'noteHalfUp':
             return 'noteheadHalf'
         else:
@@ -286,9 +287,9 @@ class MeasureArea:
 
         layout_beam = False
         # layout noteheads
-        if (note.beams[0].beamtype.value == 1):
+        if note.beams[0].beamtype.value == 1:
             beam_notes = []
-        elif(note.beams[0].beamtype.value == 3):
+        elif note.beams[0].beamtype.value == 3:
             layout_beam = True
 
         notes = []
@@ -304,12 +305,8 @@ class MeasureArea:
 
         for n in notes:
             line_offset = self.note_offset(note)
-            # accidentals
-            if str(n.accidental).strip() != '':
-                if n.pitch.step not in self.measure.key.altered():
-                    accidental_label = self.add_label(
-                        n.accidental.glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))
-                    # x += accidental_label.content_width + 6
+            # note satellites
+            self.layout_satellites(x, y, line_offset, n)
 
             if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
                 gtype = GlyphType.NOTE_UP
@@ -318,8 +315,9 @@ class MeasureArea:
 
             notehead = self.get_notehead(n)
 
-            note_label = self.add_label(
-                notehead, gtype, x=x, y=y + 8 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+            self.add_label(
+                notehead, gtype, x=x, y=y + 8 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with
+            # staff
 
             beam_notes.append(
                 ((x - 2, y + (line_offset - 2) * (self.spacing // 2)), note))
@@ -347,7 +345,6 @@ class MeasureArea:
                     beam_direction = 3
                     break
             # beam algo params
-            beam_type = None
             x_offset = None
             stem_direction = None
             # all up stem
@@ -382,8 +379,6 @@ class MeasureArea:
 
                 # TODO: make dynamic for zooming
                 # calculate y for stem tip
-                vertical_offset = False
-                fix_offset = 0
                 y_0 = 0
                 if stem_direction == 1:
                     index = 0
@@ -452,27 +447,37 @@ class MeasureArea:
                         back_beam_dist = (
                             self.stems[1][0] - self.stems[0][0]) / 2
                         for j in range(beam_nums[0] - 1, -1, -1):
-                            self.beam_lines.append([self.stems[0][2], self.stems[0][3] + base_y_offset + j * self.spacing // 2 * (stem_direction * -1),
-                                                    self.stems[0][2] + back_beam_dist, self.stems[0][3] + base_y_offset + j * self.spacing // 2 * (stem_direction * -1)])
+                            self.beam_lines.append([self.stems[0][2], self.stems[0][3] + base_y_offset + j *
+                                                    self.spacing // 2 * (stem_direction * -1),
+                                                    self.stems[0][2] + back_beam_dist, self.stems[0][3] +
+                                                    base_y_offset + j * self.spacing // 2 * (stem_direction * -1)])
                     elif i == len(beam_nums) - 1:
                         # add forward half beam
                         forward_beam_dist = (self.stems[i][0] -
                                              self.stems[i - 1][0]) / 2
                         for j in range(beam_nums[i] - 1, -1, -1):
                             self.beam_lines.append([
-                                self.stems[i][2], self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1), self.stems[i][2] - forward_beam_dist - 2, self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1)])
+                                self.stems[i][2],
+                                self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1),
+                                self.stems[i][2] - forward_beam_dist - 2,
+                                self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1)])
                     else:
                         # add forward and backward half beams
                         back_beam_dist = (
                             self.stems[i + 1][0] - self.stems[i][0]) / 2
                         for j in range(beam_nums[i + 1] - 1, -1, -1):
-                            self.beam_lines.append([self.stems[i][2], self.stems[i][3] + base_y_offset + j * self.spacing // 2 * (stem_direction * -1),
-                                                    self.stems[i][2] + back_beam_dist + 1, self.stems[i][3] + base_y_offset + j * self.spacing // 2 * (stem_direction * -1)])
+                            self.beam_lines.append([self.stems[i][2],
+                                                    self.stems[i][3] + base_y_offset + j * self.spacing // 2 * (stem_direction * -1),
+                                                    self.stems[i][2] + back_beam_dist + 1,
+                                                    self.stems[i][3] + base_y_offset + j * self.spacing // 2 * (stem_direction * -1)])
                         forward_beam_dist = (self.stems[i][0] -
                                              self.stems[i - 1][0]) / 2
                         for j in range(beam_nums[i - 1] - 1, -1, -1):
                             self.beam_lines.append([
-                                self.stems[i][2], self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1), self.stems[i][2] - forward_beam_dist - 1, self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1)])
+                                self.stems[i][2],
+                                self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1),
+                                self.stems[i][2] - forward_beam_dist - 1,
+                                self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1)])
 
                 # adjust stems to match base bar y
                 for stem in self.stems:
@@ -488,7 +493,7 @@ class MeasureArea:
         # TODO replace constant 10 with (staff) spacing // 2
         if isinstance(note, Rest):
             if _DEBUG:
-                barline_verts = []
+                barline_verts = list()
                 barline_verts.append(x)
                 barline_verts.append(y)
                 barline_verts.append(x)
@@ -496,7 +501,7 @@ class MeasureArea:
                 self.barlines.append(barline_verts)
             if _DEBUG:
                 print('rest=', note, note.glyph)
-            rest_label = self.add_label(
+            self.add_label(
                 note.glyph, GlyphType.REST, x=x, y=y + (self.spacing // 2) * 6 + 15)  # (+15) glyph alignment
             # Replace six with env['HSPACE'] or equivalent solution
             # x += rest_label.content_width + int((6 * (100 * note.value))) * float(note.value) * 15
@@ -516,7 +521,7 @@ class MeasureArea:
 
         for n in notes:
             if _DEBUG:
-                barline_verts = []
+                barline_verts = list()
                 barline_verts.append(x)
                 barline_verts.append(y)
                 barline_verts.append(x)
@@ -530,8 +535,9 @@ class MeasureArea:
                 gtype = GlyphType.NOTE_UP
             else:
                 gtype = GlyphType.NOTE_DOWN
-            note_label = self.add_label(
-                n.glyph, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+            self.add_label(
+                n.glyph, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with
+            # staff
 
             # ledger lines
             self.layout_ledger_lines(
@@ -549,17 +555,18 @@ class MeasureArea:
                 self.layout_accidental(
                     x, y, line_offset, note.accidental.glyph)
         # dots
-        if (note.value.dots._value_ > 0):
-            self.layout_dots(x, y, line_offset, note.value.dots._value_)
+        if note.value.dots != DotType.NONE:
+            self.layout_dots(x, y, line_offset, note.value.dots.value)
 
     def layout_dots(self, x: int, y: int, line_offset: int, num_dots: int):
         for i in range(1, 1 + num_dots):
-            dot_label = self.add_label(
+            self.add_label(
                 'augmentationDot', GlyphType.DOT, x + self.spacing * i + 4, y + (line_offset + 1) * (self.spacing // 2))
 
     def layout_accidental(self, x: int, y: int, line_offset: int, glyph: str):
-        accidental_label = self.add_label(
-            glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
+        self.add_label(
+            glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align
+        # glyph with staff
 
     def layout_left_barline(self, x, y):
         # only if Barline is on left
@@ -570,7 +577,7 @@ class MeasureArea:
                 self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
             x += 18 + barline_label.content_width
         elif isinstance(self.measure.barline, BarlineType):
-            barline_verts = []
+            barline_verts = list()
             barline_verts.append(x)
             barline_verts.append(y)
             barline_verts.append(x)
@@ -591,7 +598,7 @@ class MeasureArea:
                                   anchor_y='center')
             barline_label.color = (0, 0, 0, 255)
 
-            barline_verts = []
+            barline_verts = list()
             barline_verts.append(x)
             barline_verts.append(y)
             barline_verts.append(x + barline_label.content_width)
@@ -600,7 +607,7 @@ class MeasureArea:
             self.irr_barline_labels.append(barline_label)
             x += 18 + barline_label.content_width
         elif isinstance(self.measure.barline, BarlineType):
-            barline_verts = []
+            barline_verts = list()
             barline_verts.append(x)
             barline_verts.append(y)
             barline_verts.append(x)
@@ -610,7 +617,7 @@ class MeasureArea:
         return x, y
 
     def layout_clef(self, x: int, y: int) -> tuple:
-        if (self.index == 0):
+        if self.index == 0:
             x += 12
             clef_pitch = self.measure.clef.value
             # base is treble (G) clef
@@ -628,7 +635,7 @@ class MeasureArea:
         return x, y
 
     def layout_time_signature(self, x: int, y: int) -> tuple:
-        if (self.index == 0):
+        if self.index == 0:
             time_sig = self.measure.time
             if time_sig.timesymboltype.__str__() == 'common':
                 time_sig = self.add_label(
@@ -643,7 +650,7 @@ class MeasureArea:
                 time_sig_numerator = self.add_label(
                     numerator_glyph, GlyphType.TIME, x, y=y + self.spacing * 5)
                 denominator_glyph = 'timeSig' + str(time_sig.denominator)
-                time_sig_denominator = self.add_label(
+                self.add_label(
                     denominator_glyph, GlyphType.TIME, x, y=y + self.spacing * 3)
 
                 x += time_sig_numerator.content_width + 30  # (+30) x offset
@@ -660,12 +667,12 @@ class MeasureArea:
             case 'E':
                 offset += 10
             case 'F':
-                if (accidental_type == 'sharp'):
+                if accidental_type == 'sharp':
                     offset += 11
                 else:
                     offset += 3
             case 'G':
-                if (accidental_type == 'sharp'):
+                if accidental_type == 'sharp':
                     offset += 12
                 else:
                     offset += 4
@@ -727,7 +734,7 @@ class MeasureArea:
         return max_accidentals
 
     def layout_key_signature(self, x: int, y: int) -> tuple:
-        if (self.index == 0):
+        if self.index == 0:
             key = self.measure.key
             accidentals = self.lookup_key_accidentals(key.__str__())
             if _DEBUG:
@@ -741,13 +748,15 @@ class MeasureArea:
             else:
                 for note in accidentals[0]:
                     line_offset = self.key_sig_accidental_offset(note, 'sharp')
+                    # (+ 10) to align glyph with staff
                     accidental_label = self.add_label(
-                        'accidentalSharp', GlyphType.ACCIDENTAL, x, y + 10 + (line_offset) * (self.spacing // 2))  # (+ 10) to align glyph with staff
+                        'accidentalSharp', GlyphType.ACCIDENTAL, x, y + 10 + line_offset * (self.spacing // 2))
                     x += accidental_label.content_width + 4  # (+4) x offset
                 for note in accidentals[1]:
                     line_offset = self.key_sig_accidental_offset(note, 'flat')
+                    # (+ 10) to align glyph with staff
                     accidental_label = self.add_label(
-                        'accidentalFlat', GlyphType.ACCIDENTAL, x, y + 10 + (line_offset) * (self.spacing // 2))  # (+ 10) to align glyph with staff
+                        'accidentalFlat', GlyphType.ACCIDENTAL, x, y + 10 + line_offset * (self.spacing // 2))
                     x += accidental_label.content_width + 4  # (+4) x offset
         x += 20
         return x, y
@@ -774,10 +783,10 @@ class MeasureArea:
 
         if ledger_lines:
             num = start_num - 1
-            while (num < end_num):
+            while num < end_num:
                 # ledger lines only on odd staff lines
                 if num % 2 != 0:
-                    ledger_line_verts = []
+                    ledger_line_verts = list()
                     # - 2 is subjective aesthetics
                     ledger_line_verts.append(x - (self.spacing - 2) - x_offset)
                     ledger_line_verts.append(
