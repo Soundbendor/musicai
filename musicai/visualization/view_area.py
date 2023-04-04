@@ -429,6 +429,14 @@ class MeasureArea:
                     # 64th note
                     if str(n_tuple[1].glyph) == 'note64thDown' or str(n_tuple[1].glyph) == 'note64thUp':
                         beam_num = 4
+                    if str(n_tuple[1].glyph) == 'note128thDown' or str(n_tuple[1].glyph) == 'note128thUp':
+                        beam_num = 5
+                    if str(n_tuple[1].glyph) == 'note256thDown' or str(n_tuple[1].glyph) == 'note256thUp':
+                        beam_num = 6
+                    if str(n_tuple[1].glyph) == 'note512thDown' or str(n_tuple[1].glyph) == 'note512thUp':
+                        beam_num = 7
+                    if str(n_tuple[1].glyph) == 'note1024thDown' or str(n_tuple[1].glyph) == 'note1024thUp':
+                        beam_num = 8
                     beam_nums.append(beam_num)
 
                 for i in range(len(beam_nums)):
