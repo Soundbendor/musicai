@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import Enum, auto
 
 import pyglet
@@ -44,6 +45,7 @@ class GlyphType(Enum):
     ACCIDENTAL = auto()
     LEGER = auto()
     BARLINE = auto()
+    DOT = auto()
 
     # -----------
     # Constructor
@@ -509,16 +511,9 @@ class MeasureArea:
                 barline_verts.append(x)
                 barline_verts.append(y + self.area_height)
                 self.barlines.append(barline_verts)
-            # print(str(n.pitch.step.name) + str(n.pitch.octave) +
-            #       ' ' + str(n.pitch.midi))
-            # (n.pitch.midi - clef_pitch)//2
             line_offset = self.note_offset(note)
-            # accidentals
-            if str(n.accidental).strip() != '':
-                if n.pitch.step not in self.measure.key.altered():
-                    accidental_label = self.add_label(
-                        n.accidental.glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
-                    # x += accidental_label.content_width + 6
+            # note satellites
+            self.layout_satellites(x, y, line_offset, n)
             # notes
             if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
                 gtype = GlyphType.NOTE_UP
@@ -535,6 +530,25 @@ class MeasureArea:
             # x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
             x += self._cfg.NOTE_WIDTH * float(note.value) * 20
         return x, y
+
+    def layout_satellites(self, x: int, y: int, line_offset: int, note: Note):
+        # accidentals
+        if str(note.accidental).strip() != '':
+            if note.pitch.step not in self.measure.key.altered():
+                self.layout_accidental(
+                    x, y, line_offset, note.accidental.glyph)
+        # dots
+        if (note.value.dots._value_ > 0):
+            self.layout_dots(x, y, line_offset, note.value.dots._value_)
+
+    def layout_dots(self, x: int, y: int, line_offset: int, num_dots: int):
+        for i in range(1, 1 + num_dots):
+            dot_label = self.add_label(
+                'augmentationDot', GlyphType.DOT, x + self.spacing * i, y + (line_offset + 1) * (self.spacing // 2))
+
+    def layout_accidental(self, x: int, y: int, line_offset: int, glyph: str):
+        accidental_label = self.add_label(
+            glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with staff
 
     def layout_left_barline(self, x, y):
         # only if Barline is on left

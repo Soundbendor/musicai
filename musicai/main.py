@@ -10,11 +10,11 @@ def main():
     print('main module')
 
     # ---- Decent looking ./mxml scores ----
-    #file = '../examples/mxml/MozartTrio.musicxml'
+    file = '../examples/mxml/MozartTrio.musicxml'
 
     # ---- Decent looking ./mxml2 scores ----
     #file = '../examples/mxml2/Bach_Cello_Suite_No._1_For_Violin.musicxml'
-    file = '../examples/mxml2/Prelude_No._3_BWV_848_in_C_Major.musicxml'
+    #file = '../examples/mxml2/Prelude_No._3_BWV_848_in_C_Major.musicxml'
 
     # ---- Viewable (Buggy) ./mxml files ----
     #file = '../examples/mxml/BrahWiMeSample.musicxml'
