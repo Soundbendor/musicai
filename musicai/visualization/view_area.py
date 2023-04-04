@@ -413,7 +413,7 @@ class MeasureArea:
                     stem_tip = (n_tuple[0][0] + x_offset,
                                 n_tuple[0][1] + slope * idx + (y_0 - n_tuple[0][1]))
                     self.stems.append(
-                        [stem_base[0], stem_base[1], stem_tip[0], stem_tip[1] + (4 * stem_direction)])  # add / subtract 4 to line up with beam
+                        [stem_base[0], stem_base[1], stem_tip[0], stem_tip[1]])  # add / subtract 4 to line up with beam
 
                     # use glyph to get number of beams for note
                     beam_num = 0
@@ -435,33 +435,36 @@ class MeasureArea:
                     # base bar y (lowest / highest bar)
                     base_y_offset = (max(beam_nums) - 1) * \
                         stem_direction * (self.spacing // 2) + 4
+                    # adjust for beam line width
+                    if stem_direction == 1:
+                        base_y_offset -= 8
                     # add half beam forward and half beam backward for note
                     if i == 0:
                         # add backward half beam
                         back_beam_dist = (
                             self.stems[1][0] - self.stems[0][0]) / 2
                         for j in range(beam_nums[0] - 1, -1, -1):
-                            self.beam_lines.append([self.stems[0][2], self.stems[0][3] + base_y_offset + j * self.spacing // 2,
-                                                    self.stems[0][2] + back_beam_dist, self.stems[0][3] + base_y_offset + j * self.spacing // 2])
+                            self.beam_lines.append([self.stems[0][2], self.stems[0][3] + base_y_offset + j * self.spacing // 2 * (stem_direction * -1),
+                                                    self.stems[0][2] + back_beam_dist, self.stems[0][3] + base_y_offset + j * self.spacing // 2 * (stem_direction * -1)])
                     elif i == len(beam_nums) - 1:
                         # add forward half beam
                         forward_beam_dist = (self.stems[i][0] -
                                              self.stems[i - 1][0]) / 2
                         for j in range(beam_nums[i] - 1, -1, -1):
                             self.beam_lines.append([
-                                self.stems[i][2], self.stems[i][3] + base_y_offset + j * (self.spacing // 2), self.stems[i][2] - forward_beam_dist - 2, self.stems[i][3] + base_y_offset + j * (self.spacing // 2)])
+                                self.stems[i][2], self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1), self.stems[i][2] - forward_beam_dist - 2, self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1)])
                     else:
                         # add forward and backward half beams
                         back_beam_dist = (
                             self.stems[i + 1][0] - self.stems[i][0]) / 2
                         for j in range(beam_nums[i + 1] - 1, -1, -1):
-                            self.beam_lines.append([self.stems[i][2], self.stems[i][3] + base_y_offset + j * self.spacing // 2,
-                                                    self.stems[i][2] + back_beam_dist + 1, self.stems[i][3] + base_y_offset + j * self.spacing // 2])
+                            self.beam_lines.append([self.stems[i][2], self.stems[i][3] + base_y_offset + j * self.spacing // 2 * (stem_direction * -1),
+                                                    self.stems[i][2] + back_beam_dist + 1, self.stems[i][3] + base_y_offset + j * self.spacing // 2 * (stem_direction * -1)])
                         forward_beam_dist = (self.stems[i][0] -
                                              self.stems[i - 1][0]) / 2
                         for j in range(beam_nums[i - 1] - 1, -1, -1):
                             self.beam_lines.append([
-                                self.stems[i][2], self.stems[i][3] + base_y_offset + j * (self.spacing // 2), self.stems[i][2] - forward_beam_dist - 1, self.stems[i][3] + base_y_offset + j * (self.spacing // 2)])
+                                self.stems[i][2], self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1), self.stems[i][2] - forward_beam_dist - 1, self.stems[i][3] + base_y_offset + j * (self.spacing // 2) * (stem_direction * -1)])
 
                 # adjust stems to match base bar y
                 for stem in self.stems:
@@ -544,7 +547,7 @@ class MeasureArea:
     def layout_dots(self, x: int, y: int, line_offset: int, num_dots: int):
         for i in range(1, 1 + num_dots):
             dot_label = self.add_label(
-                'augmentationDot', GlyphType.DOT, x + self.spacing * i, y + (line_offset + 1) * (self.spacing // 2))
+                'augmentationDot', GlyphType.DOT, x + self.spacing * i + 4, y + (line_offset + 1) * (self.spacing // 2))
 
     def layout_accidental(self, x: int, y: int, line_offset: int, glyph: str):
         accidental_label = self.add_label(
