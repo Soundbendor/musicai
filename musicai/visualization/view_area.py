@@ -303,6 +303,7 @@ class MeasureArea:
             notes.append(note)
 
         for n in notes:
+            print(n.value.ratio.tuplettype)
             line_offset = self.note_offset(note)
             # note satellites
             self.layout_satellites(x, y, line_offset, n)
@@ -658,7 +659,8 @@ class MeasureArea:
                 x += time_sig_numerator.content_width + 30  # (+30) x offset
         return x, y
 
-    def key_sig_accidental_offset(self, note: Note, accidental_type: str) -> int:
+    @staticmethod
+    def key_sig_accidental_offset(note: Note, accidental_type: str) -> int:
         offset = 0
 
         match note:
