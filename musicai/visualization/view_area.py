@@ -790,11 +790,11 @@ class MeasureArea:
                 if num % 2 != 0:
                     ledger_line_verts = list()
                     # - 2 is subjective aesthetics
-                    ledger_line_verts.append(x - (self.spacing - 2) - x_offset)
+                    ledger_line_verts.append(x - (self.spacing - 4) - x_offset)
                     ledger_line_verts.append(
                         y + (num - 1) * (self.spacing // 2))
                     # - 2 is subjective aesthetics
-                    ledger_line_verts.append(x + (self.spacing - 2) - x_offset)
+                    ledger_line_verts.append(x + (self.spacing - 4) - x_offset)
                     ledger_line_verts.append(
                         y + (num - 1) * (self.spacing // 2))
                     self.ledger_lines.append(ledger_line_verts)
