@@ -46,6 +46,7 @@ class GlyphType(Enum):
     LEGER = auto()
     BARLINE = auto()
     DOT = auto()
+    BEAM_NOTE_HEAD = auto()
 
     # -----------
     # Constructor
@@ -84,6 +85,9 @@ class Glyph(pyglet.text.Label):
                 font_size = WindowConfig().MUSIC_TIME_SIG_FONT_SIZE
             case GlyphType.ACCIDENTAL:
                 font_size = WindowConfig().MUSIC_ACC_FONT_SIZE
+            # TODO ask for help (not working)
+            case GlyphType.BEAM_NOTE_HEAD:
+                font_size = WindowConfig().BEAM_NOTE_HEAD_FONT_SIZE
             case _:
                 font_size = WindowConfig().MUSIC_FONT_SIZE
 
@@ -303,7 +307,6 @@ class MeasureArea:
             notes.append(note)
 
         for n in notes:
-            print(n.value.ratio.tuplettype)
             line_offset = self.note_offset(note)
             # note satellites
             self.layout_satellites(x, y, line_offset, n)
@@ -316,7 +319,7 @@ class MeasureArea:
             notehead = self.get_notehead(n)
 
             self.add_label(
-                notehead, gtype, x=x, y=y + 8 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with
+                notehead, GlyphType.BEAM_NOTE_HEAD, x=x, y=y + 8 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with
             # staff
 
             beam_notes.append(
@@ -362,42 +365,17 @@ class MeasureArea:
 
             # all up / down stems
             if beam_type == 1:
-                # calc slope
-                slope_y = beam_notes[-1][0][1] - beam_notes[0][0][1]
-                slope_x = beam_notes[-1][0][0] - beam_notes[0][0][0]
-                slope = 0
-                if slope_x != 0:
-                    slope = slope_y / slope_x
-                # max / min slope is 0.35 / - 0.35, adjust if necessary
-                if slope > 0.35 or slope < -0.35:
-                    if slope < 0:
-                        slope = -0.35
-                    else:
-                        slope = 0.35
-                if _DEBUG:
-                    print('Slope: ', slope)
-
                 # TODO: make dynamic for zooming
                 # calculate y for stem tip
-                y_0 = 0
+                y_ref = 0
                 if stem_direction == 1:
-                    index = 0
-                    max_y = float('-inf')
-                    for idx, n_tuple in enumerate(beam_notes):
-                        if n_tuple[0][1] > max_y:
-                            max_y = n_tuple[0][1]
-                            index = idx
-                    max_y += self.spacing * 2
-                    y_0 = max_y - slope * index
+                    max_y = max(a[0][1] for a in beam_notes)
+                    index = [a[0][1] for a in beam_notes].index(max_y)
+                    y_ref = max_y + self.spacing * 2
                 elif stem_direction == -1:
-                    index = 0
-                    min_y = float('inf')
-                    for idx, n_tuple in enumerate(beam_notes):
-                        if n_tuple[0][1] < min_y:
-                            min_y = n_tuple[0][1]
-                            index = idx
-                    min_y -= self.spacing * 2
-                    y_0 = min_y - slope * index
+                    min_y = min(a[0][1] for a in beam_notes)
+                    index = [a[0][1] for a in beam_notes].index(min_y)
+                    y_ref = min_y - self.spacing * 2
 
                 # layout beams
                 beam_nums = []  # list of number of beams for note value at index
@@ -406,7 +384,7 @@ class MeasureArea:
                     stem_base = (n_tuple[0][0] + x_offset, n_tuple[0]
                                  [1])
                     stem_tip = (n_tuple[0][0] + x_offset,
-                                n_tuple[0][1] + slope * idx + (y_0 - n_tuple[0][1]))
+                                y_ref)
                     self.stems.append(
                         [stem_base[0], stem_base[1], stem_tip[0], stem_tip[1]])
 
@@ -550,6 +528,8 @@ class MeasureArea:
             # x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
             x += self._cfg.NOTE_WIDTH * float(note.value) * 20
         return x, y
+
+
 
     def layout_satellites(self, x: int, y: int, line_offset: int, note: Note):
         # accidentals
