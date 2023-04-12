@@ -45,11 +45,11 @@ class ScoreWindow(pyglet.window.Window): # noqa
         self.measure_height = self._cfg.MEASURE_HEIGHT
         self.measure_area_width = list()
         self.zoom = 1
-        self._initialize_display_elements()
-        self.x_movement = 0
-        self.y_movement = 0
         self.score_width = 0
         self.score_height = 0
+        self._initialize_display_elements()
+        self.x_movement = 0
+        self.y_movement = 0 
 
     def draw_hairpins(self) -> None:
         for i in range(len(self.hairpin_start_verts)):
@@ -127,12 +127,12 @@ class ScoreWindow(pyglet.window.Window): # noqa
                 
                 self.measure_area_width.append(max_measure_area)
                 x += max_measure_area
-                score_width = x
+                self.score_width = x
                 y = start_y
             
             for part in system.parts:
                 y -= self._cfg.MEASURE_OFFSET
-            score_height = y
+            self.score_height = y
             x = 0
             
 
