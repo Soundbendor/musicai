@@ -9,15 +9,17 @@ from structure.score import PartSystem
 _DEBUG = True
 _RGB_BLACK = (0, 0, 0)
 
-class ScoreWindow(pyglet.window.Window): # noqa
+
+class ScoreWindow(pyglet.window.Window):  # noqa
     def __init__(self, score: Score, window_config: WindowConfig) -> None:
         self._cfg = window_config
 
-        config = pyglet.gl.Config(sample_buffers=1,buffers=4,double_buffer=True)
+        config = pyglet.gl.Config(sample_buffers=1, buffers=4, double_buffer=True)
         super(ScoreWindow, self).__init__(
             height=self._cfg.SCREEN_HEIGHT,
             width=self._cfg.SCREEN_WIDTH,
-            #config=config
+            resizable=True
+            # config=config
         )
 
         pyglet.font.add_file(self._cfg.MUSIC_FONT_FILE)
@@ -84,11 +86,12 @@ class ScoreWindow(pyglet.window.Window): # noqa
                 measure_area_barlines = list()
                 measure_area_irr_barlines = list()
                 measure_area_irr_barline_labels = list()
-                start_y  =  y 
+                start_y = y
 
                 for part in system.parts:
                     measure_area = MeasureArea(
-                        part.measures[measure_idx], x, y, self.measure_height, key_sig_width, measure_idx,  x, config=self._cfg, batch=self.batch)
+                        part.measures[measure_idx], x, y, self.measure_height, key_sig_width, measure_idx, x,
+                        config=self._cfg, batch=self.batch)
                     if measure_area.area_width > max_measure_area:
                         max_measure_area = measure_area.area_width
 
@@ -104,34 +107,33 @@ class ScoreWindow(pyglet.window.Window): # noqa
                     measure_area_irr_barline_labels.extend(measure_area.irr_barline_labels)
 
                     y -= self._cfg.MEASURE_OFFSET
-                
+
                 for barline_verts in measure_area_barlines:
                     if barline_verts[0] != 0:
                         barline_verts[0] = int(x + max_measure_area)
-                        barline_verts[2] = int(x +max_measure_area)
-                
+                        barline_verts[2] = int(x + max_measure_area)
+
                 if measure_area.measure.has_irregular_rs_barline():
                     for irr_barline_label in measure_area_irr_barline_labels:
-                        irr_barline_label.x = int(x+ max_measure_area)
+                        irr_barline_label.x = int(x + max_measure_area)
                         irr_barline_label.batch = self.batch
                     for irr_barline_verts in measure_area_irr_barlines:
                         if irr_barline_verts[0] != 0:
                             irr_barline_verts[0] = int(x + max_measure_area)
-                            irr_barline_verts[2] = int(x + max_measure_area + measure_area.irr_barline_labels[0].content_width)
-                    
+                            irr_barline_verts[2] = int(
+                                x + max_measure_area + measure_area.irr_barline_labels[0].content_width)
+
                 self.barlines.extend(measure_area_barlines)
                 self.irr_barlines.extend(measure_area_irr_barlines)
                 self.irr_barline_labels.extend(measure_area_irr_barline_labels)
-                
+
                 self.measure_area_width.append(max_measure_area)
                 x += max_measure_area
                 y = start_y
-            
+
             for part in system.parts:
                 y -= self._cfg.MEASURE_OFFSET
             x = 0
-            
-
 
     def _initialize_display_elements(self) -> None:
         self.background = pyglet.image.SolidColorImagePattern(
@@ -162,13 +164,12 @@ class ScoreWindow(pyglet.window.Window): # noqa
                 x_start = x_start + 4
                 x_end = x_end - 10
                 rectangle = shapes.Rectangle(
-                    x_start, y_start,  x_end - x_start, y_end - y_start, color=_RGB_BLACK, batch=self.batch)
-                line = shapes.Line(x_start - 5, y_start, x_start-5,
+                    x_start, y_start, x_end - x_start, y_end - y_start, color=_RGB_BLACK, batch=self.batch)
+                line = shapes.Line(x_start - 5, y_start, x_start - 5,
                                    y_end, width=1, color=_RGB_BLACK, batch=self.batch)
                 self.barline_shapes.append(rectangle)
                 self.barline_shapes.append(line)
         # TODO Modify the connecting barline shapes for different irregular barlines
-        
 
     def draw_barlines(self) -> None:
         for i in range(len(self.barlines)):
