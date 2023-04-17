@@ -51,7 +51,14 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.score_height = 0
         self._initialize_display_elements()
         self.x_movement = 0
-        self.y_movement = 0 
+        self.y_movement = 0
+
+    '''
+    Sets new values window dimensions in config file after resize
+    '''
+    def on_resize(self, width, height):
+        self._cfg.SCREEN_WIDTH = self.width
+        self._cfg.SCREEN_HEIGHT = self.height
 
     def draw_hairpins(self) -> None:
         for i in range(len(self.hairpin_start_verts)):
