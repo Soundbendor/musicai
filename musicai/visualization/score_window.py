@@ -2,6 +2,7 @@ import pyglet
 from pyglet import shapes
 
 from fileio.mxml import Score
+from pyglet.shapes import Rectangle
 from visualization.view_area import MeasureArea, Staff, LedgerLine
 from visualization.window_config import WindowConfig
 from structure.score import PartSystem
@@ -18,6 +19,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         super(ScoreWindow, self).__init__(
             height=self._cfg.SCREEN_HEIGHT,
             width=self._cfg.SCREEN_WIDTH,
+            caption="Score Visualization",
             resizable=True
             # config=config
         )
@@ -49,16 +51,29 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.zoom = 1
         self.score_width = 0
         self.score_height = 0
+        self.background = None
         self._initialize_display_elements()
         self.x_movement = 0
         self.y_movement = 0
+        x, y = self.get_location()
+        self._cfg.SCREEN_X = x
+        self._cfg.SCREEN_Y = y
+        # maximum size of window
+        #   (note: this is background size, when increasing maximum size also increase background size)
+        self.set_maximum_size(1440, 1080)
+
+        # self.info_img = pyglet.image.load('./visualization/assets/info_img.png')
+        # self.info_sprite = pyglet.sprite.Sprite(self.info_img, x=5, y=10)
 
     '''
     Sets new values window dimensions in config file after resize
     '''
+
     def on_resize(self, width, height):
         self._cfg.SCREEN_WIDTH = self.width
         self._cfg.SCREEN_HEIGHT = self.height
+        self.on_draw()
+
 
     def draw_hairpins(self) -> None:
         for i in range(len(self.hairpin_start_verts)):
@@ -74,8 +89,6 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         for line in self.beam_line_verts:
             beam_line = shapes.Line(
                 line[0], line[1], line[2], line[3], width=8, color=(0, 0, 0), batch=self.batch)
-            # beam_line = shapes.Polygon(
-            #     [line[0], line[1], line[2], line[3], line[0], line[1] + 5, line[2], line[3] + 5, line[0], line[1]], color=(0, 0, 0), batch=self.batch)
             self.beam_lines.append(beam_line)
 
     def _draw_stems(self):
@@ -148,7 +161,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
 
     def _initialize_display_elements(self) -> None:
         self.background = pyglet.image.SolidColorImagePattern(
-            (255, 255, 255, 255)).create_image(self.width, self.height)
+           (255, 255, 255, 255)).create_image(self.width, self.height)
         self.load_labels(0, self.height - self._cfg.TOP_OFFSET, self.score.systems)
 
         num_parts = len(self.score.systems[0].parts)
@@ -200,6 +213,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self._update_coordinates()
 
         self.batch.draw()
+        self.info_sprite.draw()
         # TODO I'm not sure what this line does or if it needs to be included.
         # pyglet.gl.glFlush()
 
