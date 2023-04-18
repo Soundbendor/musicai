@@ -1,8 +1,8 @@
 import pyglet
 from pyglet import shapes
+from pyglet.gl import *
 
 from fileio.mxml import Score
-from pyglet.shapes import Rectangle
 from visualization.view_area import MeasureArea, Staff, LedgerLine
 from visualization.window_config import WindowConfig
 from structure.score import PartSystem
@@ -56,14 +56,21 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.x_movement = 0
         self.y_movement = 0
         x, y = self.get_location()
-        self._cfg.SCREEN_X = x
-        self._cfg.SCREEN_Y = y
-        # maximum size of window
+        # maximum/minimum sizes of window
         #   (note: this is background size, when increasing maximum size also increase background size)
         self.set_maximum_size(1440, 1080)
+        self.set_minimum_size(640, 480)
 
-        # self.info_img = pyglet.image.load('./visualization/assets/info_img.png')
-        # self.info_sprite = pyglet.sprite.Sprite(self.info_img, x=5, y=10)
+        # below are for info sprite and info layout
+        self.info_img = pyglet.image.load('./visualization/assets/info_img.png')
+        self.info_sprite = pyglet.sprite.Sprite(self.info_img, x=5, y=10)
+        self.info_sprite.scale = 0.5
+        self.display_info = False
+        self.info_layout = None
+        self.info_background = None
+        self.info_batch = pyglet.graphics.Batch()
+        self.generate_info_layout()
+
 
     '''
     Sets new values window dimensions in config file after resize
@@ -72,8 +79,8 @@ class ScoreWindow(pyglet.window.Window):  # noqa
     def on_resize(self, width, height):
         self._cfg.SCREEN_WIDTH = self.width
         self._cfg.SCREEN_HEIGHT = self.height
-        self.on_draw()
-
+        if self.info_layout:
+            self.info_layout.y = self.height - 150
 
     def draw_hairpins(self) -> None:
         for i in range(len(self.hairpin_start_verts)):
@@ -161,7 +168,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
 
     def _initialize_display_elements(self) -> None:
         self.background = pyglet.image.SolidColorImagePattern(
-           (255, 255, 255, 255)).create_image(self.width, self.height)
+            (255, 255, 255, 255)).create_image(self.width, self.height)
         self.load_labels(0, self.height - self._cfg.TOP_OFFSET, self.score.systems)
 
         num_parts = len(self.score.systems[0].parts)
@@ -213,9 +220,49 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self._update_coordinates()
 
         self.batch.draw()
+        if self.display_info:
+            self.info_batch.draw()
         self.info_sprite.draw()
         # TODO I'm not sure what this line does or if it needs to be included.
         # pyglet.gl.glFlush()
+
+    '''
+    Creates info layout that displays score information when info sprite is clicked.
+    '''
+    def generate_info_layout(self):
+        if not self.info_layout:
+            title = self.score.metadata.title if self.score.metadata.title else '---'
+            number = self.score.metadata.number if self.score.metadata.number else '---'
+            composer = self.score.metadata.composer if self.score.metadata.composer else '---'
+            work_title = self.score.metadata.work_title if self.score.metadata.work_title else '---'
+            work_number = self.score.metadata.work_number if self.score.metadata.work_number else '---'
+            opus_link = self.score.metadata.opus_link if self.score.metadata.opus_link else '---'
+            source = self.score.metadata.source if self.score.metadata.source else '---'
+            creators = '---'
+            if self.score.metadata.creators:
+                def join_tuple(str_tuple) -> str:
+                    return ' '.join(str_tuple)
+                temp = map(join_tuple, self.score.metadata.creators)
+                creators = ', '.join(temp)
+            rights = '---'
+            if self.score.metadata.rights:
+                def join_tuple(str_tuple) -> str:
+                    return ' '.join(str_tuple)
+                temp = map(join_tuple, self.score.metadata.rights)
+                rights = ', '.join(temp)
+
+            layout_text = f'Title: {title}\nNumber: {number}\nComposer: {composer}\nCreator(s): {creators}\nRights: ' \
+                          f'{rights}\nSource: {source}\nWork Title: {work_title}\nWork Number: {work_number}\nOpus Link: {opus_link}'
+            document = pyglet.text.document.FormattedDocument(layout_text)
+            document.set_style(0, len(document.text), dict(font_name='Arial', font_size=16, color=(0, 0, 0, 255)))
+            layout = pyglet.text.layout.TextLayout(document, 600, 100,
+                                                   multiline=True, batch=self.info_batch)
+            layout.x = 10
+            layout.y = self.height - 150
+            layout.anchor_y = 'top'
+            self.info_background = shapes.Rectangle(layout.x, layout.y - layout.content_height - 118, layout.content_width,
+                                                    layout.content_height + 20, color=(255, 255, 255), batch=self.info_batch)
+            self.info_layout = layout
 
     def display(self) -> None:
         pyglet.app.run()
@@ -299,3 +346,16 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                 self.x_movement = 0
             case _:
                 pass
+
+    '''
+    Mouse click event handler
+    Toggles display_info boolean if click is on info sprite
+    '''
+    def on_mouse_press(self, x, y, button, modifiers):
+        sprite_x1 = self.info_sprite.x
+        sprite_x2 = self.info_sprite.x + self.info_sprite.width
+        sprite_y1 = self.info_sprite.y
+        sprite_y2 = self.info_sprite.y + self.info_sprite.height
+        if (sprite_x1 < x < sprite_x2) and (sprite_y1 < y < sprite_y2):
+            self.display_info = not self.display_info
+
