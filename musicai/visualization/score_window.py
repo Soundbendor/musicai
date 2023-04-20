@@ -67,7 +67,6 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.info_sprite.scale = 0.5
         self.display_info = False
         self.info_layout = None
-        self.info_background = None
         self.info_batch = pyglet.graphics.Batch()
         self.generate_info_layout()
 
@@ -260,8 +259,6 @@ class ScoreWindow(pyglet.window.Window):  # noqa
             layout.x = 10
             layout.y = self.height - 150
             layout.anchor_y = 'top'
-            self.info_background = shapes.Rectangle(layout.x, layout.y - layout.content_height - 118, layout.content_width,
-                                                    layout.content_height + 20, color=(255, 255, 255), batch=self.info_batch)
             self.info_layout = layout
 
     def display(self) -> None:
