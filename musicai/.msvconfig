@@ -31,6 +31,7 @@ MUSIC_FONT_FILE="./visualization/assets/Bravura.otf"
 MUSIC_FONT_NAME="Bravura"
 MUSIC_FONT_SIZE=50 # Font Size 50 seems to fit perfectly within staff lines
 MUSIC_TIME_SIG_FONT_SIZE=60
+MUSIC_ARC_SIZE = 3
 BEAM_NOTE_HEAD_FONT_SIZE=60
 NOTE_WIDTH=22
 BARLINE_SPACING=18 # Spacing before and after a barline

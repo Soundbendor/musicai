@@ -43,6 +43,12 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.hairpin_start_verts = list()
         self.hairpin_end_verts = list()
         self.hairpin_lines = list()
+        self.slur_start_verts = list()
+        self.slur_end_verts = list()
+        self.tie_start_verts = list()
+        self.tie_end_verts = list()
+        self.slur_arcs = list()
+        self.tie_arcs = list()
 
         self.score = score
 
@@ -104,6 +110,100 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                 line[0], line[1], line[2], line[3], width=2, color=(0, 0, 0), batch=self.batch)
             self.stems.append(stem)
 
+    def _draw_arc(self, x_start, y_start, x_end, y_end):
+        arc_labels = list()
+        arc_height = 50
+        arc_horizontal_offset = 20
+
+        main_arc = shapes.BezierCurve((x_start, y_start), 
+                                      (x_start + arc_horizontal_offset, y_start + arc_height),
+                                      (x_end - arc_horizontal_offset, y_end + arc_height),
+                                      (x_end, y_end), 
+                                      t=1,
+                                      segments=100,
+                                      color=_RGB_BLACK,
+                                      batch=self.batch)
+        main_arc.position = (x_start, y_start)
+        arc_labels.append(main_arc)
+        for i in range(1, WindowConfig().MUSIC_ARC_SIZE):
+            upper_arc = shapes.BezierCurve((x_start, y_start), 
+                                        (x_start + arc_horizontal_offset, y_start + arc_height + i),
+                                        (x_end - arc_horizontal_offset, y_end + arc_height + i),
+                                        (x_end, y_end), 
+                                        t=1,
+                                        segments=100,
+                                        color=_RGB_BLACK,
+                                        batch=self.batch)
+            lower_arc = shapes.BezierCurve((x_start, y_start), 
+                                      (x_start + arc_horizontal_offset, y_start + arc_height - i),
+                                      (x_end - arc_horizontal_offset, y_end + arc_height - i),
+                                      (x_end, y_end), 
+                                      t=1,
+                                      segments=100,
+                                      color=_RGB_BLACK,
+                                      batch=self.batch)
+            
+            upper_arc.position = (x_start, y_start)
+            lower_arc.position = (x_start, y_start)
+            arc_labels.append(upper_arc)
+            arc_labels.append(lower_arc)
+
+        return arc_labels
+
+    def _draw_ties(self):
+        start_verts_ordered = list()
+        end_verts_ordered = list()
+
+        for i in range(len(self.score.systems[0].parts)):
+            part_start_ties = list()
+            part_end_ties = list()
+            for j in range(len(self.tie_start_verts)):
+                part_start_ties.extend(self.tie_start_verts[j][i])
+            for j in range(len(self.tie_end_verts)):
+                part_end_ties.extend(self.tie_end_verts[j][i])
+            start_verts_ordered.append(part_start_ties)
+            end_verts_ordered.append(part_end_ties)
+
+        self.tie_start_verts = start_verts_ordered
+        self.tie_end_verts = end_verts_ordered
+
+        for i in range(len(self.tie_end_verts)):
+            for j in range(len(self.tie_end_verts[i])):
+                x_start = self.tie_start_verts[i][j][0]
+                x_end = self.tie_end_verts[i][j][0]
+                y_start = self.tie_start_verts[i][j][1]
+                y_end = self.tie_end_verts[i][j][1]
+
+                drawn_arcs = self._draw_arc(x_start, y_start, x_end, y_end)
+                self.tie_arcs.extend(drawn_arcs)
+
+    def _draw_slurs(self):
+        start_verts_ordered = list()
+        end_verts_ordered = list()
+
+        for i in range(len(self.score.systems[0].parts)):
+            part_start_slurs = list()
+            part_end_slurs = list()
+            for j in range(len(self.slur_start_verts)):
+                part_start_slurs.extend(self.slur_start_verts[j][i])
+            for j in range(len(self.slur_end_verts)):
+                part_end_slurs.extend(self.slur_end_verts[j][i])
+            start_verts_ordered.append(part_start_slurs)
+            end_verts_ordered.append(part_end_slurs)
+
+        self.slur_start_verts = start_verts_ordered
+        self.slur_end_verts = end_verts_ordered
+
+        for i in range(len(self.slur_end_verts)):
+            for j in range(len(self.slur_end_verts[i])):
+                x_start = self.slur_start_verts[i][j][0]
+                x_end = self.slur_end_verts[i][j][0]
+                y_start = self.slur_start_verts[i][j][1]
+                y_end = self.slur_end_verts[i][j][1]
+
+                drawn_arcs = self._draw_arc(x_start, y_start, x_end, y_end)
+                self.slur_arcs.extend(drawn_arcs)
+
     def load_barlines(self, measure_area):
         self.barlines.append(measure_area.get_barlines())
 
@@ -115,7 +215,11 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                 measure_area_barlines = list()
                 measure_area_irr_barlines = list()
                 measure_area_irr_barline_labels = list()
-                start_y = y
+                measure_area_start_slurs = list()
+                measure_area_end_slurs = list()
+                measure_area_start_ties = list()
+                measure_area_end_ties = list()
+                start_y  =  y 
 
                 for part in system.parts:
                     measure_area = MeasureArea(
@@ -131,6 +235,10 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                     self.beam_line_verts.extend(measure_area.beam_lines)
                     self.stem_verts.extend(measure_area.stems)
 
+                    measure_area_start_slurs.append(measure_area.slur_start)
+                    measure_area_end_slurs.append(measure_area.slur_end)
+                    measure_area_start_ties.append(measure_area.tie_start)
+                    measure_area_end_ties.append(measure_area.tie_end)
                     measure_area_barlines.extend(measure_area.barlines)
                     measure_area_irr_barlines.extend(measure_area.irr_barlines)
                     measure_area_irr_barline_labels.extend(measure_area.irr_barline_labels)
@@ -153,7 +261,12 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                 self.barlines.extend(measure_area_barlines)
                 self.irr_barlines.extend(measure_area_irr_barlines)
                 self.irr_barline_labels.extend(measure_area_irr_barline_labels)
-
+                
+                self.slur_start_verts.append(measure_area_start_slurs)
+                self.slur_end_verts.append(measure_area_end_slurs)
+                self.tie_start_verts.append(measure_area_start_ties)
+                self.tie_end_verts.append(measure_area_end_ties)
+                
                 self.measure_area_width.append(max_measure_area)
                 x += max_measure_area
                 self.score_width = x
@@ -175,6 +288,8 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.ledger_lines = LedgerLine(ledger_coords=self.ledger_line_verts, batch=self.batch).ledger_lines()
         self._draw_beams()
         self._draw_stems()
+        self._draw_slurs()
+        self._draw_ties()
         self.draw_hairpins()
         self.draw_barlines()
         self.draw_irr_barlines()
@@ -323,7 +438,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
     def _update_axis(self, axis: str, movement: int) -> None:
         collections = [self.labels, self.staff_lines,
                        self.barline_shapes, self.ledger_lines,
-                       self.hairpin_lines, self.beam_lines, self.stems]
+                       self.hairpin_lines, self.beam_lines, self.stems, self.slur_arcs, self.tie_arcs]
 
         for collection in collections:
             for item in collection:

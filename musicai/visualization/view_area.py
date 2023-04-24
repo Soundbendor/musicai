@@ -7,6 +7,7 @@ import json
 from structure.measure import Barline, BarlineLocation, BarlineType
 from structure.measure_mark import DynamicMark, DynamicType, DynamicChangeType
 from structure.note import NoteGroup, Rest, Note, DotType
+from structure.note_mark import SlurType, TieType
 from structure.score import PartSystem
 from visualization.window_config import WindowConfig
 from pyglet.shapes import Line
@@ -264,6 +265,10 @@ class MeasureArea:
         self.hairpin_end = []
         self.index = idx
         self.key_sig_width = key_sig_width
+        self.slur_start = []
+        self.slur_end = []
+        self.tie_start = []
+        self.tie_end = []
         self.beam_lines = []
         self.stems = []
         self.layout()
@@ -393,6 +398,19 @@ class MeasureArea:
             # ledger lines
             self.layout_ledger_lines(
                 x, y, line_offset, note)
+            
+            # note marks (slurs, ties)
+            for mark in n.marks:
+                if isinstance(mark, SlurType):
+                    if mark.value == 1:
+                        self.slur_start.append((x,y + 8 + (line_offset + 1) * (self.spacing // 2)))
+                    elif mark.value == 0:
+                        self.slur_end.append((x,y + 8 + (line_offset + 1) * (self.spacing // 2)))
+                elif isinstance(mark, TieType):
+                    if mark.value == 1:
+                        self.tie_start.append((x,y + 8 + (line_offset + 1) * (self.spacing // 2)))
+                    elif mark.value == 0:
+                        self.tie_end.append((x,y + 8 + (line_offset + 1) * (self.spacing // 2)))
 
             # x offset for notes
             x += self._cfg.NOTE_WIDTH * float(note.value) * 20
@@ -588,6 +606,18 @@ class MeasureArea:
             # ledger lines
             self.layout_ledger_lines(
                 x, y, line_offset, note)
+            
+            for mark in n.marks:
+                if isinstance(mark, SlurType):
+                    if mark.value == 1:
+                        self.slur_start.append((x,y + 3 + (line_offset + 1) * (self.spacing // 2)))
+                    elif mark.value == 0:
+                        self.slur_end.append((x,y + 3 + (line_offset + 1) * (self.spacing // 2)))
+                elif isinstance(mark, TieType):
+                    if mark.value == 1:
+                        self.tie_start.append((x,y + 3 + (line_offset + 1) * (self.spacing // 2)))
+                    elif mark.value == 0:
+                        self.tie_end.append((x,y + 3 + (line_offset + 1) * (self.spacing // 2)))
 
             # x offset for notes
             # x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
