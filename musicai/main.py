@@ -10,8 +10,8 @@ def main():
     print('main module')
 
     # ---- Test Scores ----
-    #file = '../examples/score_tests/notes.musicxml'
-    #file = '../examples/score_tests/accidentals.musicxml'
+    # file = '../examples/score_tests/notes.musicxml'
+    # file = '../examples/score_tests/accidentals.musicxml'
     #file = '../examples/score_tests/accents.musicxml'
     #file = '../examples/score_tests/dynamics.musicxml'
 

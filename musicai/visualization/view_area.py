@@ -88,6 +88,8 @@ class Glyph(pyglet.text.Label):
             # TODO ask for help (not working)
             case GlyphType.BEAM_NOTE_HEAD:
                 font_size = WindowConfig().BEAM_NOTE_HEAD_FONT_SIZE
+            case GlyphType.BARLINE:
+                font_size = WindowConfig().MUSIC_BARLINE_FONT_SIZE
             case _:
                 font_size = WindowConfig().MUSIC_FONT_SIZE
 
@@ -163,6 +165,69 @@ class LedgerLine:
         return self._lines
 
 
+class RegularBarline:
+    def __init__(self, 
+                 barline_location: BarlineLocation = BarlineLocation.NONE,
+                 barline_verts: list[int] = None,
+                 measure_idx: int = None) -> None:
+        self.x = barline_verts[0]
+        self.y_bottom = barline_verts[1]
+        self.y_top = barline_verts[2]
+
+        self.barlinelocation = barline_location
+        self.barlinetype = BarlineType.REGULAR
+        self.measure = measure_idx
+    
+    def __str__(self) -> str:
+        ret_str = ''
+        ret_str += str(self.measure) + ': '
+        ret_str += str(self.barlinetype) + ' '
+        ret_str += str(self.barlinelocation)
+        return ret_str
+
+
+class IrregularBarline:
+    def __init__(self, 
+                 barline_location: BarlineLocation = BarlineLocation.NONE, 
+                 barline_verts: list[int] = None, 
+                 barline_type: BarlineType = BarlineType.NONE, 
+                 measure_idx: int = None,
+                 batch: pyglet.graphics.Batch = None) -> None:
+        
+        self.x_start = barline_verts[0]
+        self.y_bottom = barline_verts[1]
+        self.y_top = barline_verts[2]
+        self.barlinetype = barline_type
+        self.barlinelocation = barline_location
+        self.measure = measure_idx
+    
+        self.label = self._draw(batch)
+    
+        self.x_end = self.x_start + self.label.content_width
+
+    def __str__(self) -> str:
+        ret_str = ''
+        ret_str += str(self.measure) + ': '
+        ret_str += str(self.barlinetype) + ' '
+        ret_str += str(self.barlinelocation) + ' '
+        ret_str += str(self.x_start) + ' ' + str(self.y_bottom)
+        return ret_str
+    
+    def _draw(self, batch):
+        glyph_id = Glyph.code(self.barlinetype.glyph)
+        label = Glyph(gtype=GlyphType.BARLINE,
+                      glyph=self.barlinetype.glyph,
+                      text=glyph_id,
+                      font_name= WindowConfig().MUSIC_FONT_NAME,
+                      x=self.x_start, y=self.y_bottom,
+                      anchor_x="left",
+                      anchor_y="baseline",
+                      batch=batch)
+        label.color = (0,0,0,255)
+
+        return label
+    
+
 class PartDisplay:
     def __init__(self):
         self.measures = None
@@ -214,7 +279,7 @@ class MeasureArea:
         if self.index == 0:
             x, y = self.layout_left_barline(x, y)
         else:
-            x += 24
+            x += self._cfg.BARLINE_SPACING
 
         # x, y = self.layout_left_barline(x,y)
         x, y = self.layout_clef(x, y)
@@ -551,52 +616,28 @@ class MeasureArea:
             glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align
         # glyph with staff
 
-    def layout_left_barline(self, x, y):
-        # only if Barline is on left
-        if _DEBUG:
-            print('l-barline=', self.measure.barline)
+    def layout_left_barline(self, x ,y):
         if isinstance(self.measure.barline, Barline):
-            barline_label = self.add_label(
-                self.measure.barline.barlinetype.glyph, GlyphType.BARLINE, x=x, y=y + (self.area_height//2))
-            x += 18 + barline_label.content_width
+            left_barline = IrregularBarline(self.measure.barline.barlinelocation, [x,y, y + self.area_height], self.measure.barline.barlinetype, self.index, self.batch)
+            self.irr_barline_labels.append(left_barline.label)
+            self.irr_barlines.append(left_barline)
+            x = left_barline.x_end
         elif isinstance(self.measure.barline, BarlineType):
-            barline_verts = list()
-            barline_verts.append(x)
-            barline_verts.append(y)
-            barline_verts.append(x)
-            barline_verts.append(y + self.area_height)
-            self.barlines.append(barline_verts)
-            x += 18
+            left_barline = RegularBarline(BarlineLocation.LEFT, [x,y, y + self.area_height], self.index)
+            self.barlines.append(left_barline)
+        x += self._cfg.BARLINE_SPACING
         return x, y
 
     def layout_right_barline(self, x, y):
         if isinstance(self.measure.barline, Barline):
-            barline_label = Glyph(gtype=self.measure.barline.barlinetype,
-                                  glyph=self.measure.barline.barlinetype.glyph,
-                                  text=Glyph.code(
-                                      self.measure.barline.barlinetype.glyph),
-                                  font_name=self._cfg.MUSIC_FONT_NAME,
-                                  x=x, y=y + (self.area_height//2),
-                                  anchor_x='center',
-                                  anchor_y='center')
-            barline_label.color = (0, 0, 0, 255)
-
-            barline_verts = list()
-            barline_verts.append(x)
-            barline_verts.append(y)
-            barline_verts.append(x + barline_label.content_width)
-            barline_verts.append(y + self.area_height)
-            self.irr_barlines.append(barline_verts)
-            self.irr_barline_labels.append(barline_label)
-            x += 18 + barline_label.content_width
+            right_barline = IrregularBarline(self.measure.barline.barlinelocation, [x,y, y + self.area_height], self.measure.barline.barlinetype, self.index, self.batch)
+            self.irr_barline_labels.append(right_barline.label)
+            self.irr_barlines.append(right_barline)
+            x = right_barline.x_end
         elif isinstance(self.measure.barline, BarlineType):
-            barline_verts = list()
-            barline_verts.append(x)
-            barline_verts.append(y)
-            barline_verts.append(x)
-            barline_verts.append(y + self.area_height)
-            self.barlines.append(barline_verts)
-        x += -18
+            right_barline = RegularBarline(BarlineLocation.RIGHT, [x, y, y + self.area_height], self.index)
+            self.barlines.append(right_barline)
+        x += self._cfg.BARLINE_SPACING
         return x, y
 
     def layout_clef(self, x: int, y: int) -> tuple:
@@ -845,9 +886,6 @@ class MeasureArea:
 
     def get_irr_barlines(self):
         return self.irr_barlines
-
-    def get_irr_barlines_idx(self):
-        return self.irr_barlines_idx
 
     def get_ledger_lines(self):
         return self.ledger_lines

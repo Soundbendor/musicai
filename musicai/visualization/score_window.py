@@ -6,6 +6,7 @@ from fileio.mxml import Score
 from visualization.view_area import MeasureArea, Staff, LedgerLine
 from visualization.window_config import WindowConfig
 from structure.score import PartSystem
+from structure.measure import BarlineType
 
 _DEBUG = True
 _RGB_BLACK = (0, 0, 0)
@@ -136,20 +137,18 @@ class ScoreWindow(pyglet.window.Window):  # noqa
 
                     y -= self._cfg.MEASURE_OFFSET
 
-                for barline_verts in measure_area_barlines:
-                    if barline_verts[0] != 0:
-                        barline_verts[0] = int(x + max_measure_area)
-                        barline_verts[2] = int(x + max_measure_area)
+                for barline in measure_area_barlines:
+                    if barline.x != 0: #TODO Change to check if Barline location is not left
+                        barline.x = int(x + max_measure_area)
 
                 if measure_area.measure.has_irregular_rs_barline():
                     for irr_barline_label in measure_area_irr_barline_labels:
-                        irr_barline_label.x = int(x + max_measure_area)
-                        irr_barline_label.batch = self.batch
-                    for irr_barline_verts in measure_area_irr_barlines:
-                        if irr_barline_verts[0] != 0:
-                            irr_barline_verts[0] = int(x + max_measure_area)
-                            irr_barline_verts[2] = int(
-                                x + max_measure_area + measure_area.irr_barline_labels[0].content_width)
+                        irr_barline_label.x = int(x + max_measure_area - irr_barline_label.content_width)
+                        self.barline_shapes.append(irr_barline_label)
+                    for irr_barline in measure_area_irr_barlines:
+                        if irr_barline.x_start != 0: #TODO Change to check if Barline location is not left
+                            irr_barline.x_start = int(x + max_measure_area - irr_barline_label.content_width)
+                            irr_barline.x_end = int(x + max_measure_area)
 
                 self.barlines.extend(measure_area_barlines)
                 self.irr_barlines.extend(measure_area_irr_barlines)
@@ -180,36 +179,51 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.draw_barlines()
         self.draw_irr_barlines()
 
-    def draw_irr_barlines(self):
-        for i in range(len(self.irr_barline_labels)):
-            x_start = self.irr_barlines[i][0]
-            y_start = self.irr_barlines[i][1]
-            x_end = self.irr_barlines[i][2]
-            y_end = self.irr_barlines[i][3]
+    def draw_irr_barlines(self) -> None:
+        used_barlines = list()
+        for i in range(len(self.irr_barlines)):
+            if i in used_barlines:
+                continue
 
-            for vert in self.irr_barlines:
-                if vert[0] == x_start:
-                    y_start = vert[1]
-            if (self.irr_barline_labels[0].gtype.glyph == 'repeatRight'):
-                x_start = x_start + 4
-                x_end = x_end - 10
-                rectangle = shapes.Rectangle(
-                    x_start, y_start, x_end - x_start, y_end - y_start, color=_RGB_BLACK, batch=self.batch)
-                line = shapes.Line(x_start - 5, y_start, x_start - 5,
-                                   y_end, width=1, color=_RGB_BLACK, batch=self.batch)
-                self.barline_shapes.append(rectangle)
-                self.barline_shapes.append(line)
-        # TODO Modify the connecting barline shapes for different irregular barlines
+            x_start = self.irr_barlines[i].x_start
+            x_end = self.irr_barlines[i].x_end
+            y_bottom = self.irr_barlines[i].y_bottom
+            y_top = self.irr_barlines[i].y_top
+            for j in range(len(self.irr_barlines)):
+                if j in used_barlines:
+                    continue
+                if (self.irr_barlines[j].measure == self.irr_barlines[i].measure and self.irr_barlines[j].x_start == x_start):
+                    y_bottom = self.irr_barlines[j].y_bottom
+                    used_barlines.append(j)
+            match self.irr_barlines[i].barlinetype:
+                case BarlineType.RIGHT_REPEAT:
+                    rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2/3), y_top, (x_end - x_start)/3 , y_bottom - y_top , color=_RGB_BLACK, batch=self.batch)
+                    line = shapes.Line(x_start + (x_end - x_start)/3 + 2 , y_top, x_start + (x_end - x_start)/3 + 2, y_bottom, width=4, color=_RGB_BLACK, batch=self.batch)
+                    self.barline_shapes.append(rectangle)
+                    self.barline_shapes.append(line)
+                case BarlineType.FINAL:
+                    rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2/5) + 1, y_top, ((x_end - x_start) * 3/5) , y_bottom - y_top , color=_RGB_BLACK, batch=self.batch)
+                    line = shapes.Line(x_start + 1, y_top, x_start + 1, y_bottom, width=4, color=_RGB_BLACK, batch=self.batch)
+                    self.barline_shapes.append(rectangle)
+                    self.barline_shapes.append(line)
+                #TODO add more cases for the different barline types
 
     def draw_barlines(self) -> None:
+        used_barlines = list()
+
         for i in range(len(self.barlines)):
-            x = self.barlines[i][0]
-            y_start = self.barlines[i][1]
-            y_end = self.barlines[i][3]
-            for vert in self.barlines[i:]:
-                if vert[0] == x:
-                    y_start = vert[1]
-            line = shapes.Line(x, y_start, x, y_end, width=2, color=_RGB_BLACK, batch=self.batch)
+            if i in used_barlines:
+                continue
+            x = self.barlines[i].x
+            y_bottom = self.barlines[i].y_bottom
+            y_top = self.barlines[i].y_top
+            for j in range(len(self.barlines)):
+                if j in used_barlines:
+                    continue
+                if (self.barlines[j].measure == self.barlines[i].measure and self.barlines[j].x == x):
+                    y_bottom = self.barlines[j].y_bottom
+                    used_barlines.append(j)
+            line = shapes.Line(x, y_top, x, y_bottom, width=2, color=_RGB_BLACK, batch=self.batch)
             self.barline_shapes.append(line)
 
     def on_draw(self, dt=None) -> None:
