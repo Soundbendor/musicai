@@ -76,6 +76,10 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.info_layout = None
         self.info_batch = pyglet.graphics.Batch()
         self.generate_info_layout()
+        self.sprite_x1 = self.info_sprite.x
+        self.sprite_x2 = self.info_sprite.x + self.info_sprite.width
+        self.sprite_y1 = self.info_sprite.y
+        self.sprite_y2 = self.info_sprite.y + self.info_sprite.height
 
     '''
     Sets new values window dimensions in config file after resize
@@ -401,8 +405,12 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         pyglet.app.run()
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
-        self._x_mouse_movement(x)
-        self._y_mouse_movement(y)
+        if self.sprite_x1 < x < self.sprite_x2 and self.sprite_y1 < y < self.sprite_y2:
+            self.x_movement = 0
+            self.y_movement = 0
+        else:
+            self._x_mouse_movement(x)
+            self._y_mouse_movement(y)
 
     def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int) -> None:
         if _DEBUG:
