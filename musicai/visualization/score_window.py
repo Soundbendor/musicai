@@ -405,6 +405,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         pyglet.app.run()
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
+        # stop screen movement when hovering info button
         if self.sprite_x1 < x < self.sprite_x2 and self.sprite_y1 < y < self.sprite_y2:
             self.x_movement = 0
             self.y_movement = 0
