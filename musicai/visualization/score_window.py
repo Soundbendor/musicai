@@ -77,12 +77,10 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.info_batch = pyglet.graphics.Batch()
         self.generate_info_layout()
 
-
     '''
     Sets new values window dimensions in config file after resize
     '''
-
-    def on_resize(self, width, height):
+    def on_resize(self, width: float, height: float):
         self._cfg.SCREEN_WIDTH = self.width
         self._cfg.SCREEN_HEIGHT = self.height
         if self.info_layout:
@@ -115,10 +113,10 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         arc_height = 50
         arc_horizontal_offset = 20
 
-        main_arc = shapes.BezierCurve((x_start, y_start), 
+        main_arc = shapes.BezierCurve((x_start, y_start),
                                       (x_start + arc_horizontal_offset, y_start + arc_height),
                                       (x_end - arc_horizontal_offset, y_end + arc_height),
-                                      (x_end, y_end), 
+                                      (x_end, y_end),
                                       t=1,
                                       segments=100,
                                       color=_RGB_BLACK,
@@ -126,23 +124,23 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         main_arc.position = (x_start, y_start)
         arc_labels.append(main_arc)
         for i in range(1, WindowConfig().MUSIC_ARC_SIZE):
-            upper_arc = shapes.BezierCurve((x_start, y_start), 
-                                        (x_start + arc_horizontal_offset, y_start + arc_height + i),
-                                        (x_end - arc_horizontal_offset, y_end + arc_height + i),
-                                        (x_end, y_end), 
-                                        t=1,
-                                        segments=100,
-                                        color=_RGB_BLACK,
-                                        batch=self.batch)
-            lower_arc = shapes.BezierCurve((x_start, y_start), 
-                                      (x_start + arc_horizontal_offset, y_start + arc_height - i),
-                                      (x_end - arc_horizontal_offset, y_end + arc_height - i),
-                                      (x_end, y_end), 
-                                      t=1,
-                                      segments=100,
-                                      color=_RGB_BLACK,
-                                      batch=self.batch)
-            
+            upper_arc = shapes.BezierCurve((x_start, y_start),
+                                           (x_start + arc_horizontal_offset, y_start + arc_height + i),
+                                           (x_end - arc_horizontal_offset, y_end + arc_height + i),
+                                           (x_end, y_end),
+                                           t=1,
+                                           segments=100,
+                                           color=_RGB_BLACK,
+                                           batch=self.batch)
+            lower_arc = shapes.BezierCurve((x_start, y_start),
+                                           (x_start + arc_horizontal_offset, y_start + arc_height - i),
+                                           (x_end - arc_horizontal_offset, y_end + arc_height - i),
+                                           (x_end, y_end),
+                                           t=1,
+                                           segments=100,
+                                           color=_RGB_BLACK,
+                                           batch=self.batch)
+
             upper_arc.position = (x_start, y_start)
             lower_arc.position = (x_start, y_start)
             arc_labels.append(upper_arc)
@@ -219,7 +217,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                 measure_area_end_slurs = list()
                 measure_area_start_ties = list()
                 measure_area_end_ties = list()
-                start_y  =  y 
+                start_y = y
 
                 for part in system.parts:
                     measure_area = MeasureArea(
@@ -246,7 +244,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                     y -= self._cfg.MEASURE_OFFSET
 
                 for barline in measure_area_barlines:
-                    if barline.x != 0: #TODO Change to check if Barline location is not left
+                    if barline.x != 0:  # TODO Change to check if Barline location is not left
                         barline.x = int(x + max_measure_area)
 
                 if measure_area.measure.has_irregular_rs_barline():
@@ -254,19 +252,19 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                         irr_barline_label.x = int(x + max_measure_area - irr_barline_label.content_width)
                         self.barline_shapes.append(irr_barline_label)
                     for irr_barline in measure_area_irr_barlines:
-                        if irr_barline.x_start != 0: #TODO Change to check if Barline location is not left
+                        if irr_barline.x_start != 0:  # TODO Change to check if Barline location is not left
                             irr_barline.x_start = int(x + max_measure_area - irr_barline_label.content_width)
                             irr_barline.x_end = int(x + max_measure_area)
 
                 self.barlines.extend(measure_area_barlines)
                 self.irr_barlines.extend(measure_area_irr_barlines)
                 self.irr_barline_labels.extend(measure_area_irr_barline_labels)
-                
+
                 self.slur_start_verts.append(measure_area_start_slurs)
                 self.slur_end_verts.append(measure_area_end_slurs)
                 self.tie_start_verts.append(measure_area_start_ties)
                 self.tie_end_verts.append(measure_area_end_ties)
-                
+
                 self.measure_area_width.append(max_measure_area)
                 x += max_measure_area
                 self.score_width = x
@@ -307,21 +305,27 @@ class ScoreWindow(pyglet.window.Window):  # noqa
             for j in range(len(self.irr_barlines)):
                 if j in used_barlines:
                     continue
-                if (self.irr_barlines[j].measure == self.irr_barlines[i].measure and self.irr_barlines[j].x_start == x_start):
+                if (self.irr_barlines[j].measure == self.irr_barlines[i].measure and self.irr_barlines[
+                    j].x_start == x_start):
                     y_bottom = self.irr_barlines[j].y_bottom
                     used_barlines.append(j)
             match self.irr_barlines[i].barlinetype:
                 case BarlineType.RIGHT_REPEAT:
-                    rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2/3), y_top, (x_end - x_start)/3 , y_bottom - y_top , color=_RGB_BLACK, batch=self.batch)
-                    line = shapes.Line(x_start + (x_end - x_start)/3 + 2 , y_top, x_start + (x_end - x_start)/3 + 2, y_bottom, width=4, color=_RGB_BLACK, batch=self.batch)
+                    rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2 / 3), y_top, (x_end - x_start) / 3,
+                                                 y_bottom - y_top, color=_RGB_BLACK, batch=self.batch)
+                    line = shapes.Line(x_start + (x_end - x_start) / 3 + 2, y_top, x_start + (x_end - x_start) / 3 + 2,
+                                       y_bottom, width=4, color=_RGB_BLACK, batch=self.batch)
                     self.barline_shapes.append(rectangle)
                     self.barline_shapes.append(line)
                 case BarlineType.FINAL:
-                    rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2/5) + 1, y_top, ((x_end - x_start) * 3/5) , y_bottom - y_top , color=_RGB_BLACK, batch=self.batch)
-                    line = shapes.Line(x_start + 1, y_top, x_start + 1, y_bottom, width=4, color=_RGB_BLACK, batch=self.batch)
+                    rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2 / 5) + 1, y_top,
+                                                 ((x_end - x_start) * 3 / 5), y_bottom - y_top, color=_RGB_BLACK,
+                                                 batch=self.batch)
+                    line = shapes.Line(x_start + 1, y_top, x_start + 1, y_bottom, width=4, color=_RGB_BLACK,
+                                       batch=self.batch)
                     self.barline_shapes.append(rectangle)
                     self.barline_shapes.append(line)
-                #TODO add more cases for the different barline types
+                # TODO add more cases for the different barline types
 
     def draw_barlines(self) -> None:
         used_barlines = list()
@@ -357,6 +361,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
     '''
     Creates info layout that displays score information when info sprite is clicked.
     '''
+
     def generate_info_layout(self):
         if not self.info_layout:
             title = self.score.metadata.title if self.score.metadata.title else '---'
@@ -370,12 +375,14 @@ class ScoreWindow(pyglet.window.Window):  # noqa
             if self.score.metadata.creators:
                 def join_tuple(str_tuple) -> str:
                     return ' '.join(str_tuple)
+
                 temp = map(join_tuple, self.score.metadata.creators)
                 creators = ', '.join(temp)
             rights = '---'
             if self.score.metadata.rights:
                 def join_tuple(str_tuple) -> str:
                     return ' '.join(str_tuple)
+
                 temp = map(join_tuple, self.score.metadata.rights)
                 rights = ', '.join(temp)
 
@@ -477,6 +484,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
     Mouse click event handler
     Toggles display_info boolean if click is on info sprite
     '''
+
     def on_mouse_press(self, x, y, button, modifiers):
         sprite_x1 = self.info_sprite.x
         sprite_x2 = self.info_sprite.x + self.info_sprite.width
@@ -484,4 +492,3 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         sprite_y2 = self.info_sprite.y + self.info_sprite.height
         if (sprite_x1 < x < sprite_x2) and (sprite_y1 < y < sprite_y2):
             self.display_info = not self.display_info
-
