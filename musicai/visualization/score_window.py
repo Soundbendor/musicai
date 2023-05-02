@@ -62,6 +62,8 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self._initialize_display_elements()
         self.x_movement = 0
         self.y_movement = 0
+        self.camera_x = 0
+        self.camera_y = 0
         x, y = self.get_location()
         # maximum/minimum sizes of window
         #   (note: this is background size, when increasing maximum size also increase background size)
@@ -281,7 +283,8 @@ class ScoreWindow(pyglet.window.Window):  # noqa
 
     def _initialize_display_elements(self) -> None:
         self.background = pyglet.image.SolidColorImagePattern(
-            (255, 255, 255, 255)).create_image(self.width, self.height)
+            # (255, 255, 255, 255)).create_image(self.width, self.height)
+            (255, 255, 255, 255)).create_image(10000, 10000)
         self.load_labels(0, self.height - self._cfg.TOP_OFFSET, self.score.systems)
 
         num_parts = len(self.score.systems[0].parts)
@@ -351,9 +354,12 @@ class ScoreWindow(pyglet.window.Window):  # noqa
 
     def on_draw(self, dt=None) -> None:
         self.clear()
-        self.background.blit(0, 0)
+        self.background.blit(-1 * (self.width // 2), -1 * (self.height // 2))
 
-        self._update_coordinates()
+        self.camera_x += self.x_movement
+        self.camera_y += self.y_movement
+        self.view = self.view.from_translation(pyglet.math.Vec3(self.camera_x, self.camera_y, 0))
+        # self._update_coordinates()
 
         self.batch.draw()
         if self.display_info:
