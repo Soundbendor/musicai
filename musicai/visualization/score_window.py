@@ -359,6 +359,11 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.camera_x += self.x_movement
         self.camera_y += self.y_movement
         self.view = self.view.from_translation(pyglet.math.Vec3(self.camera_x, self.camera_y, 0))
+        # move info sprite and layout to opposite of screen movement to keep in place
+        self.info_sprite.x -= self.x_movement
+        self.info_sprite.y -= self.y_movement
+        self.info_layout.x -= self.x_movement
+        self.info_layout.y -= self.y_movement
         # self._update_coordinates()
 
         self.batch.draw()
@@ -501,9 +506,5 @@ class ScoreWindow(pyglet.window.Window):  # noqa
     '''
 
     def on_mouse_press(self, x, y, button, modifiers):
-        sprite_x1 = self.info_sprite.x
-        sprite_x2 = self.info_sprite.x + self.info_sprite.width
-        sprite_y1 = self.info_sprite.y
-        sprite_y2 = self.info_sprite.y + self.info_sprite.height
-        if (sprite_x1 < x < sprite_x2) and (sprite_y1 < y < sprite_y2):
+        if (self.sprite_x1 < x < self.sprite_x2) and (self.sprite_y1 < y < self.sprite_y2):
             self.display_info = not self.display_info
