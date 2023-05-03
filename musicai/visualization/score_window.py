@@ -58,6 +58,8 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.zoom = 1
         self.score_width = 0
         self.score_height = 0
+        self.score_height_min = 0
+        self.score_height_max = 0
         self.background = None
         self._initialize_display_elements()
         self.x_movement = 0
@@ -278,14 +280,18 @@ class ScoreWindow(pyglet.window.Window):  # noqa
 
             for part in system.parts:
                 y -= self._cfg.MEASURE_OFFSET
-            self.score_height = y
+            self.score_height_min = y
             x = 0
 
     def _initialize_display_elements(self) -> None:
         self.background = pyglet.image.SolidColorImagePattern(
             # (255, 255, 255, 255)).create_image(self.width, self.height)
             (255, 255, 255, 255)).create_image(10000, 10000)
+        
+        self.score_height_max = self.height + self._cfg.TOP_OFFSET
         self.load_labels(0, self.height - self._cfg.TOP_OFFSET, self.score.systems)
+
+        self.score_height = self.score_height_max - self.score_height_min
 
         num_parts = len(self.score.systems[0].parts)
         self.staff_lines = Staff(num_parts=num_parts, measure_widths=self.measure_area_width,
