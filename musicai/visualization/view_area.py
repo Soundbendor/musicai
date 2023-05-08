@@ -229,6 +229,22 @@ class IrregularBarline:
         return label
     
 
+class ArcPoint:
+    def __init__(self, x: int = None, y: int = None, type: SlurType | TieType = None, direction: int = None, beamed: bool = False, value: int = None) -> None:
+        self.arctype = type
+        self.x = x
+        self.y = y
+        self.beam_offset = 0
+        self.direction = direction
+        self.beamed = beamed
+        self.value = value # 0 if end 1 if start
+
+    def __str__(self) -> str:
+        ret_str = ''
+        ret_str += str(self.arctype) + ' '
+        ret_str += 'x: ' + str(self.x) + ', y:' + str(self.y) + ' '
+        return ret_str
+
 class PartDisplay:
     def __init__(self):
         self.measures = None
@@ -265,10 +281,8 @@ class MeasureArea:
         self.hairpin_end = []
         self.index = idx
         self.key_sig_width = key_sig_width
-        self.slur_start = []
-        self.slur_end = []
-        self.tie_start = []
-        self.tie_end = []
+        self.slur_points = []
+        self.tie_points = []
         self.beam_lines = []
         self.stems = []
         self.layout()
@@ -391,10 +405,13 @@ class MeasureArea:
             # note satellites
             self.layout_satellites(x, y, line_offset, n)
 
+            stem_dir = -1
             if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
                 gtype = GlyphType.NOTE_UP
+                stem_dir = 1
             else:
                 gtype = GlyphType.NOTE_DOWN
+                stem_dir = 0
 
             notehead = self.get_notehead(n)
 
@@ -409,18 +426,15 @@ class MeasureArea:
             self.layout_ledger_lines(
                 x, y, line_offset, note)
             
+            note_arc: ArcPoint | None = None
             # note marks (slurs, ties)
             for mark in n.marks:
                 if isinstance(mark, SlurType):
-                    if mark.value == 1:
-                        self.slur_start.append((x, y + 8 + (line_offset + 1) * (self.spacing // 2)))
-                    elif mark.value == 0:
-                        self.slur_end.append((x, y + 8 + (line_offset + 1) * (self.spacing // 2)))
+                    note_arc = ArcPoint(x - 2, y + 8 + (line_offset + 1) * (self.spacing // 2), SlurType, stem_dir, True, mark.value)
+                    self.slur_points.append(note_arc)
                 elif isinstance(mark, TieType):
-                    if mark.value == 1:
-                        self.tie_start.append((x, y + 8 + (line_offset + 1) * (self.spacing // 2)))
-                    elif mark.value == 0:
-                        self.tie_end.append((x, y + 8 + (line_offset + 1) * (self.spacing // 2)))
+                    note_arc = ArcPoint(x - 2, y + 8 + (line_offset + 1) * (self.spacing // 2), TieType, stem_dir, True, mark.value)
+                    self.tie_points.append(note_arc)
 
             # x offset for notes
             x += self._cfg.NOTE_WIDTH * float(note.value) * 20
@@ -553,6 +567,21 @@ class MeasureArea:
                 for i in range(len(self.stems) - len(beam_nums), len(self.stems)):
                     self.stems[i][3] += (max(beam_nums) - 1) * \
                         stem_direction * (self.spacing // 2)
+                
+                for i in range(len(self.stems)):
+                    slur_idx = 0
+                    tie_idx = 0
+
+                    for j in range(slur_idx, len(self.slur_points)):
+                        if (self.stems[i][0] - x_offset) == self.slur_points[j].x:
+                            self.slur_points[j].beam_offset = self.stems[i][3] - self.slur_points[j].y + 20
+                            slur_idx = j + 1
+
+                    for j in range(tie_idx, len(self.tie_points)):
+                        if (self.stems[i][0] - x_offset) == self.tie_points[j].x:
+                            self.tie_points[j].beam_offset = self.stems[i][3] - self.tie_points[j].y + 20
+                            tie_idx = j + 1
+
             # TODO split stem
             elif beam_direction == 3:
                 pass
@@ -601,10 +630,13 @@ class MeasureArea:
             # note satellites
             self.layout_satellites(x, y, line_offset, n)
             # notes
+            stem_dir = -1
             if str(n.stem) == 'StemType.UP':    # Need to find better way not using str()
                 gtype = GlyphType.NOTE_UP
+                stem_dir = 1
             else:
                 gtype = GlyphType.NOTE_DOWN
+                stem_dir = 0
             self.add_label(
                 n.glyph, gtype, x=x, y=y + 3 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align glyph with
             # staff
@@ -613,18 +645,14 @@ class MeasureArea:
             self.layout_ledger_lines(
                 x, y, line_offset, note)
             
+            note_arc: ArcPoint | None = None
             for mark in n.marks:
                 if isinstance(mark, SlurType):
-                    if mark.value == 1:
-                        self.slur_start.append((x, y + 3 + (line_offset + 1) * (self.spacing // 2)))
-                    elif mark.value == 0:
-                        self.slur_end.append((x, y + 3 + (line_offset + 1) * (self.spacing // 2)))
+                    note_arc = ArcPoint(x, y + 3 + (line_offset + 1) * (self.spacing // 2), SlurType, stem_dir, False, mark.value)
+                    self.slur_points.append(note_arc)
                 elif isinstance(mark, TieType):
-                    if mark.value == 1:
-                        self.tie_start.append((x, y + 3 + (line_offset + 1) * (self.spacing // 2)))
-                    elif mark.value == 0:
-                        self.tie_end.append((x, y + 3 + (line_offset + 1) * (self.spacing // 2)))
-
+                    note_arc = ArcPoint(x, y + 3 + (line_offset + 1) * (self.spacing // 2), TieType, stem_dir, False, mark.value)
+                    self.tie_points.append(note_arc)
             # x offset for notes
             # x += note_label.content_width + int((6 * (100 * n.value))) * float(n.value) * 15
             x += self._cfg.NOTE_WIDTH * float(note.value) * 20
