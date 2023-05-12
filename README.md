@@ -27,6 +27,9 @@ window.display()
 An example of default configuration can be seen in `visualization/.msvconfig`. An edited configuration can be passed as 
 an argument to the `WindowConfig()` constructor.
 
+### Module Structure
+![plot](./musicAI_structure.png)
+
 ### Visualization Features
 #### Window and Slicing:
 - Scrolling
