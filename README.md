@@ -23,7 +23,7 @@ For in depth design, requirements, and scheduling:
  - `numpy`
  - `scipy`
  - `python-dotenv`
- - 
+
 #### Installing Dependencies
 
 To install dependencies, run `musicai/install.sh`.
