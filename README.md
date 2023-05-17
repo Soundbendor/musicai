@@ -47,11 +47,20 @@ An example of default configuration can be seen in `visualization/.msvconfig`. A
 an argument to the `WindowConfig()` constructor.
 
 ### Visualization Features
-#### Window and Slicing:
+#### Score Slicing:
+The musical score object can be sliced using built-in functions and the slice operator '[]'
+- Slice by measures:
+```python
+score[start:stop]
+```
+- Slice by parts:
+```python
+score.slice_parts(start, stop)
+```
+#### Window:
 - Scrolling
 - Resizing
 - Score Information
-- Structure Slicing
 #### Glyph Placement:
 - Staff Lines
 - Time Signature
