@@ -1,6 +1,21 @@
 # musicAI
 
 ## Music Score Visualization
+
+### Project Motivation
+Currently, there exist few, if any, free and open source tools available that display symbolic music notation. 
+Most of these existing tools are proprietary and expensive. 
+The goal of the project is to create a programmable solution that will enable the visualization of symbolic music in Python, 
+drawing the music notation using an existing glyph-based musical font. This project creates a read-only music visualization 
+interface that handles MIDI or MusicXML input and displays an interactive musical score in a view window. 
+This software is designed for the Soundbendor lab, who need a visualization package to support their research involving 
+music and artificial intelligence. This project serves as a foundation for future improvements and functionality. 
+This work will allow researchers, or anyone working with MIDI or MusicXML music files, to better visualize, analyze, and 
+understand the results of their musical research at a decreased cost.
+
+For in depth design, requirements, and scheduling:
+[score-visualization_5.0](musicai/design_docs/score-visualization_5.0.pdf)
+
 ### Project Dependencies
  - `pyglet`
  - `numpy`
@@ -28,7 +43,7 @@ An example of default configuration can be seen in `visualization/.msvconfig`. A
 an argument to the `WindowConfig()` constructor.
 
 ### Module Structure
-![plot](./musicAI_structure.png)
+![plot](musicai/design_docs/musicAI_structure.png)
 
 ### Visualization Features
 #### Window and Slicing:
