@@ -59,7 +59,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.score_height_min = 0
         self.score_height_max = 0
         self.background = None
-        self._initialize_display_elements()
+        self._initialize_display_elements() # entrance to drawing algorithm
         self.x_movement = 0
         self.y_movement = 0
         self.camera_x = 0
@@ -77,22 +77,38 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         self.display_info = False
         self.info_layout = None
         self.info_batch = pyglet.graphics.Batch()
-        self.generate_info_layout()
+        self._generate_info_layout()
         self.sprite_x1 = self.info_sprite.x
         self.sprite_x2 = self.info_sprite.x + self.info_sprite.width
         self.sprite_y1 = self.info_sprite.y
         self.sprite_y2 = self.info_sprite.y + self.info_sprite.height
 
-    '''
-    Sets new values window dimensions in config file after resize
-    '''
-    def on_resize(self, width: float, height: float):
-        self._cfg.SCREEN_WIDTH = self.width
-        self._cfg.SCREEN_HEIGHT = self.height
-        if self.info_layout:
-            self.info_layout.y = self.height - 150
+    def display(self) -> None:
+        pyglet.app.run()
 
-    def draw_hairpins(self) -> None:
+    def _initialize_display_elements(self) -> None:
+        self.background = pyglet.image.SolidColorImagePattern(
+            # (255, 255, 255, 255)).create_image(self.width, self.height)
+            (255, 255, 255, 255)).create_image(10000, 10000)
+
+        self.score_height_max = self.height + self._cfg.TOP_OFFSET
+        self._load_labels(0, self.height - self._cfg.TOP_OFFSET, self.score.systems)
+
+        self.score_height = self.score_height_max - self.score_height_min
+
+        num_parts = len(self.score.systems[0].parts)
+        self.staff_lines = Staff(num_parts=num_parts, measure_widths=self.measure_area_width,
+                                 height=self.height, batch=self.batch).staff_lines()
+        self.ledger_lines = LedgerLine(ledger_coords=self.ledger_line_verts, batch=self.batch).ledger_lines()
+        self._draw_beams()
+        self._draw_stems()
+        self._draw_slurs()
+        self._draw_ties()
+        self._draw_hairpins()
+        self._draw_barlines()
+        self._draw_irr_barlines()
+
+    def _draw_hairpins(self) -> None:
         for i in range(len(self.hairpin_start_verts)):
             y = self.hairpin_start_verts[i][1]
             x_start = self.hairpin_start_verts[i][0]
@@ -248,10 +264,63 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                 drawn_arcs = self._draw_arc(x_start, y_start, x_end, y_end, start_stem_dir, end_stem_dir, start_beam_offset, end_beam_offset)
                 self.slur_arcs.extend(drawn_arcs)
 
-    def load_barlines(self, measure_area):
+    def _draw_irr_barlines(self) -> None:
+        used_barlines = list()
+        for i in range(len(self.irr_barlines)):
+            if i in used_barlines:
+                continue
+
+            x_start = self.irr_barlines[i].x_start
+            x_end = self.irr_barlines[i].x_end
+            y_bottom = self.irr_barlines[i].y_bottom
+            y_top = self.irr_barlines[i].y_top
+            for j in range(len(self.irr_barlines)):
+                if j in used_barlines:
+                    continue
+                if (self.irr_barlines[j].measure == self.irr_barlines[i].measure and self.irr_barlines[
+                    j].x_start == x_start):
+                    y_bottom = self.irr_barlines[j].y_bottom
+                    used_barlines.append(j)
+            match self.irr_barlines[i].barlinetype:
+                case BarlineType.RIGHT_REPEAT:
+                    rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2 / 3), y_top, (x_end - x_start) / 3,
+                                                 y_bottom - y_top, color=_RGB_BLACK, batch=self.batch)
+                    line = shapes.Line(x_start + (x_end - x_start) / 3 + 2, y_top, x_start + (x_end - x_start) / 3 + 2,
+                                       y_bottom, width=4, color=_RGB_BLACK, batch=self.batch)
+                    self.barline_shapes.append(rectangle)
+                    self.barline_shapes.append(line)
+                case BarlineType.FINAL:
+                    rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2 / 5) + 1, y_top,
+                                                 ((x_end - x_start) * 3 / 5), y_bottom - y_top, color=_RGB_BLACK,
+                                                 batch=self.batch)
+                    line = shapes.Line(x_start + 1, y_top, x_start + 1, y_bottom, width=4, color=_RGB_BLACK,
+                                       batch=self.batch)
+                    self.barline_shapes.append(rectangle)
+                    self.barline_shapes.append(line)
+                # TODO add more cases for the different barline types
+
+    def _draw_barlines(self) -> None:
+        used_barlines = list()
+
+        for i in range(len(self.barlines)):
+            if i in used_barlines:
+                continue
+            x = self.barlines[i].x
+            y_bottom = self.barlines[i].y_bottom
+            y_top = self.barlines[i].y_top
+            for j in range(len(self.barlines)):
+                if j in used_barlines:
+                    continue
+                if (self.barlines[j].measure == self.barlines[i].measure and self.barlines[j].x == x):
+                    y_bottom = self.barlines[j].y_bottom
+                    used_barlines.append(j)
+            line = shapes.Line(x, y_top, x, y_bottom, width=2, color=_RGB_BLACK, batch=self.batch)
+            self.barline_shapes.append(line)
+
+    def _load_barlines(self, measure_area):
         self.barlines.append(measure_area.get_barlines())
 
-    def load_labels(self, x: int = 0, y: int = 0, systems: list[PartSystem] = None) -> None:
+    def _load_labels(self, x: int = 0, y: int = 0, systems: list[PartSystem] = None) -> None:
         key_sig_width = MeasureArea.max_key_sig_width(systems)
         for system in self.score.systems:
             for measure_idx in range(len(system.parts[0].measures)):
@@ -314,107 +383,11 @@ class ScoreWindow(pyglet.window.Window):  # noqa
             self.score_height_min = y
             x = 0
 
-    def _initialize_display_elements(self) -> None:
-        self.background = pyglet.image.SolidColorImagePattern(
-            # (255, 255, 255, 255)).create_image(self.width, self.height)
-            (255, 255, 255, 255)).create_image(10000, 10000)
-        
-        self.score_height_max = self.height + self._cfg.TOP_OFFSET
-        self.load_labels(0, self.height - self._cfg.TOP_OFFSET, self.score.systems)
-
-        self.score_height = self.score_height_max - self.score_height_min
-
-        num_parts = len(self.score.systems[0].parts)
-        self.staff_lines = Staff(num_parts=num_parts, measure_widths=self.measure_area_width,
-                                 height=self.height, batch=self.batch).staff_lines()
-        self.ledger_lines = LedgerLine(ledger_coords=self.ledger_line_verts, batch=self.batch).ledger_lines()
-        self._draw_beams()
-        self._draw_stems()
-        self._draw_slurs()
-        self._draw_ties()
-        self.draw_hairpins()
-        self.draw_barlines()
-        self.draw_irr_barlines()
-
-    def draw_irr_barlines(self) -> None:
-        used_barlines = list()
-        for i in range(len(self.irr_barlines)):
-            if i in used_barlines:
-                continue
-
-            x_start = self.irr_barlines[i].x_start
-            x_end = self.irr_barlines[i].x_end
-            y_bottom = self.irr_barlines[i].y_bottom
-            y_top = self.irr_barlines[i].y_top
-            for j in range(len(self.irr_barlines)):
-                if j in used_barlines:
-                    continue
-                if (self.irr_barlines[j].measure == self.irr_barlines[i].measure and self.irr_barlines[
-                    j].x_start == x_start):
-                    y_bottom = self.irr_barlines[j].y_bottom
-                    used_barlines.append(j)
-            match self.irr_barlines[i].barlinetype:
-                case BarlineType.RIGHT_REPEAT:
-                    rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2 / 3), y_top, (x_end - x_start) / 3,
-                                                 y_bottom - y_top, color=_RGB_BLACK, batch=self.batch)
-                    line = shapes.Line(x_start + (x_end - x_start) / 3 + 2, y_top, x_start + (x_end - x_start) / 3 + 2,
-                                       y_bottom, width=4, color=_RGB_BLACK, batch=self.batch)
-                    self.barline_shapes.append(rectangle)
-                    self.barline_shapes.append(line)
-                case BarlineType.FINAL:
-                    rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2 / 5) + 1, y_top,
-                                                 ((x_end - x_start) * 3 / 5), y_bottom - y_top, color=_RGB_BLACK,
-                                                 batch=self.batch)
-                    line = shapes.Line(x_start + 1, y_top, x_start + 1, y_bottom, width=4, color=_RGB_BLACK,
-                                       batch=self.batch)
-                    self.barline_shapes.append(rectangle)
-                    self.barline_shapes.append(line)
-                # TODO add more cases for the different barline types
-
-    def draw_barlines(self) -> None:
-        used_barlines = list()
-
-        for i in range(len(self.barlines)):
-            if i in used_barlines:
-                continue
-            x = self.barlines[i].x
-            y_bottom = self.barlines[i].y_bottom
-            y_top = self.barlines[i].y_top
-            for j in range(len(self.barlines)):
-                if j in used_barlines:
-                    continue
-                if (self.barlines[j].measure == self.barlines[i].measure and self.barlines[j].x == x):
-                    y_bottom = self.barlines[j].y_bottom
-                    used_barlines.append(j)
-            line = shapes.Line(x, y_top, x, y_bottom, width=2, color=_RGB_BLACK, batch=self.batch)
-            self.barline_shapes.append(line)
-
-    def on_draw(self, dt=None) -> None:
-        self.clear()
-        self.background.blit(-1 * (self.width // 2), -1 * (self.height // 2))
-
-        self.camera_x += self.x_movement
-        self.camera_y += self.y_movement
-        self.view = self.view.from_translation(pyglet.math.Vec3(self.camera_x, self.camera_y, 0))
-        # move info sprite and layout to opposite of screen movement to keep in place
-        self.info_sprite.x -= self.x_movement
-        self.info_sprite.y -= self.y_movement
-        self.info_layout.x -= self.x_movement
-        self.info_layout.y -= self.y_movement
-        # self._update_coordinates()
-
-        self.batch.draw()
-        if self.display_info:
-            self.info_batch.draw()
-        self.info_sprite.draw()
-        # TODO I'm not sure what this line does or if it needs to be included.
-        # pyglet.gl.glFlush()
-
     '''
     Creates info layout that displays score information when info sprite is clicked.
     '''
 
-    def generate_info_layout(self):
+    def _generate_info_layout(self):
         if not self.info_layout:
             title = self.score.metadata.title if self.score.metadata.title else '---'
             number = self.score.metadata.number if self.score.metadata.number else '---'
@@ -449,8 +422,27 @@ class ScoreWindow(pyglet.window.Window):  # noqa
             layout.anchor_y = 'top'
             self.info_layout = layout
 
-    def display(self) -> None:
-        pyglet.app.run()
+    '''
+    Below: code overloading pyglet window functions for UI functionality 
+    '''
+    def on_draw(self, dt=None) -> None:
+        self.clear()
+        self.background.blit(-1 * (self.width // 2), -1 * (self.height // 2))
+
+        self.camera_x += self.x_movement
+        self.camera_y += self.y_movement
+        self.view = self.view.from_translation(pyglet.math.Vec3(self.camera_x, self.camera_y, 0))
+        # move info sprite and layout to opposite of screen movement to keep in place
+        self.info_sprite.x -= self.x_movement
+        self.info_sprite.y -= self.y_movement
+        self.info_layout.x -= self.x_movement
+        self.info_layout.y -= self.y_movement
+        # self._update_coordinates()
+
+        self.batch.draw()
+        if self.display_info:
+            self.info_batch.draw()
+        self.info_sprite.draw()
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
         # stop screen movement when hovering info button
@@ -541,7 +533,15 @@ class ScoreWindow(pyglet.window.Window):  # noqa
     Mouse click event handler
     Toggles display_info boolean if click is on info sprite
     '''
-
     def on_mouse_press(self, x, y, button, modifiers):
         if (self.sprite_x1 < x < self.sprite_x2) and (self.sprite_y1 < y < self.sprite_y2):
             self.display_info = not self.display_info
+
+    '''
+    Sets new values window dimensions in config file after resize
+    '''
+    def on_resize(self, width: float, height: float):
+        self._cfg.SCREEN_WIDTH = self.width
+        self._cfg.SCREEN_HEIGHT = self.height
+        if self.info_layout:
+            self.info_layout.y = self.height - 150
