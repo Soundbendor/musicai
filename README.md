@@ -16,13 +16,14 @@ understand the results of their musical research at a decreased cost.
 For in depth design, requirements, and scheduling:
 [score-visualization_5.0](musicai/design_docs/score-visualization_5.0.pdf)
 
+## Quick Start
+
 ### Project Dependencies
  - `pyglet`
  - `numpy`
  - `scipy`
  - `python-dotenv`
-
-## Quick Start
+ - 
 #### Installing Dependencies
 
 To install dependencies, run `musicai/install.sh`.
