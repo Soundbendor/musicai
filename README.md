@@ -16,6 +16,9 @@ understand the results of their musical research at a decreased cost.
 For in depth design, requirements, and scheduling:
 [score-visualization_5.0](musicai/design_docs/score-visualization_5.0.pdf)
 
+### Module Structure
+![plot](musicai/design_docs/musicAI_structure.png)
+
 ## Quick Start
 
 ### Project Dependencies
@@ -42,9 +45,6 @@ window.display()
 **Note**: `WindowConfig()` is an instance of a window configuration file as defined in `visualization/window_config.py`.
 An example of default configuration can be seen in `visualization/.msvconfig`. An edited configuration can be passed as 
 an argument to the `WindowConfig()` constructor.
-
-### Module Structure
-![plot](musicai/design_docs/musicAI_structure.png)
 
 ### Visualization Features
 #### Window and Slicing:
