@@ -130,6 +130,9 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                 line[0], line[1], line[2], line[3], width=2, color=(0, 0, 0), batch=self.batch)
             self.stems.append(stem)
 
+    '''
+    Arc drawing algorithm used by Ties and Slurs
+    '''
     def _draw_arc(self, x_start, y_start, x_end, y_end, start_stem_dir, end_stem_dir, start_beam_offset, end_beam_offset):
         arc_labels = list()
         arc_height = 50
@@ -190,7 +193,10 @@ class ScoreWindow(pyglet.window.Window):  # noqa
             arc_labels.append(lower_arc)
 
         return arc_labels
-
+    
+    '''
+    Draws all ties for a score
+    '''
     def _draw_ties(self):
         start_verts_ordered = list()
         end_verts_ordered = list()
@@ -227,6 +233,9 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                 drawn_arcs = self._draw_arc(x_start, y_start, x_end, y_end, start_stem_dir, end_stem_dir, start_beam_offset, end_beam_offset)
                 self.tie_arcs.extend(drawn_arcs)
 
+    '''
+    Draws all slurs for a score
+    '''
     def _draw_slurs(self):
         start_verts_ordered = list()
         end_verts_ordered = list()
@@ -264,6 +273,9 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                 drawn_arcs = self._draw_arc(x_start, y_start, x_end, y_end, start_stem_dir, end_stem_dir, start_beam_offset, end_beam_offset)
                 self.slur_arcs.extend(drawn_arcs)
 
+    '''
+    Draws all irregular barlines for a score
+    '''
     def _draw_irr_barlines(self) -> None:
         used_barlines = list()
         for i in range(len(self.irr_barlines)):
@@ -317,7 +329,10 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                     self.barline_shapes.append(rectangle)
                     self.barline_shapes.append(line)
                 # TODO add more cases for the different barline types
-
+   
+    '''
+    Draws all regular barlines for a score.
+    '''
     def _draw_barlines(self) -> None:
         used_barlines = list()
 
@@ -339,10 +354,14 @@ class ScoreWindow(pyglet.window.Window):  # noqa
     def _load_barlines(self, measure_area):
         self.barlines.append(measure_area.get_barlines())
 
+    '''
+    Loads a measure and stores resulting labels in appropriate collections.
+    '''
     def _load_labels(self, x: int = 0, y: int = 0, systems: list[PartSystem] = None) -> None:
         key_sig_width = MeasureArea.max_key_sig_width(systems)
         for system in self.score.systems:
             for measure_idx in range(len(system.parts[0].measures)):
+                # Goes through the nth for every part before going to the next measure
                 max_measure_area = 0
                 measure_area_barlines = list()
                 measure_area_irr_barlines = list()
