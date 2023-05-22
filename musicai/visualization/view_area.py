@@ -300,19 +300,12 @@ class MeasureArea:
         else:
             x += self._cfg.BARLINE_SPACING
 
-        # x, y = self.layout_left_barline(x,y)
         x, y = self._layout_clef(x, y)
         x, y = self._layout_key_signature(x, y)
         x, y = self._layout_time_signature(x, y)
         beam_notes = []
-        note_idx = 0
         for note in self.measure.notes:
             if len(note.beams) == 0:
-                # self.layout_right_barline(x, y)
-                if not isinstance(note, Rest) or note_idx == 1:
-                    note_idx += 1
-                if note_idx == 1:
-                    self._layout_dynamic_markings(x, y - 30)
                 x, y, = self._layout_notes(note, x=x, y=y)
             else:
                 x, y, beam_notes = self._layout_beamed_notes(
@@ -588,6 +581,9 @@ class MeasureArea:
 
         return x, y, beam_notes
 
+    '''
+    Takes and lays out a note along with any note markings
+    '''
     def _layout_notes(self, note: Note, x: float, y: float):
         # TODO replace constant 10 with (staff) spacing // 2
         if isinstance(note, Rest):
@@ -687,6 +683,9 @@ class MeasureArea:
             glyph, GlyphType.ACCIDENTAL, x - 24, y + 10 + (line_offset + 1) * (self.spacing // 2))  # (+ 3) to align
         # glyph with staff
 
+    '''
+    Measure left barline
+    '''
     def _layout_left_barline(self, x: float, y: float):
         if isinstance(self.measure.barline, Barline):
             left_barline = IrregularBarline(self.measure.barline.barlinelocation, [x, y, y + self.area_height], self.measure.barline.barlinetype, self.index, self.batch)
@@ -699,6 +698,9 @@ class MeasureArea:
         x += self._cfg.BARLINE_SPACING
         return x, y
 
+    '''
+    Measure right barline
+    '''
     def _layout_right_barline(self, x: float, y: float):
         if isinstance(self.measure.barline, Barline):
             right_barline = IrregularBarline(self.measure.barline.barlinelocation, [x, y, y + self.area_height], self.measure.barline.barlinetype, self.index, self.batch)
@@ -915,16 +917,15 @@ class MeasureArea:
                     self.ledger_lines.append(ledger_line_verts)
                 num += 1
 
+    '''
+    Lays out dynamic markings at the measure-level
+    Currently disconnected from glyph placement algo
+    #TODO modify for struct change to handle dynamic markings at the note-level instead
+    '''
     def _layout_dynamic_markings(self, x: float, y: float):
-        # TODO: Fine tune X and Y placement and find a way to make hairpins look cleaner (less line aliasing?)
-        # Currently places all dynamic marks below the measure with a hardcoded offset
-        # Implement a way to offset vertically based on other elements at location
-
         glyph = ""
         for mark in self.measure.measure_marks:
             if isinstance(mark, DynamicMark):
-                # print("mark type start divisions ==", mark.dynamic_type, mark.start_point, mark.divisions,x)
-
                 if mark.dynamic_type == DynamicType.PIANO or mark.dynamic_type == DynamicType.FORTE:
                     glyph = "dynamic" + str(mark.dynamic_type)[12:].title()
                 else:
@@ -933,11 +934,8 @@ class MeasureArea:
                 dynamic_mark_label = self._add_label(
                     glyph, gtype, x + (float(mark.start_point/100) * 30 * self._cfg.NOTE_WIDTH), y)
             else:
-                x_spacing_start = mark.start_point/mark.divisions * self._cfg.NOTE_WIDTH * 20 * .25
-                x_spacing_end = mark.end_point/mark.divisions * self._cfg.NOTE_WIDTH * 20 * .25
-
-                # print("mark type start end divisions ==", mark.dynamic_change_type, mark.start_point, mark.end_point, mark.divisions, x)
-                # print("x_spacing_start x_spacing_end ==", x_spacing_start, x_spacing_end)
+                x_spacing_start = mark.start_point/mark.divisions * self._cfg.NOTE_WIDTH * 20 * .25 # Space using divisions multiplied by the width of a quarter note
+                x_spacing_end = mark.end_point/mark.divisions * self._cfg.NOTE_WIDTH * 20 * .25 # Space using divisions multiplied by the width of a quarter note
 
                 if mark.dynamic_change_type == DynamicChangeType.CRESCENDO:
                     self.hairpin_start.append((x + x_spacing_start, y))
@@ -945,8 +943,10 @@ class MeasureArea:
                 else:
                     self.hairpin_start.append((x + x_spacing_end, y))
                     self.hairpin_end.append((x + x_spacing_start, y))
-                pass
 
+    '''
+    Creates and returns a pyglet text label of the passed in glyph
+    '''
     def _add_label(self, glyph: str, gtype: GlyphType, x: float = 0, y: float = 0):
         glyph_id = Glyph.code(glyph)
         note_off = 0

@@ -280,7 +280,6 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                     j].x_start == x_start):
                     y_bottom = self.irr_barlines[j].y_bottom
                     used_barlines.append(j)
-            print("barline type: ", self.irr_barlines[i].barlinetype.glyph)
             match self.irr_barlines[i].barlinetype:
                 case BarlineType.RIGHT_REPEAT:
                     rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2 / 3), y_top, (x_end - x_start) / 3,
