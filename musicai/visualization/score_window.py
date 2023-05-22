@@ -269,7 +269,6 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         for i in range(len(self.irr_barlines)):
             if i in used_barlines:
                 continue
-
             x_start = self.irr_barlines[i].x_start
             x_end = self.irr_barlines[i].x_end
             y_bottom = self.irr_barlines[i].y_bottom
@@ -281,6 +280,7 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                     j].x_start == x_start):
                     y_bottom = self.irr_barlines[j].y_bottom
                     used_barlines.append(j)
+            print("barline type: ", self.irr_barlines[i].barlinetype.glyph)
             match self.irr_barlines[i].barlinetype:
                 case BarlineType.RIGHT_REPEAT:
                     rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2 / 3), y_top, (x_end - x_start) / 3,
@@ -289,6 +289,26 @@ class ScoreWindow(pyglet.window.Window):  # noqa
                                        y_bottom, width=4, color=_RGB_BLACK, batch=self.batch)
                     self.barline_shapes.append(rectangle)
                     self.barline_shapes.append(line)
+                case BarlineType.HEAVY:
+                    rectangle = shapes.Rectangle(x_start, y_top, (x_end - x_start), y_bottom - y_top, color=_RGB_BLACK, batch=self.batch)
+                    self.barline_shapes.append(rectangle)
+                case BarlineType.DOUBLE_HEAVY:
+                    glyph_size = (x_end + 1) - (x_start - 1)
+                    first_rectangle = shapes.Rectangle(x_start, y_top, glyph_size / 3, y_bottom - y_top, color=_RGB_BLACK, batch=self.batch)
+                    second_rectangle = shapes.Rectangle(x_end, y_top, - (glyph_size / 3), y_bottom - y_top, color=_RGB_BLACK, batch=self.batch)
+                    self.barline_shapes.append(first_rectangle)
+                    self.barline_shapes.append(second_rectangle)
+                case BarlineType.DOTTED:
+                    # TODO implement using rectangles and draw only from the end of a barline to the start of the next one
+                    pass
+                case BarlineType.DASHED:
+                    # TODO implement using rectangles and draw only from the end of a barline to the start of the next one
+                    pass
+                case BarlineType.DOUBLE:
+                    left_line = shapes.Line(x_start + 2, y_top, x_start + 2, y_bottom, width = 3, color=_RGB_BLACK, batch=self.batch)
+                    right_line = shapes.Line(x_end - 1, y_top, x_end - 1, y_bottom, width = 4, color=_RGB_BLACK, batch=self.batch)
+                    self.barline_shapes.append(left_line)
+                    self.barline_shapes.append(right_line)
                 case BarlineType.FINAL:
                     rectangle = shapes.Rectangle(x_start + ((x_end - x_start) * 2 / 5) + 1, y_top,
                                                  ((x_end - x_start) * 3 / 5), y_bottom - y_top, color=_RGB_BLACK,
