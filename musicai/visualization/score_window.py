@@ -452,12 +452,13 @@ class ScoreWindow(pyglet.window.Window):  # noqa
             layout_text = f'Title: {title}\nNumber: {number}\nComposer: {composer}\nCreator(s): {creators}\nRights: ' \
                           f'{rights}\nSource: {source}\nWork Title: {work_title}\nWork Number: {work_number}\nOpus Link: {opus_link}'
             document = pyglet.text.document.FormattedDocument(layout_text)
-            document.set_style(0, len(document.text), dict(font_name='Arial', font_size=16, color=(0, 0, 0, 255)))
+            document.set_style(0, len(document.text), dict(font_name='Arial', font_size=16, color=(0, 0, 0, 255), background_color=(255, 255, 255, 255)))
             layout = pyglet.text.layout.TextLayout(document, 600, 100,
                                                    multiline=True, batch=self.info_batch)
             layout.x = 10
             layout.y = self.height - 150
             layout.anchor_y = 'top'
+            layout.background_color = (0, 0, 0, 255)
             self.info_layout = layout
 
     '''
