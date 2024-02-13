@@ -482,43 +482,62 @@ class ScoreWindow(pyglet.window.Window):  # noqa
         if self.display_info:
             self.info_batch.draw()
         self.info_sprite.draw()
+  
+    #Michael Testing drag feature
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        # Move camera
+        self.camera_x += dx * self.zoom
+        self.camera_y += dy * self.zoom
 
-    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
-        # stop screen movement when hovering info button
-        if self.sprite_x1 < x < self.sprite_x2 and self.sprite_y1 < y < self.sprite_y2:
-            self.x_movement = 0
-            self.y_movement = 0
-        else:
-            self._x_mouse_movement(x)
-            self._y_mouse_movement(y)
+    def on_mouse_scroll(self, x, y, dx, dy):
+        scroll_sensitivity = 5
+        self.camera_x += dx * self.zoom * scroll_sensitivity
+        self.camera_y += dy * self.zoom * scroll_sensitivity
 
-    def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int) -> None:
-        if _DEBUG:
-            print(f"scroll - x: {x}, y: {y}, scroll_x: {scroll_x}, scroll_y: {scroll_y}")
+    # in progress
+    # def on_key_press(self, symbol, modifers):
+    #     if symbol == pyglet.window.key.PLUS:
+            
+    #     if symbol == pyglet.window.key.MINUS:
+            
 
-    def _x_mouse_movement(self, x_coord: int) -> None:
-        self.x_movement = self._mouse_movement_speed(x_coord, self._cfg.SCREEN_WIDTH)
+    # Legacy Code
+    # def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
+    #     # stop screen movement when hovering info button
+    #     if self.sprite_x1 < x < self.sprite_x2 and self.sprite_y1 < y < self.sprite_y2:
+    #         self.x_movement = 0
+    #         self.y_movement = 0
+    #     else:
+    #         self._x_mouse_movement(x)
+    #         self._y_mouse_movement(y)
 
-    def _y_mouse_movement(self, y_coord: int) -> None:
-        self.y_movement = self._mouse_movement_speed(y_coord, self._cfg.SCREEN_HEIGHT)
+    # def on_mouse_scroll(self, x: int, y: int, scroll_x: int, scroll_y: int) -> None:
+    #     if _DEBUG:
+    #         print(f"scroll - x: {x}, y: {y}, scroll_x: {scroll_x}, scroll_y: {scroll_y}")
 
-    def _mouse_movement_speed(self, coord: int, size: int) -> int:
-        if coord < (size // self._cfg.FAST_SIZE):
-            speed = self._cfg.FAST_MOVEMENT
-        elif coord < (size // self._cfg.SLOW_SIZE):
-            speed = self._cfg.SLOW_MOVEMENT
-        elif coord > (size - self._cfg.SCREEN_WIDTH // self._cfg.FAST_SIZE):
-            speed = -1 * self._cfg.FAST_MOVEMENT
-        elif coord > (size - self._cfg.SCREEN_WIDTH // self._cfg.SLOW_SIZE):
-            speed = -1 * self._cfg.SLOW_MOVEMENT
-        else:
-            speed = 0
+    # def _x_mouse_movement(self, x_coord: int) -> None:
+    #     self.x_movement = self._mouse_movement_speed(x_coord, self._cfg.SCREEN_WIDTH)
 
-        return speed
+    # def _y_mouse_movement(self, y_coord: int) -> None:
+    #     self.y_movement = self._mouse_movement_speed(y_coord, self._cfg.SCREEN_HEIGHT)
 
-    def on_mouse_leave(self, x: int, y: int) -> None:
-        self.x_movement = 0
-        self.y_movement = 0
+    # def _mouse_movement_speed(self, coord: int, size: int) -> int:
+    #     if coord < (size // self._cfg.FAST_SIZE):
+    #         speed = self._cfg.FAST_MOVEMENT
+    #     elif coord < (size // self._cfg.SLOW_SIZE):
+    #         speed = self._cfg.SLOW_MOVEMENT
+    #     elif coord > (size - self._cfg.SCREEN_WIDTH // self._cfg.FAST_SIZE):
+    #         speed = -1 * self._cfg.FAST_MOVEMENT
+    #     elif coord > (size - self._cfg.SCREEN_WIDTH // self._cfg.SLOW_SIZE):
+    #         speed = -1 * self._cfg.SLOW_MOVEMENT
+    #     else:
+    #         speed = 0
+
+    #     return speed
+
+    # def on_mouse_leave(self, x: int, y: int) -> None:
+    #     self.x_movement = 0
+    #     self.y_movement = 0
 
     def _update_coordinates(self) -> None:
         self._update_x()
